@@ -1,0 +1,196 @@
+name: sagr
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  get: ^4.6.6
+  path_provider: ^2.1.5
+  internet_connection_checker_plus: ^2.6.0
+  dio: ^5.7.0
+  equatable: ^2.0.7
+  dartz: ^0.10.1
+  get_storage: ^2.1.1
+  another_flushbar: ^1.12.30
+  image_picker: ^1.1.2
+  url_launcher: ^6.3.1
+  flutter_styled_toast: ^2.2.1
+  internet_connection_checker: ^3.0.1
+  pull_to_refresh: ^2.0.0
+  flutter_svg: ^2.0.16
+  pattern_formatter: ^4.0.0
+  geolocator: ^13.0.2
+  cached_network_image: ^3.4.1
+  flutter_widget_from_html: ^0.15.3
+  sn_progress_dialog: ^1.2.0
+  flutter_verification_code: ^1.1.7
+  pin_code_fields: ^8.0.1
+  modal_bottom_sheet: ^3.0.0
+  shimmer: ^3.0.0
+  font_awesome_flutter: ^10.8.0
+  # switcher_button: ^0.0.4
+  # flutter_rating_bar: ^4.0.1
+  google_maps_flutter: ^2.10.0
+  animation_wrappers: ^3.0.0
+  animated_toggle_switch: ^0.8.4
+  im_stepper: ^1.0.1+1
+  flutter_native_splash: ^2.4.3
+  badges: ^3.1.2
+  nice_ripple: ^0.0.3
+  carousel_slider: ^5.0.0
+  adoptive_calendar: ^0.2.0
+  datepicker_dropdown: ^0.1.6
+  animated_custom_dropdown: ^3.1.1
+  flutter_chat_ui: ^1.6.15
+  file_picker: ^8.1.7
+  # open_filex: ^4.6.0
+  intl_phone_field: ^3.2.0
+  # intl_phone_number_input: ^0.7.4
+  # syncfusion_flutter_datepicker: ^28.1.39
+  date_picker_plus: ^4.1.0
+  # chatview: ^2.2.0
+  circular_profile_avatar: ^2.0.5
+  # syncfusion_flutter_calendar: ^28.2.3
+  table_calendar: ^3.1.3
+  flutter_timer_countdown: ^1.0.7
+  readmore: ^3.0.0
+  flutter_expandable_fab: ^2.3.0
+  # convex_bottom_bar: ^3.2.0
+  intl: ^0.19.0
+  simple_infinite_scroll: ^1.1.4
+  # listview_infinite_pagination: ^0.0.16
+  loading_animation_widget: ^1.3.0
+  firebase_core: ^3.6.0
+  firebase_messaging: ^15.1.3
+  flutter_local_notifications: ^19.1.0
+  uuid: ^4.5.1
+  record: ^6.0.0
+  permission_handler: ^12.0.0+1
+  audio_waveforms: ^1.3.0
+  just_audio: ^0.9.46
+  flutter_sound: ^9.28.0
+  timeago: ^3.7.1
+  audioplayers: ^5.2.0
+  agora_rtc_engine: ^6.5.0
+  # marquee: ^2.3.0
+  latlong2: ^0.8.1
+  workmanager: ^0.5.0
+  shared_preferences: ^2.5.3
+  # dot_navigation_bar: ^1.0.2
+  # crystal_navigation_bar: ^1.0.4
+  
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^5.0.0
+  dependency_validator: ^3.0.0 
+
+flutter_native_splash:
+  # color: "#ffffff"
+  # image: assets/start_screen.png
+  background_image: assets/start_screen.png
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  fonts:
+    - family: QS
+      fonts:
+        - asset: assets/fonts/QuickSand/Quicksand-Regular.ttf
+
+    - family: URW
+      fonts:
+        - asset: assets/fonts/URW-DIN-Arabic-Regular.ttf
+        - asset: assets/fonts/URW-DIN-Arabic-Demi.ttf
+          weight: 600
+        - asset: assets/fonts/URW-DIN-Arabic-Demi.ttf
+          weight: 500
+
+    - family: URWD
+      fonts:
+        - asset: assets/fonts/URW-DIN-Arabic-Demi.ttf
+
+
+
+
+    - family: QSB
+      fonts:
+        - asset: assets/fonts/QuickSand/Quicksand-Bold.ttf
+
+    - family: TJB
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+
+    - family: CAIRO
+      fonts:
+        - asset: assets/fonts/Cairo/Cairo-Regular.ttf
+
+    - family: Heebo
+      fonts:
+        - asset: assets/fonts/heebo/Heebo-Regular.ttf
+
+    - family: STC
+      fonts:
+        - asset: assets/fonts/STC-Regular.ttf

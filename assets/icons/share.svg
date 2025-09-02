@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
+  <g id="share" transform="translate(0.336 0.337)">
+    <g id="Shop_Now" data-name="Shop Now" transform="translate(0 0)">
+      <g id="Rectangle_1909" data-name="Rectangle 1909" transform="translate(-0.336 -0.336)" fill="#fff" stroke="#e8e8e8" stroke-width="2">
+        <rect width="36" height="36" rx="18" stroke="none"/>
+        <rect x="1" y="1" width="34" height="34" rx="17" fill="none"/>
+      </g>
+    </g>
+    <g id="sharee" transform="translate(10.174 26.702) rotate(-90)">
+      <path id="Path_39900" data-name="Path 39900" d="M11.745,3.927a.643.643,0,0,1-.618-.666v-1a.9.9,0,0,0-.865-.932H2.1a.9.9,0,0,0-.865.932v10.1A.9.9,0,0,0,2.1,13.3h8.159a.9.9,0,0,0,.865-.932V11.241a.62.62,0,1,1,1.236,0v1.125a2.187,2.187,0,0,1-2.1,2.263H2.1A2.187,2.187,0,0,1,0,12.366V2.263A2.187,2.187,0,0,1,2.1,0h8.159a2.187,2.187,0,0,1,2.1,2.263v1A.643.643,0,0,1,11.745,3.927Z" transform="translate(0 0)" fill="#949494"/>
+      <path id="Path_39901" data-name="Path 39901" d="M7.977,6.235a.595.595,0,0,1-.839-.077h0a.595.595,0,0,1,.071-.839L9.054,3.778H.595a.595.595,0,1,1,0-1.19H9.066L7.216,1.054A.6.6,0,1,1,7.977.138l2.552,2.106a1.19,1.19,0,0,1,0,1.844Z" transform="translate(7.014 4.126)" fill="#949494"/>
+    </g>
+  </g>
+</svg>

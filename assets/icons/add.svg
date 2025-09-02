@@ -1,0 +1,7 @@
+<svg id="add" xmlns="http://www.w3.org/2000/svg" width="24.527" height="24.527" viewBox="0 0 24.527 24.527">
+  <g id="Ellipse_7036" data-name="Ellipse 7036" fill="#fff" stroke="#f2f2f2" stroke-width="1">
+    <circle cx="12.264" cy="12.264" r="12.264" stroke="none"/>
+    <circle cx="12.264" cy="12.264" r="11.764" fill="none"/>
+  </g>
+  <path id="add-2" data-name="add" d="M9.085,4.1H6.057a.178.178,0,0,1-.178-.178V.891A.891.891,0,1,0,4.1.891V3.919a.178.178,0,0,1-.178.178H.891a.891.891,0,1,0,0,1.781H3.919a.178.178,0,0,1,.178.178V9.085a.891.891,0,1,0,1.781,0V6.057a.178.178,0,0,1,.178-.178H9.085a.891.891,0,1,0,0-1.781Zm0,0" transform="translate(7.321 6.957)" fill="#949494"/>
+</svg>

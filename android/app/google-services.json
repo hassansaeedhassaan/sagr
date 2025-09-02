@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "576258583050",
+    "project_id": "sagr-chat",
+    "storage_bucket": "sagr-chat.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576258583050:android:89df34d540b71b63bc4df3",
+        "android_client_info": {
+          "package_name": "com.example.sagr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCDyYt6v__C41bz2mscoPtqgh_11k-jwQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
