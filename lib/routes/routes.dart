@@ -34,9 +34,6 @@ import '../bindings/reset_password_bindings.dart';
 import '../features/auth/presentation/bindings/create_account_bindings.dart';
 import '../features/auth/presentation/screens/complete_account_screen.dart';
 import '../features/auth/presentation/screens/create_account_screen.dart';
-import '../features/cards/presentation/bindings/cards_bindings.dart';
-import '../features/cards/presentation/screens/cards_screen.dart';
-import '../features/cards/presentation/screens/create_new_card_screen.dart';
 import '../features/chat/presentation/screens/conversations_list_screen.dart';
 import '../features/chat/presentation/screens/messages_screen.dart';
 import '../features/commissions/presentation/bindings/commissions_bindings.dart';
@@ -52,8 +49,6 @@ import '../features/notifications/presentation/bindings/notifications_bindings.d
 import '../features/notifications/presentation/screens/notification_screen.dart';
 import '../features/products/presentation/bindings/create_ad_bindings.dart';
 import '../features/products/presentation/screens/product_info_screen.dart';
-import '../features/wallet/presentation/bindings/commissions_bindings.dart';
-import '../features/wallet/presentation/screens/wallet_screen.dart';
 import '../sagr_chat/core/bindings/auth_binding.dart';
 import '../sagr_chat/core/bindings/chat_binding.dart';
 import '../sagr_chat/routes/app_routes.dart';
@@ -268,18 +263,7 @@ final List<GetPage> routes = [
       name: '/commissions_screen',
       page: () => CommissionScreen(Get.find()),
       bindings: [ApplicationBinding(), CommissionsBindings()]),
-  GetPage(
-      name: '/wallet_screen',
-      page: () => WalletScreen(Get.find()),
-      bindings: [ApplicationBinding(), WalletBindings()]),
-  GetPage(
-      name: '/cards_screen',
-      page: () => CardsScreen(Get.find()),
-      bindings: [ApplicationBinding(), CardsBindings()]),
-  GetPage(
-      name: '/create_new_card_screen',
-      page: () => CreateNewCardScreen(Get.find()),
-      bindings: [ApplicationBinding(), CardsBindings()]),
+
   // GetPage(
   //     name: '/conversations_list',
   //     page: () => ConversationListScreen(Get.find()),
@@ -344,3 +328,6 @@ final List<GetPage> routes = [
     
 
 ];
+
+
+

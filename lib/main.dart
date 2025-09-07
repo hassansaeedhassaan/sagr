@@ -23,51 +23,20 @@ void main() async {
 
 
 
-print("I'm Here ✅✅✅✅✅");
-  // Workmanager().initialize(callbackDispatcher);
 
 
-
-
-//  Workmanager().initialize(
-//   callbackDispatcher,
-//   isInDebugMode: true, // This helps with debugging
-// );
 
 SmartTaskManager().initialize();
 
-// Workmanager().registerOneOffTask(
-//   "test",
-//   "locationUpdateTask",
-//   initialDelay: Duration(seconds: 1),
-// );
 
-
-//   print("START EVERY 15 Seconds");
-// // Chain multiple one-off tasks if needed
-//   Workmanager().registerOneOffTask(
-//     "chained-task-${DateTime.now().millisecondsSinceEpoch}",
-//     "chainedTask",
-//     initialDelay: Duration(seconds: 0), // Your desired interval
-//   );
-//   print("END EVERY 15 Seconds");
-
-
-//  final LocationService _locationService = LocationService();
-
-
-//  await _locationService.startLocationTracking();
-
-  
-  print("I'm Here ✅✅✅✅✅ AN Adaaat");
   // await Firebase.initializeApp();
-  //  try {
+   try {
     await Firebase.initializeApp(
-      // options: DefaultFirebaseOptions.currentPlatform,
+      options: DefaultFirebaseOptions.currentPlatform,
     );
-  // } catch (e) {
-  //   print('Firebase initialization error: $e');
-  // }
+  } catch (e) {
+    print('Firebase initialization error: $e');
+  }
   
   // await NotificationService.instance.initialize();
 
