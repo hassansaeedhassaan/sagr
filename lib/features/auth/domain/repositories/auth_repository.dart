@@ -12,5 +12,9 @@ abstract class AuthRepository {
   Future<Either<Failure, CustomerModel>> completeAccount(
       Map<String, dynamic> body);
 
+
+  Future<Either<Failure, CustomerModel>> updateProfile(
+      Map<String, dynamic> body);
+
   
 }

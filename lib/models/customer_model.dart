@@ -8,12 +8,16 @@ class CustomerModel {
   String? lastName;
   String? nationalID;
   String? phone;
+  bool? isCompleted;
+  String? email;
+  String? type;
+  String? countryCode;
+  String? gender;
 
-
-  CustomerModel({ this.id,  this.name, this.firstName, this.middleName, this.lastName, this.nationalID, this.phone});
+  CustomerModel({ this.id,  this.name, this.firstName, this.middleName, this.lastName, this.nationalID, this.phone,  this.isCompleted, this.gender, this.countryCode});
 
   Map<String, dynamic> toMap() {
-    return {'id': id, 'name': name, 'firstName': firstName, 'middleName': middleName, 'lastName': lastName,'nationalID': nationalID, 'phone': phone };
+    return {'id': id, 'name': name, 'firstName': firstName, 'middleName': middleName, 'lastName': lastName,'nationalID': nationalID, 'phone': phone, 'is_completed': isCompleted, 'countryCode': countryCode, 'gender': gender };
   }
 
   factory CustomerModel.fromMap(Map<String, dynamic> json) {
@@ -25,7 +29,10 @@ class CustomerModel {
         middleName: json['middleName'] ?? '',
         lastName: json['lastName'] ?? '',
         phone: json['phone']??'',
-        nationalID: json['nationalID'] ?? ''
+        nationalID: json['nationalID'] ?? '',
+        isCompleted: json['is_completed'],
+        gender: json['gender'],
+            countryCode: json['countryCode']
         );
   }
 
@@ -39,7 +46,10 @@ class CustomerModel {
       middleName: json['middleName'] ?? '',
       lastName: json['lastName'] ?? '',
       phone: json['phone']??'',
-      nationalID: json['nationalID'] ?? ''
+      nationalID: json['nationalID'] ?? '',
+      isCompleted: json['is_completed'] ?? false,
+      gender: json['gender']??'male',
+      countryCode: json['countryCode']??'sa'
     );
   }
 }

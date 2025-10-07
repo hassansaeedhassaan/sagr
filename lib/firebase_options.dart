@@ -53,17 +53,13 @@ class DefaultFirebaseOptions {
     storageBucket: 'my-chat-app-dc6d6.firebasestorage.app',
   );
 
-
   // Initialize Firebase
-
-
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCKJ9nvvfvAxyhgXMAlqFutMH93uCKx0YU',
-    appId: '1:576258583050:ios:fc46d7847fcb07a1bc4df3',
-    messagingSenderId: '679415770760',
-    projectId: 'sagr-chat',
-    storageBucket: 'sagr-chat.firebasestorage.app',
-    iosBundleId: 'com.example.sagr',
+    apiKey: 'AIzaSyCGeBXQAP02QWmhn2cAR5cw6dtywy6B7Hk',
+    appId: '1:533327852831:ios:1f2e464a0695176bff2c2a',
+    messagingSenderId: '533327852831',
+    projectId: 'sagr-app',
+    storageBucket: 'sagr-app.firebasestorage.app',
+    iosBundleId: 'sa.sos.sagr-app',
   );
 }

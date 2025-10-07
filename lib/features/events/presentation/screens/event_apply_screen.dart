@@ -313,7 +313,7 @@ class _EventApplyScreenState extends State<EventApplyScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 1),
                   GetBuilder<JobsController>(
                     init: JobsController(Get.find()),
                     builder: (jobsController) {

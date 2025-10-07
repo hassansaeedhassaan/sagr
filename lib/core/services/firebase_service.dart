@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../../firebase_options.dart';
+
 class FirebaseService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -67,7 +69,7 @@ class FirebaseService {
     _messaging.onTokenRefresh.listen(_updateFcmToken);
 
     // Get the token and update it on the server
-    final token = await _messaging.getToken();
+    final token = await _messaging.getAPNSToken();
     if (token != null) {
       await _updateFcmToken(token);
     }

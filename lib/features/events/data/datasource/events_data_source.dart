@@ -321,7 +321,7 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
   @override
   Future<EventModel> getEventDetails(int id) async {
     var response =
-        await dio.get("https://sagr.libraryrajab.com/api/v1/events/${id}/show");
+        await dio.get("https://crowds.sa/api/v1/events/${id}/show");
 
     if (response.statusCode == 200) {
       final EventModel event = EventModel.fromJson(response.data['data']);
@@ -336,7 +336,7 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
   Future<Response> apply(Map<String, dynamic> body) async {
     try {
       final response = await dio
-          .post("https://sagr.libraryrajab.com/api/v1/event/apply", data: body);
+          .post("https://crowds.sa/api/v1/event/apply", data: body);
 
       print('Response: ${response.data}');
     } on DioException catch (e) {

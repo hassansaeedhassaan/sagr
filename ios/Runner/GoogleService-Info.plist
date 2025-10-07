@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyCKJ9nvvfvAxyhgXMAlqFutMH93uCKx0YU</string>
+	<string>AIzaSyCGeBXQAP02QWmhn2cAR5cw6dtywy6B7Hk</string>
 	<key>GCM_SENDER_ID</key>
-	<string>576258583050</string>
+	<string>533327852831</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.sagr</string>
+	<string>sa.sos.sagr-app</string>
 	<key>PROJECT_ID</key>
-	<string>sagr-chat</string>
+	<string>sagr-app</string>
 	<key>STORAGE_BUCKET</key>
-	<string>sagr-chat.firebasestorage.app</string>
+	<string>sagr-app.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:576258583050:ios:fc46d7847fcb07a1bc4df3</string>
+	<string>1:533327852831:ios:1f2e464a0695176bff2c2a</string>
 </dict>
 </plist>

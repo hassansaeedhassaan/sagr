@@ -177,7 +177,7 @@ class _JobApplicationSuccessPageState extends State<JobApplicationSuccessPage>
                   
                   // Success title
                   Text(
-                    'Application Submitted!',
+                    'Application Submitted!'.tr,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -192,7 +192,7 @@ class _JobApplicationSuccessPageState extends State<JobApplicationSuccessPage>
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      'Your job application has been successfully submitted. Please wait for the App Manager\'s response.',
+                      'Your job application has been successfully submitted. Please wait for the App Manager\'s response.'.tr,
                       style: TextStyle(
                         fontSize: 16,
                         color: Color(0xFF6C757D),
@@ -233,7 +233,7 @@ class _JobApplicationSuccessPageState extends State<JobApplicationSuccessPage>
                             ),
                             SizedBox(width: 12),
                             Text(
-                              'Status: Under Review',
+                              'Status: Under Review'.tr,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -252,7 +252,7 @@ class _JobApplicationSuccessPageState extends State<JobApplicationSuccessPage>
                             ),
                             SizedBox(width: 12),
                             Text(
-                              'Expected response: 3-5 business days',
+                              'Expected response: 3-5 business days'.tr,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF6C757D),
@@ -270,7 +270,7 @@ class _JobApplicationSuccessPageState extends State<JobApplicationSuccessPage>
                             ),
                             SizedBox(width: 12),
                             Text(
-                              'You\'ll receive updates via email',
+                              'You\'ll receive updates via email'.tr,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Color(0xFF6C757D),
@@ -303,7 +303,7 @@ class _JobApplicationSuccessPageState extends State<JobApplicationSuccessPage>
                               ),
                             ),
                             child: Text(
-                              'Back to Home',
+                              'Back to Home'.tr,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -312,29 +312,29 @@ class _JobApplicationSuccessPageState extends State<JobApplicationSuccessPage>
                           ),
                         ),
                         SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              // Navigate to applications tracking
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Color(0xFF495057),
-                              side: BorderSide(color: Color(0xFF6C757D)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Track Applications',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
+                        // SizedBox(
+                        //   width: double.infinity,
+                        //   height: 52,
+                        //   child: OutlinedButton(
+                        //     onPressed: () {
+                        //       // Navigate to applications tracking
+                        //     },
+                        //     style: OutlinedButton.styleFrom(
+                        //       foregroundColor: Color(0xFF495057),
+                        //       side: BorderSide(color: Color(0xFF6C757D)),
+                        //       shape: RoundedRectangleBorder(
+                        //         borderRadius: BorderRadius.circular(12),
+                        //       ),
+                        //     ),
+                        //     child: Text(
+                        //       'Track Applications',
+                        //       style: TextStyle(
+                        //         fontSize: 16,
+                        //         fontWeight: FontWeight.w600,
+                        //       ),
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),

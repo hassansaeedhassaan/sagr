@@ -39,7 +39,7 @@ class NotificationService {
   Future<void> sendTokenToServer(String token) async {
     try {
       final response = await _dio.post(
-        'https://sagr.libraryrajab.com/api/v1/fcm-token',
+        'https://crowds.sa/api/v1/fcm-token',
         data: {'fcm_token': token},
         options: Options(
           headers: {

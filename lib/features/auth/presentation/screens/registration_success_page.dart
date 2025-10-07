@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'package:get/get.dart';
+
 class RegistrationSuccessPage extends StatefulWidget {
   const RegistrationSuccessPage({Key? key}) : super(key: key);
 
@@ -245,7 +247,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                               child: Column(
                                 children: [
                                   Text(
-                                    'Success!',
+                                    'Success!'.tr,
                                     style: TextStyle(
                                       fontSize: 42,
                                       fontWeight: FontWeight.bold,
@@ -261,7 +263,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Your account has been\ncreated successfully!',
+                                    'Your account has been\ncreated successfully!'.tr,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 18,
@@ -314,7 +316,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Welcome to our community!',
+                                    'Welcome to our community!'.tr,
                                     style: TextStyle(
                                       color: Colors.white.withOpacity(0.9),
                                       fontSize: 16,
@@ -369,7 +371,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                       borderRadius: BorderRadius.circular(28),
                                     ),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
@@ -379,7 +381,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                       ),
                                       SizedBox(width: 12),
                                       Text(
-                                        'Back to Login',
+                                        'Back to Login'.tr,
                                         style: TextStyle(
                                           color: Color(0xFF667eea),
                                           fontSize: 18,

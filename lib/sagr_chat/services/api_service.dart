@@ -9,7 +9,7 @@ class ApiService extends GetxService {
   late dio.Dio _dio;
   final _storage = GetStorage();
 
-  static const String baseUrl = 'https://sagr.libraryrajab.com/api/v1';
+  static const String baseUrl = 'https://crowds.sa/api/v1';
 
   @override
   void onInit() {

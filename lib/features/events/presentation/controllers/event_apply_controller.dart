@@ -1,9 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:sagr/features/auth/presentation/screens/registration_success_page.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
 import 'package:get/get.dart';
@@ -75,7 +71,7 @@ class EventApplyController extends GetxController {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.isRegistered<AuthController>() &&
           authController.authenticatedUser != null &&
-          authController.authenticatedUser!['is_completed'] == 0) {
+          authController.authenticatedUser!['is_completed'] == false) {
         Get.offNamed('/complete_account');
       }
     });

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+// import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:get/get.dart';
+import '../controllers/event_controller.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({super.key});
@@ -80,7 +83,10 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
       _cardController.forward();
     });
   }
-  
+
+    EventController _eventController = Get.put(EventController(Get.find()));
+
+
   @override
   void dispose() {
     _mainController.dispose();
@@ -457,6 +463,15 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
       ),
       child: Column(
         children: [
+
+
+// Text("https://crowds.sa/${_eventController.event!.attachment!}"),
+
+
+
+
+
+
           _buildDetailRow(
             Icons.calendar_today,
             "تاريخ مباشرة العمل",
@@ -806,10 +821,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
   void _showContractTerms() {
     showModalBottomSheet(
       context: context,
+      enableDrag: false,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 200),
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: const BoxDecoration(
           color: Colors.white,
@@ -866,21 +882,13 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildContractSection("الشروط العامة", [
-                      "الالتزام بمواعيد العمل المحددة",
-                      "احترام سياسات الشركة وقوانينها",
-                      "المحافظة على سرية المعلومات",
-                    ]),
-                    _buildContractSection("المسؤوليات", [
-                      "تنفيذ المهام الموكلة بدقة",
-                      "التعاون مع فريق العمل",
-                      "التطوير المستمر للمهارات",
-                    ]),
-                    _buildContractSection("الحقوق", [
-                      "الحصول على الراتب في الموعد المحدد",
-                      "الإجازات السنوية حسب القانون",
-                      "بيئة عمل آمنة ومناسبة",
-                    ]),
+
+              SizedBox(
+                height: 600,
+                child: SfPdfViewer.network(
+                  "https://crowds.sa/${_eventController.event!.attachment!}"
+                ),
+              ),
                   ],
                 ),
               ),

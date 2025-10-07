@@ -41,6 +41,9 @@ class EventModel extends Event {
 
   final String? userType;
 
+  final String? attachment;
+
+
   final StartDateTimeModel? startDateTime;
 
   const EventModel(
@@ -60,6 +63,7 @@ class EventModel extends Event {
       this.startDateTime,
       this.assigned,
       this.channel,
+      this.attachment,
       this.supervisorChannel,
       this.zoneCoordinates,
       this.zone_id,
@@ -106,6 +110,7 @@ class EventModel extends Event {
       periods: periodsResults,
       zone_id: json['zone_id'],
       user_id: json['user_id'],
+      attachment: json['attachment']??"undefined",
       isCheckedIn: json['isCheckIn'] ?? false,
       startDateTime: StartDateTimeModel.fromJson(json['startDateTime']),
       assigned: json['assigned'] ?? false,
@@ -148,7 +153,8 @@ class EventModel extends Event {
       'supervisorChannel': supervisorChannel?.toJson(),
       'zoneCoordinates': zoneCoordinates,
       'zone_id': zone_id,
-      'user_id': user_id
+      'user_id': user_id,
+      'attachment': attachment
     };
   }
 

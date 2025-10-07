@@ -13,7 +13,11 @@ import 'package:sagr/features/marital_status/data/models/marital_status_model.da
 import 'package:sagr/features/marital_status/presentation/controllers/marital_status_controller.dart';
 import 'package:sagr/view/widgets/Forms/easy_app_text_form_field.dart';
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import '../../../../helper/base_url.dart';
 import '../../../../widgets/Common/custom_dropdown.dart';
+import '../../../../widgets/image_edit_preview.dart';
+import '../../../../widgets/pdf_preview.dart';
 import '/../core/utils/size_utils.dart';
 
 class UpdateAccountScreen extends StatefulWidget {
@@ -25,15 +29,15 @@ class UpdateAccountScreen extends StatefulWidget {
 
 class _UpdateAccountScreenState extends State<UpdateAccountScreen>
     with TickerProviderStateMixin {
-  
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  CreateAccountController _accountController = Get.put(CreateAccountController(Get.find()));
+  CreateAccountController _accountController =
+      Get.put(CreateAccountController(Get.find()));
 
   late AnimationController _slideController;
   late AnimationController _fadeController;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
-  
+
   final storage = GetStorage();
   Map<String, dynamic>? userData;
   bool isLoadingData = true;
@@ -41,10 +45,10 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Load stored user data
     _loadUserData();
-    
+
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -73,8 +77,7 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
     _startAnimations();
   }
 
-
- List<LanguageModel> selectedLanguages = [];
+  List<LanguageModel> selectedLanguages = [];
   List<LanguageModel> availableLanguages = [
     LanguageModel(id: 1, name: 'English', code: 'en'),
     LanguageModel(id: 2, name: 'Spanish', code: 'es'),
@@ -92,32 +95,31 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
     setState(() {
       isLoadingData = true;
     });
-    
+
     try {
-      await Future.delayed(Duration(milliseconds: 500)); // Small delay for smooth transition
+      await Future.delayed(
+          Duration(milliseconds: 500)); // Small delay for smooth transition
       userData = storage.read('userData');
 
+      print("🔥🔥🔥🔥🔥");
+      print(userData);
+      print("🔥🔥🔥🔥🔥");
 
-
-      
       if (userData != null) {
-
-        print("😋");
-      print(userData!['ibanNo']);
-      print("😋");
-
         // Pre-populate controller with stored data
         _accountController.firstName = userData!['firstName'] ?? '';
         _accountController.middleName = userData!['middleName'] ?? '';
         _accountController.lastName = userData!['lastName'] ?? '';
         _accountController.nationalNo = userData!['nationalID'] ?? '';
-        _accountController.ibanNumber = userData!['ibanNo'] ?? '';
+        _accountController.ibanNumber = userData!['ibanNumber'] ?? '';
         _accountController.bankAccountName = userData!['bankAccountName'] ?? '';
         _accountController.experts = userData!['experts'] ?? '';
-        _accountController.previousEvents = userData!['previous_events_past'] ?? '';
-        _accountController.chronicDiseases = userData!['chronic_diseases'] ?? '';
+        _accountController.previousEvents =
+            userData!['previous_events_past'] ?? '';
+        _accountController.chronicDiseases =
+            userData!['chronic_diseases'] ?? '';
         _accountController.setGender(userData!['gender'] ?? 'male');
-        
+
         // Handle dropdown selections
         if (userData!['selectedEducation'] != null) {
           // Set education if stored
@@ -127,7 +129,7 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
           //   name: educationData['name'],
           // );
         }
-        
+
         if (userData!['job'] != null) {
           // Set job if stored
           var jobData = userData!['selectedJob'];
@@ -136,26 +138,17 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
           //   name: jobData['name'],
           // );
         }
-        
+
         if (userData!['selectedMaritalStatus'] != null) {
           // Set marital status if stored
           var maritalStatusData = userData!['selectedMaritalStatus'];
           _accountController.setSelectedMaritalStatus(maritalStatusData);
         }
-        
+
         if (userData!['languages'] != null) {
-
-          
-
           // Set languages if stored
           // _accountController.languages = List<int>.from(userData!['languages']);
         }
-
-        
-
-
-
-        
         print('Loaded user data: $userData');
       }
     } catch (e) {
@@ -180,32 +173,43 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
         'firstName': _accountController.firstName,
         'middleName': _accountController.middleName,
         'lastName': _accountController.lastName,
-        'nationalNo': _accountController.nationalNo,
+        'nationalID': _accountController.nationalNo,
         'ibanNumber': _accountController.ibanNumber,
         'bankAccountName': _accountController.bankAccountName,
         'experts': _accountController.experts,
-        'previousEvents': _accountController.previousEvents,
+        'previous_events_past': _accountController.previousEvents,
         'chronicDiseases': _accountController.chronicDiseases,
         'gender': _accountController.gender,
-        'selectedEducation': _accountController.selectedEducation.id != null ? {
-          'id': _accountController.selectedEducation.id,
-          'name': _accountController.selectedEducation.name,
-        } : null,
-        'selectedJob': _accountController.selectedJob.id != null ? {
-          'id': _accountController.selectedJob.id,
-          'name': _accountController.selectedJob.name,
-        } : null,
-        'selectedMaritalStatus': _accountController.selectedMaritalStatus.id != null ? {
-          'id': _accountController.selectedMaritalStatus.id,
-          'name': _accountController.selectedMaritalStatus.name,
-        } : null,
+        'selectedEducation': _accountController.selectedEducation.id != null
+            ? {
+                'id': _accountController.selectedEducation.id,
+                'name': _accountController.selectedEducation.name,
+              }
+            : null,
+        'selectedJob': _accountController.selectedJob.id != null
+            ? {
+                'id': _accountController.selectedJob.id,
+                'name': _accountController.selectedJob.name,
+              }
+            : null,
+        'selectedMaritalStatus':
+            _accountController.selectedMaritalStatus.id != null
+                ? {
+                    'id': _accountController.selectedMaritalStatus.id,
+                    'name': _accountController.selectedMaritalStatus.name,
+                  }
+                : null,
         'languages': _accountController.languages,
       };
-      
+
+      print("SAVED DATA START 💪💪💪");
+
+      print(updatedData);
+      print("SAVED DATA END 💪💪💪");
       // Save updated data to storage
       storage.write('userData', updatedData);
       print('Updated user data saved: $updatedData');
-      
+
       // Show success message
       Get.snackbar(
         'نجح التحديث',
@@ -213,7 +217,6 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-      
     } catch (e) {
       print('Error saving updated data: $e');
       Get.snackbar(
@@ -295,11 +298,13 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
         Row(
           children: [
             Expanded(
-              child: _buildGenderOption(accountController, 'male', 'ذكر', Icons.male),
+              child: _buildGenderOption(
+                  accountController, 'male', 'ذكر', Icons.male),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildGenderOption(accountController, 'female', 'انثي', Icons.female),
+              child: _buildGenderOption(
+                  accountController, 'female', 'انثي', Icons.female),
             ),
           ],
         ),
@@ -314,7 +319,7 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
     IconData icon,
   ) {
     final isSelected = accountController.gender == gender;
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -381,18 +386,73 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
         Row(
           children: [
             Expanded(
-              child: _buildFileUploadButton(
-                "إرفاق مستند الايبان",
-                Icons.picture_as_pdf,
-                () => accountController.handleFileSelectionForIban(),
+              child: Column(
+                children: [
+                  _buildFileUploadButton(
+                    "إرفاق مستند الايبان",
+                    Icons.picture_as_pdf,
+                    () => accountController.handleFileSelectionForIban(),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 2),
+                    decoration: BoxDecoration(
+                      border: Border.all(width: 1),
+                      borderRadius: BorderRadius.circular(4)
+                    ),
+                    child: InkWell(
+                      onTap: () =>
+                          _showExistFile(HOSTURL + "${userData?['iban_file']}", 'الإيبان'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.picture_as_pdf),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text("عرض ملف الإيبان")
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildFileUploadButton(
-                "إرفاق السيرة الذاتية",
-                Icons.description,
-                () => accountController.handleFileSelection(),
+              child: Column(
+                children: [
+                  _buildFileUploadButton(
+                    "إرفاق السيرة الذاتية",
+                    Icons.description,
+                    () => accountController.handleFileSelection(),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 2),
+                    decoration: BoxDecoration(
+                      border: Border.all(width: 1),
+                      borderRadius: BorderRadius.circular(4)
+                    ),
+                    child: InkWell(
+                      onTap: () =>
+                          _showExistFile(HOSTURL + "${userData?['emp_cv']}", "السيرة الذاتية"),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.picture_as_pdf),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Text("عرض السيرة الذاتية")
+                        ],
+                      ),
+                    ),
+                  ),
+                
+                ],
               ),
             ),
           ],
@@ -401,33 +461,116 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
     );
   }
 
-  Widget _buildFileUploadButton(String title, IconData icon, VoidCallback onTap) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade300, width: 1),
+  void _showExistFile(url, String? name) {
+    showModalBottomSheet(
+      context: context,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: MediaQuery.of(context).size.height * 0.8,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(25),
+            topRight: Radius.circular(25),
           ),
-          child: Column(
-            children: [
-              Icon(icon, color: Colors.blue.shade600, size: 24),
-              const SizedBox(height: 6),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[700],
+        ),
+        child: Column(
+          children: [
+            // Handle Bar
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.description,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                   Text(name!,
+                  
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 600,
+                      child: SfPdfViewer.network(url),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileUploadButton(
+      String title, IconData icon, VoidCallback onTap) {
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+            ),
+            child: Column(
+              children: [
+                Icon(icon, color: Colors.blue.shade600, size: 24),
+                const SizedBox(height: 6),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -506,7 +649,8 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -520,7 +664,7 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
               ),
             );
           }
-          
+
           return SizedBox(
             width: SizeUtils.width,
             child: SingleChildScrollView(
@@ -536,20 +680,23 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                     child: Column(
                       children: [
                         const SizedBox(height: 8),
-                        
+
                         // Personal Information
                         _buildAnimatedField(
                           delay: 0,
                           child: _buildSectionCard(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
                                   initialValue: userData?['firstName'] ?? '',
-                                  onSave: (value) => accountController.firstName = value!,
+                                  onSave: (value) =>
+                                      accountController.firstName = value!,
                                   labelText: "First Name".tr,
                                   hintText: "",
-                                  prefixIcon: Icon(Icons.person_outline, color: Colors.blue.shade600),
+                                  prefixIcon: Icon(Icons.person_outline,
+                                      color: Colors.blue.shade600),
                                   onValidate: (value) {
                                     if (value?.isEmpty == true) {
                                       return "First Name Required!".tr;
@@ -558,16 +705,18 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                                   },
                                 ),
                               ),
-                              
                               const SizedBox(height: 12),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
                                   initialValue: userData?['middleName'] ?? '',
-                                  onSave: (value) => accountController.middleName = value!,
+                                  onSave: (value) =>
+                                      accountController.middleName = value!,
                                   labelText: "Middle Name".tr,
                                   hintText: "",
-                                  prefixIcon: Icon(Icons.person_outline, color: Colors.blue.shade600),
+                                  prefixIcon: Icon(Icons.person_outline,
+                                      color: Colors.blue.shade600),
                                   onValidate: (value) {
                                     if (value?.isEmpty == true) {
                                       return "Middle Name Required!".tr;
@@ -576,16 +725,18 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                                   },
                                 ),
                               ),
-                              
                               const SizedBox(height: 12),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
                                   initialValue: userData?['lastName'] ?? '',
-                                  onSave: (value) => accountController.lastName = value!,
+                                  onSave: (value) =>
+                                      accountController.lastName = value!,
                                   labelText: "Family Name".tr,
                                   hintText: "",
-                                  prefixIcon: Icon(Icons.person_outline, color: Colors.blue.shade600),
+                                  prefixIcon: Icon(Icons.person_outline,
+                                      color: Colors.blue.shade600),
                                   onValidate: (value) {
                                     if (value?.isEmpty == true) {
                                       return "Family Name Required!".tr;
@@ -603,32 +754,38 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                           delay: 1,
                           child: _buildSectionCard(
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                child: EasyAppTextFormField(
-                                  initialValue: userData?['nationalID'] ?? '',
-                                  onSave: (value) => accountController.nationalNo = value!,
-                                  labelText: "National Number".tr,
-                                  hintText: "",
-                                  prefixIcon: Icon(Icons.badge_outlined, color: Colors.blue.shade600),
-                                  onValidate: (value) {
-                                    if (value?.isEmpty == true) {
-                                      return "National Number Required!".tr;
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              
+                              // Padding(
+                              //   padding:
+                              //       const EdgeInsets.symmetric(horizontal: 8),
+                              //   child: EasyAppTextFormField(
+                              //     enable: false,
+                              //     initialValue: userData?['nationalID'] ?? '',
+                              //     onSave: (value) =>
+                              //         accountController.nationalNo = value!,
+                              //     labelText: "National Number".tr,
+                              //     hintText: "",
+                              //     prefixIcon: Icon(Icons.badge_outlined,
+                              //         color: Colors.blue.shade600),
+                              //     onValidate: (value) {
+                              //       if (value?.isEmpty == true) {
+                              //         return "National Number Required!".tr;
+                              //       }
+                              //       return null;
+                              //     },
+                              //   ),
+                              // ),
                               const SizedBox(height: 12),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
                                   initialValue: userData?['ibanNo'] ?? '',
-                                  onSave: (value) => accountController.ibanNumber = value!,
+                                  onSave: (value) =>
+                                      accountController.ibanNumber = value!,
                                   labelText: "Iban Number".tr,
                                   hintText: "",
-                                  prefixIcon: Icon(Icons.credit_card, color: Colors.blue.shade600),
+                                  prefixIcon: Icon(Icons.credit_card,
+                                      color: Colors.blue.shade600),
                                   onValidate: (value) {
                                     if (value?.isEmpty == true) {
                                       return "Iban Number Required!".tr;
@@ -637,16 +794,19 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                                   },
                                 ),
                               ),
-                              
                               const SizedBox(height: 12),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
-                                  initialValue: userData?['bankAccountName'] ?? '',
-                                  onSave: (value) => accountController.bankAccountName = value!,
+                                  initialValue:
+                                      userData?['bankAccountName'] ?? '',
+                                  onSave: (value) => accountController
+                                      .bankAccountName = value!,
                                   labelText: "Bank Account Name".tr,
                                   hintText: "",
-                                  prefixIcon: Icon(Icons.account_balance, color: Colors.blue.shade600),
+                                  prefixIcon: Icon(Icons.account_balance,
+                                      color: Colors.blue.shade600),
                                   onValidate: (value) {
                                     if (value?.isEmpty == true) {
                                       return "Bank Account Name Required!".tr;
@@ -666,149 +826,181 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                             children: [
                               // Education Dropdown
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
                                 ),
                                 child: GetBuilder<EducationsController>(
                                   init: EducationsController(Get.find()),
                                   builder: (educationController) {
                                     return CustomDropdownV2<EducationModel?>(
                                       leadingIcon: true,
-                                      onChange: (int index) => accountController.setSelectedEducation(
-                                          educationController.educations[index]),
+                                      onChange: (int index) => accountController
+                                          .setSelectedEducation(
+                                              educationController
+                                                  .educations[index]),
                                       dropdownButtonStyle: DropdownButtonStyle(
                                         width: double.infinity,
                                         height: 50,
                                         elevation: 0,
                                         backgroundColor: Colors.white,
                                         primaryColor: Colors.grey.shade400,
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                       ),
                                       dropdownStyle: DropdownStyle(
                                         color: WHITE_COLOR,
                                         elevation: 0,
                                         padding: EdgeInsets.all(0),
                                         shape: RoundedRectangleBorder(
-                                          side: BorderSide(color: Colors.grey, width: 0),
-                                          borderRadius: BorderRadius.circular(8),
+                                          side: BorderSide(
+                                              color: Colors.grey, width: 0),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
                                       items: educationController.educations
                                           .asMap()
                                           .entries
-                                          .map((item) => DropdownItem<EducationModel?>(
+                                          .map((item) =>
+                                              DropdownItem<EducationModel?>(
                                                 value: item.value,
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
                                                   child: Text(item.value.name!),
                                                 ),
                                               ))
                                           .toList(),
                                       child: Text(
-                                        accountController.selectedEducation.id != null
-                                            ? accountController.selectedEducation.name!
+                                        accountController
+                                                    .selectedEducation.id !=
+                                                null
+                                            ? accountController
+                                                .selectedEducation.name!
                                             : "Education Level".tr,
                                       ),
                                     );
                                   },
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 12),
-                              
+
                               // Job Dropdown
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
                                 ),
                                 child: GetBuilder<JobsController>(
                                   init: JobsController(Get.find()),
                                   builder: (jobsController) {
                                     return CustomDropdownV2<JobModel?>(
                                       leadingIcon: true,
-                                      onChange: (int index) => accountController.setSelectedJob(
-                                          jobsController.jobs[index]),
+                                      onChange: (int index) =>
+                                          accountController.setSelectedJob(
+                                              jobsController.jobs[index]),
                                       dropdownButtonStyle: DropdownButtonStyle(
                                         width: double.infinity,
                                         height: 50,
                                         elevation: 0,
                                         backgroundColor: Colors.white,
                                         primaryColor: Colors.grey.shade400,
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                       ),
                                       dropdownStyle: DropdownStyle(
                                         color: WHITE_COLOR,
                                         elevation: 0,
                                         padding: EdgeInsets.all(0),
                                         shape: RoundedRectangleBorder(
-                                          side: BorderSide(color: Colors.grey, width: 0),
-                                          borderRadius: BorderRadius.circular(8),
+                                          side: BorderSide(
+                                              color: Colors.grey, width: 0),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
                                       items: jobsController.jobs
                                           .asMap()
                                           .entries
-                                          .map((item) => DropdownItem<JobModel?>(
+                                          .map((item) =>
+                                              DropdownItem<JobModel?>(
                                                 value: item.value,
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
                                                   child: Text(item.value.name!),
                                                 ),
                                               ))
                                           .toList(),
                                       child: Text(
                                         accountController.selectedJob.id != null
-                                            ? accountController.selectedJob.name!
+                                            ? accountController
+                                                .selectedJob.name!
                                             : "Job Status".tr,
                                       ),
                                     );
                                   },
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 12),
-                              
+
                               // Marital Status Dropdown
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
                                 ),
                                 child: GetBuilder<MaritalStatusController>(
                                   init: MaritalStatusController(Get.find()),
                                   builder: (maritalStatusController) {
-                                    return CustomDropdownV2<MaritalStatusModel?>(
+                                    return CustomDropdownV2<
+                                        MaritalStatusModel?>(
                                       leadingIcon: true,
-                                      onChange: (int index) => accountController.setSelectedMaritalStatus(
-                                          maritalStatusController.maritalStatus[index]),
+                                      onChange: (int index) => accountController
+                                          .setSelectedMaritalStatus(
+                                              maritalStatusController
+                                                  .maritalStatus[index]),
                                       dropdownButtonStyle: DropdownButtonStyle(
                                         width: double.infinity,
                                         height: 50,
                                         elevation: 0,
                                         backgroundColor: Colors.white,
                                         primaryColor: Colors.grey.shade400,
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                       ),
                                       dropdownStyle: DropdownStyle(
                                         color: WHITE_COLOR,
                                         elevation: 0,
                                         shape: RoundedRectangleBorder(
-                                          side: BorderSide(color: Colors.grey, width: 0),
-                                          borderRadius: BorderRadius.circular(8),
+                                          side: BorderSide(
+                                              color: Colors.grey, width: 0),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                       ),
-                                      items: maritalStatusController.maritalStatus
+                                      items: maritalStatusController
+                                          .maritalStatus
                                           .asMap()
                                           .entries
-                                          .map((item) => DropdownItem<MaritalStatusModel?>(
+                                          .map((item) =>
+                                              DropdownItem<MaritalStatusModel?>(
                                                 value: item.value,
                                                 child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
                                                   child: Text(item.value.name!),
                                                 ),
                                               ))
@@ -817,8 +1009,12 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                                         children: [
                                           const SizedBox(width: 2),
                                           Text(
-                                            accountController.selectedMaritalStatus.id != null
-                                                ? accountController.selectedMaritalStatus.name!
+                                            accountController
+                                                        .selectedMaritalStatus
+                                                        .id !=
+                                                    null
+                                                ? accountController
+                                                    .selectedMaritalStatus.name!
                                                 : "Marital Status".tr,
                                           ),
                                         ],
@@ -827,46 +1023,46 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                                   },
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 12),
 
-            //                   MultiSelectDropdown<LanguageModel>(
-            //   items: availableLanguages,
-            //   selectedItems: selectedLanguages,
-            //   onSelectionChanged: (List<LanguageModel> selected) {
-            //     setState(() {
-            //       selectedLanguages = selected;
-            //     });
-            //   },
-            //   displayItem: (LanguageModel language) => language.name!,
-            //   hintText: 'Choose languages...',
-            // ),
+                              //                   MultiSelectDropdown<LanguageModel>(
+                              //   items: availableLanguages,
+                              //   selectedItems: selectedLanguages,
+                              //   onSelectionChanged: (List<LanguageModel> selected) {
+                              //     setState(() {
+                              //       selectedLanguages = selected;
+                              //     });
+                              //   },
+                              //   displayItem: (LanguageModel language) => language.name!,
+                              //   hintText: 'Choose languages...',
+                              // ),
 
-            // if (selectedLanguages.isNotEmpty) ...[
-            //   // Text(
-            //   //   'Selected Languages:',
-            //   //   style: TextStyle(
-            //   //     fontSize: 16,
-            //   //     fontWeight: FontWeight.w600,
-            //   //     color: Colors.blueGrey[700],
-            //   //   ),
-            //   // ),
-            //   SizedBox(height: 12),
-            //   Wrap(
-            //     spacing: 8,
-            //     runSpacing: 8,
-            //     children: selectedLanguages
-            //         .map((language) => SelectedItemChip(
-            //               label: language.name!,
-            //               onDeleted: () {
-            //                 setState(() {
-            //                   selectedLanguages.remove(language);
-            //                 });
-            //               },
-            //             ))
-            //         .toList(),
-            //   ),],
-                              
+                              // if (selectedLanguages.isNotEmpty) ...[
+                              //   // Text(
+                              //   //   'Selected Languages:',
+                              //   //   style: TextStyle(
+                              //   //     fontSize: 16,
+                              //   //     fontWeight: FontWeight.w600,
+                              //   //     color: Colors.blueGrey[700],
+                              //   //   ),
+                              //   // ),
+                              //   SizedBox(height: 12),
+                              //   Wrap(
+                              //     spacing: 8,
+                              //     runSpacing: 8,
+                              //     children: selectedLanguages
+                              //         .map((language) => SelectedItemChip(
+                              //               label: language.name!,
+                              //               onDeleted: () {
+                              //                 setState(() {
+                              //                   selectedLanguages.remove(language);
+                              //                 });
+                              //               },
+                              //             ))
+                              //         .toList(),
+                              //   ),],
+
                               // Languages Dropdown
                               // Container(
                               //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
@@ -897,61 +1093,77 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                               //   ),
                               // ),
 
-
-
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade300),
-                                ),
-                                child: GetBuilder<LanguagesController>(
-                                  init: LanguagesController(Get.find()),
-                                  builder: (languageController) {
-                                    // Get selected languages based on userData
-                                    List<LanguageModel> selectedLanguages = [];
-                                    if (userData?['languages'] != null) {
-                                      List<dynamic> storedLanguages = userData!['languages'];
-                                      
-                                      if (storedLanguages.isNotEmpty) {
-                                        if (storedLanguages.first is Map) {
-                                          // If languages are stored as objects with id and name
-                                          List<int> languageIds = storedLanguages
-                                              .map((lang) => lang['id'] as int)
-                                              .toList();
-                                          selectedLanguages = languageController.languages
-                                              .where((lang) => languageIds.contains(lang.id))
-                                              .toList();
-                                        } else {
-                                          // If languages are stored as just IDs
-                                          List<int> languageIds = List<int>.from(storedLanguages);
-                                          selectedLanguages = languageController.languages
-                                              .where((lang) => languageIds.contains(lang.id))
-                                              .toList();
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border:
+                                        Border.all(color: Colors.grey.shade300),
+                                  ),
+                                  child: GetBuilder<LanguagesController>(
+                                    init: LanguagesController(Get.find()),
+                                    builder: (languageController) {
+                                      // Get selected languages based on userData
+                                      List<LanguageModel> selectedLanguages =
+                                          [];
+                                      if (userData?['languages'] != null) {
+                                        List<dynamic> storedLanguages =
+                                            userData!['languages'];
+
+                                        if (storedLanguages.isNotEmpty) {
+                                          if (storedLanguages.first is Map) {
+                                            // If languages are stored as objects with id and name
+                                            List<int> languageIds =
+                                                storedLanguages
+                                                    .map((lang) =>
+                                                        lang['id'] as int)
+                                                    .toList();
+                                            selectedLanguages =
+                                                languageController.languages
+                                                    .where((lang) => languageIds
+                                                        .contains(lang.id))
+                                                    .toList();
+                                          } else {
+                                            // If languages are stored as just IDs
+                                            List<int> languageIds =
+                                                List<int>.from(storedLanguages);
+                                            selectedLanguages =
+                                                languageController.languages
+                                                    .where((lang) => languageIds
+                                                        .contains(lang.id))
+                                                    .toList();
+                                          }
                                         }
                                       }
-                                    }
-                                    
-                                    return SizedBox(
-                                      child: CustomDropdown<LanguageModel>.multiSelect(
-                                        decoration: CustomDropdownDecoration(
-                                          closedBorder: Border.all(color: Colors.transparent),
-                                          expandedBorder: Border.all(color: Colors.transparent),
+
+                                      return SizedBox(
+                                        child: CustomDropdown<
+                                            LanguageModel>.multiSelect(
+                                          decoration: CustomDropdownDecoration(
+                                            closedBorder: Border.all(
+                                                color: Colors.transparent),
+                                            expandedBorder: Border.all(
+                                                color: Colors.transparent),
+                                          ),
+                                          hintText: 'Languages',
+                                          items: languageController.languages
+                                              .toList(),
+                                          initialItems: selectedLanguages,
+                                          onListChanged: (List<LanguageModel>
+                                              selectedItems) {
+                                            // Update controller with selected language IDs
+                                            // accountController.languages = selectedItems.map((lang) => lang.id).toList();
+                                            // print('Selected languages: ${selectedItems.map((lang) => lang.id).toList()}');
+
+                  accountController.setSelectedUpdatedLanguages(selectedItems);
+
+                                            // print('Selected language IDs: ${accountController.languages}');
+                                          },
                                         ),
-                                        hintText: 'Languages',
-                                        items: languageController.languages.toList(),
-                                        initialItems: selectedLanguages,
-                                        onListChanged: (List<LanguageModel> selectedItems) {
-                                          // Update controller with selected language IDs
-                                          // accountController.languages = selectedItems.map((lang) => lang.id).toList();
-                                          // print('Selected languages: ${selectedItems.map((lang) => lang.name).join(', ')}');
-                                         
-                                          // print('Selected language IDs: ${accountController.languages}');
-                                        },
-                                      ),
-                                    );
-                                  },
-                                ))
+                                      );
+                                    },
+                                  ))
                             ],
                           ),
                         ),
@@ -968,45 +1180,52 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                           child: _buildSectionCard(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
                                   initialValue: userData?['experts'] ?? '',
                                   enable: false,
                                   required: false,
                                   multiline: 3,
-                                  onSave: (value) => accountController.experts = value!,
+                                  onSave: (value) =>
+                                      accountController.experts = value!,
                                   labelText: "Experts".tr,
                                   hintText: "",
                                 ),
                               ),
-                              
                               const SizedBox(height: 12),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
-                                  initialValue: userData?['previousEvents'] ?? '',
+                                  initialValue:
+                                      userData?['previous_events_past'] ?? '',
                                   required: false,
                                   textInputType: TextInputType.number,
-                                  onSave: (value) => accountController.previousEvents = value!,
+                                  onSave: (value) =>
+                                      accountController.previousEvents = value!,
                                   labelText: "Previous Events Past".tr,
                                   hintText: "",
                                   onValidate: (value) {
                                     if (value?.isEmpty == true) {
-                                      return "Previous Events Past Required!".tr;
+                                      return "Previous Events Past Required!"
+                                          .tr;
                                     }
                                     return null;
                                   },
                                 ),
                               ),
-                              
                               const SizedBox(height: 12),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8),
                                 child: EasyAppTextFormField(
-                                  initialValue: userData?['chronicDiseases'] ?? '',
+                                  initialValue:
+                                      userData?['chronic_diseases'] ?? '',
                                   required: false,
                                   multiline: 3,
-                                  onSave: (value) => accountController.chronicDiseases = value!,
+                                  onSave: (value) => accountController
+                                      .chronicDiseases = value!,
                                   labelText: "Chronic diseases".tr,
                                 ),
                               ),
@@ -1014,6 +1233,15 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                           ),
                         ),
 
+                        // PdfUploadPreview(
+                        //             initialPdfUrl: HOSTURL + "${userData?['iban_file']}",
+                        //             initialPdfName: "SKKOA",
+                        //             onPdfSelected: (pdf) {
+                        //               // setState(() {
+                        //               //   _newPdfFile = pdf;
+                        //               // });
+                        //             },
+                        //           ),
                         // File Upload Section
                         _buildAnimatedField(
                           delay: 5,
@@ -1021,9 +1249,14 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                         ),
 
                         // Image Upload
-                        _buildAnimatedField(
-                          delay: 6,
-                          child: _buildImageUpload(accountController),
+                        // _buildAnimatedField(
+                        //   delay: 6,
+                        //   child: _buildImageUpload(accountController),
+                        // ),
+
+                        ImageEditPreview(
+                          initialImageUrl: "$HOSTURL${userData?['image']}",
+                          onImageSelected: (image) => accountController.takenPhoto(image),
                         ),
 
                         // Update Button
@@ -1040,19 +1273,29 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                                     : () {
                                         _formKey.currentState!.save();
                                         if (_formKey.currentState!.validate()) {
-                                          _saveUpdatedData();
+
+                                          accountController.updateProfile();
+
+                                          // _saveUpdatedData();
                                         }
                                       },
                                 borderRadius: BorderRadius.circular(16),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   decoration: BoxDecoration(
                                     gradient: accountController.isLoading
                                         ? LinearGradient(
-                                            colors: [Colors.grey.shade400, Colors.grey.shade500],
+                                            colors: [
+                                              Colors.grey.shade400,
+                                              Colors.grey.shade500
+                                            ],
                                           )
                                         : LinearGradient(
-                                            colors: [Colors.blue.shade500, Colors.blue.shade700],
+                                            colors: [
+                                              Colors.blue.shade500,
+                                              Colors.blue.shade700
+                                            ],
                                             begin: Alignment.centerLeft,
                                             end: Alignment.centerRight,
                                           ),
@@ -1074,7 +1317,9 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen>
                                           height: 18,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Colors.white),
                                           ),
                                         ),
                                       if (accountController.isLoading)

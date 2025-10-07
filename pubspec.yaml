@@ -108,6 +108,7 @@ dependencies:
   shared_preferences: ^2.5.3
   # dot_navigation_bar: ^1.0.2
   # crystal_navigation_bar: ^1.0.4
+  syncfusion_flutter_pdfviewer: ^29.1.38
   
 
 dev_dependencies:

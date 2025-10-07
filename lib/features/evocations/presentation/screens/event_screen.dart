@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:get/get.dart';
+import 'package:sagr/features/events/presentation/controllers/event_controller%20copy.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({super.key});
@@ -23,6 +24,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
   
   bool _isAccepted = false;
   bool _isRejected = false;
+
+
+ EventController _eventController  = Get.put(EventController(Get.find()));
 
   @override
   void initState() {
@@ -457,9 +461,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
       ),
       child: Column(
         children: [
+
+        
           _buildDetailRow(
             Icons.calendar_today,
-            "تاريخ مباشرة العمل",
+            "تاريخ مباشرة العمل" ,
             "22/03/2025",
             Colors.blue,
           ),

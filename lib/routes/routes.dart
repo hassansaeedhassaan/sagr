@@ -1,6 +1,7 @@
 
 import 'package:get/get.dart';
-import 'package:sagr/features/ads/presentation/screens/ads_screen.dart';
+import 'package:sagr/features/ads/presentation/bindings/ads_bindings.dart';
+import 'package:sagr/features/ads_olllld/presentation/screens/ads_screen.dart';
 import 'package:sagr/features/auth/presentation/screens/login_screen.dart';
 import 'package:sagr/features/auth/presentation/screens/update_profile_screen.dart';
 import 'package:sagr/features/education/presentation/bindings/education_bindings.dart';
@@ -31,6 +32,7 @@ import '../bindings/product_bindings.dart';
 import '../bindings/profile_bindings.dart';
 import '../bindings/register_bindings.dart';
 import '../bindings/reset_password_bindings.dart';
+import '../features/ads/presentation/screens/ads_screen.dart';
 import '../features/auth/presentation/bindings/create_account_bindings.dart';
 import '../features/auth/presentation/screens/complete_account_screen.dart';
 import '../features/auth/presentation/screens/create_account_screen.dart';
@@ -231,8 +233,8 @@ final List<GetPage> routes = [
 
     GetPage(
       name: '/ads',
-      page: () => AdsScreen(),
-      bindings: [ApplicationBinding(), ]),
+      page: () => AdScreen(),
+      bindings: [ApplicationBinding(),AdsBindings() ]),
  
  
 

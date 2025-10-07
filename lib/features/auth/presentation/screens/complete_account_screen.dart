@@ -266,14 +266,14 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
 
   Widget _buildModernFileUpload(
     String title,
-    IconData icon,
+    Widget icon,
     VoidCallback onTap,
     int delay,
   ) {
     return _buildAnimatedField(
       delay: delay,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 5),
+        margin: const EdgeInsets.symmetric(horizontal: 0),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -281,7 +281,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
             borderRadius: BorderRadius.circular(16),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.all(25),
+              padding: const EdgeInsets.all(0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Colors.grey.shade50, Colors.grey.shade100],
@@ -305,27 +305,32 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(15),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade100,
                       borderRadius: BorderRadius.circular(50),
                     ),
-                    child: Icon(
-                      icon,
-                      size: 30,
-                      color: Colors.blue.shade600,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
+                    child: Row(
+                      children: [
+                        icon,
+                        Text(title,               style: TextStyle(
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[800],
+                    ),)
+                      ],
                     ),
                   ),
+                  // const SizedBox(height: 12),
+                  // Text(
+                  //   title,
+                  //   textAlign: TextAlign.center,
+                  //   style: TextStyle(
+                  //     fontSize: 12,
+                  //     fontWeight: FontWeight.w600,
+                  //     color: Colors.grey[800],
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -394,6 +399,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                     ),
                   ),
                 ],
+                
               ),
             ),
           ),
@@ -1055,12 +1061,12 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                   onSave: (value) => accountController.previousEvents = value!,
                                   labelText: "Previous Events Past".tr,
                                   hintText: "",
-                                  onValidate: (value) {
-                                    if (value?.length == 0) {
-                                      return "Previous Events Past Required!".tr;
-                                    }
-                                    return null;
-                                  },
+                                  // onValidate: (value) {
+                                  //   if (value?.length == 0) {
+                                  //     return "Previous Events Past Required!".tr;
+                                  //   }
+                                  //   return null;
+                                  // },
                                 ),
                               ),
                             ),
@@ -1086,20 +1092,61 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: _buildModernFileUpload(
-                                      "إرفاق مستند الايبان",
-                                      Icons.picture_as_pdf_rounded,
-                                      () => accountController.handleFileSelectionForIban(),
-                                      8,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        // border: Border.all(width: 1, color:accountController.ibanFilePath =='' ? RED_COLOR: Colors.transparent),
+                                        // borderRadius: BorderRadius.circular(16)
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          _buildModernFileUpload(
+                                            " إرفاق مستند الايبان",
+                                            accountController.ibanFilePath =='' ? Icon(
+                                                                Icons.picture_as_pdf_rounded,
+                                                                size: 20,
+                                                                color: Colors.blue.shade600,
+                                                              ): Container(),
+                                            () => accountController.handleFileSelectionForIban(),
+                                            8,
+                                          ),
+                                          accountController.ibanFilePath != '' ? Row(
+                                            children: [Icon(Icons.check, color: Colors.green,), Text("Iban Uploaded".tr)],
+                                          ) :Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            
+                                            children: [Icon(Icons.star_border,color: RED_COLOR, size: 15,), Text("Iban File Required".tr)],
+                                          )
+                                        ],
+                                      ),
                                     ),
+
                                   ),
                                   const SizedBox(width: 15),
                                   Expanded(
-                                    child: _buildModernFileUpload(
-                                      "إرفاق السيرة الذاتية",
-                                      Icons.description_rounded,
-                                      () => accountController.handleFileSelection(),
-                                      9,
+                                    child: Column(
+                                      children: [
+                                        _buildModernFileUpload(
+                                          "إرفاق السيرة الذاتية",
+                                          
+                                          accountController.ibanFilePath =='' ?  Icon(
+                                                              Icons.picture_as_pdf_rounded,
+                                                              size: 20,
+                                                              color: Colors.blue.shade600,
+                                                            ): Container(),
+                                          
+                                          () => accountController.handleFileSelection(),
+                                          9,
+                                        ),
+                                        accountController.ibanFilePath != '' ? Row(
+                                            children: [Icon(Icons.check, color: Colors.green,), Text("Cv File Uploaded".tr)],
+                                          ) :Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            
+                                            children: [Icon(Icons.star_border,color: RED_COLOR, size: 15,), Text("Iban File Required".tr)],
+                                          )
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -1111,10 +1158,12 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             const SizedBox(height: 25),
                             _buildModernImageUpload(accountController),
 
+                            accountController.profileImageRequired == true ? Text("a s") : SizedBox(),
+
                             const SizedBox(height: 30),
                             _buildAnimatedCheckbox(accountController),
 
-                            if (accountController.agree_error_message)
+                            if (accountController.agreeErrorMessage)
                               _buildAnimatedField(
                                 delay: 12,
                                 child: Padding(

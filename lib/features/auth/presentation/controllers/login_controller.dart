@@ -12,8 +12,8 @@ class LoginController extends GetxController {
 
   LoginController(this._authRepository);
 
-  late String phone = '5555566666';
-  String password = "123123123";
+  late String phone = '';
+  String password = "";
   RxBool obscureText = true.obs;
   RxBool obscureTextNew = true.obs;
   RxBool isLoading = false.obs;

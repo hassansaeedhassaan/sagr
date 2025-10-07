@@ -32,37 +32,36 @@ class HomeScreen extends StatelessWidget {
 
   EventsController _controller = Get.put(EventsController(Get.find()));
 
-
   @override
   Widget build(BuildContext context) {
-
-     Future<bool?> _showExitDialog() {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Exit App'.tr),
-        content: Text('Are you sure you want to exit the app?'.tr),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Cancel'.tr),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text('Exit'.tr),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+    Future<bool?> _showExitDialog() {
+      return showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Exit App'.tr),
+          content: Text('Are you sure you want to exit the app?'.tr),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'.tr),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Exit'.tr),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return PopScope(
       canPop: false, // Prevent default back navigation
       onPopInvoked: (bool didPop) async {
         if (didPop) return;
-        
+
         // Show exit confirmation dialog
         final shouldExit = await _showExitDialog();
         if (shouldExit == true) {
@@ -78,37 +77,33 @@ class HomeScreen extends StatelessWidget {
             children: [
               // Header Section
               _buildHeader(),
-      
-      
-      // SizedBox(
-      //   height: 30,
-      //   child: Marquee(
-      //   text: 'Some sample text that takes some space.',
-      //   style: TextStyle(fontWeight: FontWeight.bold),
-      //   scrollAxis: Axis.horizontal,
-      //   crossAxisAlignment: CrossAxisAlignment.start,
-      //   blankSpace: 20.0,
-      //   velocity: 100.0,
-      //   pauseAfterRound: Duration(seconds: 1),
-      //   startPadding: 10.0,
-      //   accelerationDuration: Duration(seconds: 1),
-      //   accelerationCurve: Curves.linear,
-      //   decelerationDuration: Duration(milliseconds: 500),
-      //   decelerationCurve: Curves.easeOut,
-      // ),
-      // ),
-      
-      
+
+              // SizedBox(
+              //   height: 30,
+              //   child: Marquee(
+              //   text: 'Some sample text that takes some space.',
+              //   style: TextStyle(fontWeight: FontWeight.bold),
+              //   scrollAxis: Axis.horizontal,
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   blankSpace: 20.0,
+              //   velocity: 100.0,
+              //   pauseAfterRound: Duration(seconds: 1),
+              //   startPadding: 10.0,
+              //   accelerationDuration: Duration(seconds: 1),
+              //   accelerationCurve: Curves.linear,
+              //   decelerationDuration: Duration(milliseconds: 500),
+              //   decelerationCurve: Curves.easeOut,
+              // ),
+              // ),
+
               // Jobs Section
               _buildJobsSectionV2(),
-      
+
               //  _buildJobsSection(),
-      
-      
-      
+
               // Events Section Header
               _buildEventsHeader(),
-      
+
               // Events List with Infinite Scroll
               Expanded(child: _buildEventsList()),
             ],
@@ -214,63 +209,64 @@ class HomeScreen extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 scrollDirection: Axis.horizontal,
                 itemCount: jobController.jobs.length + 1,
-                itemBuilder: (context, index) => index == 0? 
-                    Container(
-            width: 120,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  _controller.filterEventsByJob(0);
-                }, // Add job tap functionality
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
+                itemBuilder: (context, index) => index == 0
+                    ? Container(
+                        width: 120,
+                        margin: const EdgeInsets.only(right: 12),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: Icon(
-                          Icons.home_work_sharp,
-                          color: AppColors.primary,
-                          size: 20,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              _controller.filterEventsByJob(0);
+                            }, // Add job tap functionality
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.home_work_sharp,
+                                      color: AppColors.primary,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    "جميع الوظائف",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        "جميع الوظائف",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ):_buildJobCard(jobController.jobs[index-1]) ,
+                      )
+                    : _buildJobCard(jobController.jobs[index - 1]),
               );
             },
           ),
@@ -318,64 +314,66 @@ class HomeScreen extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 scrollDirection: Axis.horizontal,
                 itemCount: jobController.jobs.length + 1,
-                itemBuilder: (context, index) => index == 0? 
-                    Container(
-        
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  _controller.filterEventsByJob(0);
-                }, // Add job tap functionality
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        margin: EdgeInsetsDirectional.fromSTEB(0, 0, 5, 0),
-                        width: 35,
-                        height: 40,
+                itemBuilder: (context, index) => index == 0
+                    ? Container(
+                        margin: const EdgeInsets.only(right: 12),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: Icon(
-                          Icons.home_work_sharp,
-                          color: AppColors.primary,
-                          size: 18,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              _controller.filterEventsByJob(0);
+                            }, // Add job tap functionality
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    margin: EdgeInsetsDirectional.fromSTEB(
+                                        0, 0, 5, 0),
+                                    width: 35,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.home_work_sharp,
+                                      color: AppColors.primary,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    "جميع الوظائف",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        "جميع الوظائف",
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ):_buildJobCardV2(jobController.jobs[index-1]) ,
+                      )
+                    : _buildJobCardV2(jobController.jobs[index - 1]),
               );
             },
           ),
@@ -610,10 +608,10 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           onTap: () {
             Get.toNamed(
-                  '/event_processing_screen',
-                  arguments: event.id,
-                  preventDuplicates: true,
-                );
+              '/event_processing_screen',
+              arguments: event.id,
+              preventDuplicates: true,
+            );
             // switch (event.appliedStatus) {
             //   case 'accepted':
             //     Get.toNamed(
@@ -645,7 +643,6 @@ class HomeScreen extends StatelessWidget {
             //       preventDuplicates: true,
             //     );
             // }
-            
           },
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -680,10 +677,13 @@ class HomeScreen extends StatelessWidget {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  event!.address != null ? event!.address.toString():"غير متوفر",
+                                  event!.address != null
+                                      ? event!.address.toString()
+                                      : "غير متوفر",
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: const Color.fromARGB(255, 78, 78, 78),
+                                    color:
+                                        const Color.fromARGB(255, 78, 78, 78),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -702,47 +702,42 @@ class HomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildDateTimeInfo(event),
-
-                    
                     InkWell(
-
                       onTap: () {
-            switch (event.appliedStatus) {
-              case 'accepted':
-                Get.toNamed(
-                  '/event_accept_screen',
-                  arguments: event.id,
-                  preventDuplicates: true,
-                );
-                break;
-              case 'initAccept':
-                Get.toNamed(
-                  '/event_screen',
-                  arguments: event.id,
-                  preventDuplicates: true,
-                );
-                break;
-              case 'rejected':
-                break;
-              case 'pending':
-                Get.toNamed(
-                  '/event_processing_screen',
-                  arguments: event.id,
-                  preventDuplicates: true,
-                );
-                break;
-              default:
-                Get.toNamed(
-                  '/event_apply_screen',
-                  arguments: event!.id,
-                  preventDuplicates: true,
-                );
-            }
-            
-          },
-                      child:_buildStatusButton(event.appliedStatus) ,
+                        switch (event.appliedStatus) {
+                          case 'accepted':
+                            Get.toNamed(
+                              '/event_accept_screen',
+                              arguments: event.id,
+                              preventDuplicates: true,
+                            );
+                            break;
+                          case 'initAccept':
+                            Get.toNamed(
+                              '/event_screen',
+                              arguments: event.id,
+                              preventDuplicates: true,
+                            );
+                            break;
+                          case 'rejected':
+                            break;
+                          case 'pending':
+                            Get.toNamed(
+                              '/event_processing_screen',
+                              arguments: event.id,
+                              preventDuplicates: true,
+                            );
+                            break;
+                          default:
+                            Get.toNamed(
+                              '/event_apply_screen',
+                              arguments: event!.id,
+                              preventDuplicates: true,
+                            );
+                        }
+                      },
+                      child: _buildStatusButton(event.appliedStatus),
                     ),
-                    
                   ],
                 ),
               ],
@@ -840,7 +835,7 @@ class HomeScreen extends StatelessWidget {
         textColor = AppColors.warning;
         icon = Icons.pending_outlined;
         text = status!.tr;
-        
+
         break;
       case 'rejected':
         bgColor = AppColors.error.withOpacity(0.1);
@@ -1019,11 +1014,11 @@ class HomeScreen extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    "🛑",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(width: 8),
+                  // Text(
+                  //   "🛑",
+                  //   style: TextStyle(fontSize: 16),
+                  // ),
+                  // const SizedBox(width: 8),
                   Text(
                     "لا يوجد المزيد من الفعاليات",
                     style: TextStyle(

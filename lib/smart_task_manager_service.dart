@@ -12,7 +12,7 @@ class SmartTaskManager {
   Timer? _foregroundTimer;
   bool _isAppActive = true;
   // Your server endpoint
-  static const String serverEndpoint = 'https://sagr.libraryrajab.com/api/v1';
+  static const String serverEndpoint = 'https://crowds.sa/api/v1';
 
   static const String send_current_location = '/receive/current_location';
   static const String get_current_users = '/current/users/live/events';
@@ -100,6 +100,8 @@ class SmartTaskManager {
           // 'Authorization': 'Bearer your_token_here',
         },
       );
+
+
 
       if (response.statusCode == 200) {
         print('User Fetch Success fully successfully');

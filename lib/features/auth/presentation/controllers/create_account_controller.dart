@@ -1,14 +1,16 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sagr/core/error/exceptions.dart';
-import 'package:sagr/features/ads/data/models/language_model.dart';
 import 'package:sagr/features/auth/domain/usecases/auth.dart';
 import 'package:get/get.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
 import 'package:sagr/features/jobs/data/models/job_model.dart';
+import 'package:sagr/features/language/data/models/language_model.dart';
 import 'package:sagr/features/marital_status/data/models/marital_status_model.dart';
 import 'package:sagr/features/regions/presentation/controllers/regions_controller.dart';
 
@@ -18,165 +20,69 @@ import 'auth_controller.dart';
 
 import 'dart:developer' as developer;
 
-
+/// Controller for handling user account creation, profile completion, and updates
 class CreateAccountController extends GetxController {
   final AuthUsecase authUsecase;
-
   final AuthController authController = Get.put(AuthController());
 
   CreateAccountController(this.authUsecase);
 
-  String? firstName,
-      middleName,
-      lastName,
-      email,
-      phone,
-      password,
-      confirmationPassword,
-      nationalNo,
-      ibanNumber,
-      bankAccountName,
-      experts,
-      previousEvents,
-      chronicDiseases;
+  // ========== Profile Fields ==========
+  String? firstName;
+  String? middleName;
+  String? lastName;
+  String? email;
+  String? phone;
+  String? password;
+  String? confirmationPassword;
+  String? nationalNo;
+  String? ibanNumber;
+  String? bankAccountName;
+  String? experts;
+  String? previousEvents;
+  String? chronicDiseases;
 
+  // ========== Observable States ==========
   final RxString _gender = 'male'.obs;
-
   final RxBool _isLoading = false.obs;
-
   final RxBool _agree = true.obs;
-  final RxBool _agree_error_message = false.obs;
+  final RxBool _agreeErrorMessage = false.obs;
+  final RxBool _imagePathRequired = false.obs;
+  final RxString _countryCode = 'sa'.obs;
+  final RxString _cvEmpPath = "".obs;
+  final RxString _ibanFilePath = "".obs;
+  final RxString _imagePath = "".obs;
+  final Rx<XFile> _imageFile = XFile("").obs;
 
+  // ========== Observable Models ==========
+  final Rx<MaritalStatusModel> _selectedMaritalStatus =
+      MaritalStatusModel().obs;
+  final Rx<JobModel> _selectedJobs = JobModel().obs;
+  final Rx<EducationModel> _selectedEducation = EducationModel().obs;
+  final Rx<RegionModel> _selectedRegion = RegionModel().obs;
+  final RxList<LanguageModel> _languages = <LanguageModel>[].obs;
+
+  // ========== Getters ==========
   bool get isLoading => _isLoading.value;
   bool get agree => _agree.value;
-  bool get agree_error_message => _agree_error_message.value;
-
-  final _selected_marital_status = MaritalStatusModel().obs;
-
-  MaritalStatusModel get selectedMaritalStatus =>
-      _selected_marital_status.value;
-
-  final _selected_jobs = JobModel().obs;
-
-  JobModel get selectedJob => _selected_jobs.value;
-
-
-final _languages = <LanguageModel>[].obs;
-
- List<LanguageModel>? get languages => _languages.toList();
-
-
-
-  final _selected_education = EducationModel().obs;
-
-  EducationModel get selectedEducation => _selected_education.value;
-
+  bool get agreeErrorMessage => _agreeErrorMessage.value;
+  bool get profileImageRequired => _imagePathRequired.value;
   String get gender => _gender.value;
-
-  final _selected_region = RegionModel().obs;
-
-  RegionModel get selectedRegion => _selected_region.value;
-
-  final RxString _countryCode = 'sa'.obs;
-
   String get countryCode => _countryCode.value;
-
-  void setGender(gender) {
-    _gender.value = gender;
-    update();
-  }
-
-  void setSelectedMaritalStatus(maritalStatus) {
-    _selected_marital_status.value = maritalStatus;
-    update();
-  }
-
-  void setSelectedJob(job) {
-    _selected_jobs.value = job;
-    update();
-  }
-
-  void setSelectedRegion(region) {
-    _selected_region.value = region;
-    update();
-  }
-
-  void setSelectedEducation(education) {
-    _selected_education.value = education;
-    update();
-  }
-
-
- void setSelectedLanguages(language) {
-     _languages.add(language); 
-    update();
-  }
-
-  selectedCountryCode(code) async {
-    RegionsController regionsController =
-        Get.put(RegionsController(Get.find()));
-
-    _countryCode.value = code;
-    regionsController.getAllRegions(code);
-
-    _selected_region.value = RegionModel();
-  }
-
-  final RxString _cvEmpPath = "".obs;
-
   String get cvEmpPath => _cvEmpPath.value;
-
-  void handleFileSelection() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
-
-    _cvEmpPath.value = result?.files.single.path! ?? "";
-
-    // print(result?.files.single.name);
-    // print(result?.files.single.size);
-    // print(result?.files.single.path!);
-    // print(result?.files.single.extension!);
-  }
-
-  final _ibanFilePath = "".obs;
-
   String get ibanFilePath => _ibanFilePath.value;
-
-  void handleFileSelectionForIban() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
-
-    _ibanFilePath.value = result?.files.single.path! ?? "";
-
-    // print(result?.files.single.name);
-    // print(result?.files.single.size);
-    // print(result?.files.single.path!);
-    // print(result?.files.single.extension!);
-  }
-
-  final ImagePicker _picker = ImagePicker();
-
-  final _imagePath = "".obs;
-  final _imageFile = XFile("").obs;
-
   String get imagePath => _imagePath.value;
   XFile get imageFile => _imageFile.value;
+  MaritalStatusModel get selectedMaritalStatus => _selectedMaritalStatus.value;
+  JobModel get selectedJob => _selectedJobs.value;
+  EducationModel get selectedEducation => _selectedEducation.value;
+  RegionModel get selectedRegion => _selectedRegion.value;
+  List<LanguageModel> get languages => _languages.toList();
 
-  Future<void> pickImage() async {
-    try {
+  // ========== Image Picker ==========
+  final ImagePicker _picker = ImagePicker();
 
-      final image = await _picker.pickImage(source: ImageSource.camera);
-
-      _imagePath.value = image!.path;
-
-      _imageFile.value = image;
-
-      update();
-    } catch (e) {}
-  }
-
+  // ========== Lifecycle Methods ==========
   @override
   void onInit() {
     super.onInit();
@@ -185,26 +91,7 @@ final _languages = <LanguageModel>[].obs;
   @override
   void onReady() {
     super.onReady();
-
-
-
-
-if(authController.authenticatedUser!['job']!= null){
- _selected_jobs.value = JobModel.fromJson(authController.authenticatedUser!['job']);
-}
-
-
-if(authController.authenticatedUser!['maritalStatus']!= null){
- _selected_marital_status.value = MaritalStatusModel.fromJson(authController.authenticatedUser!['maritalStatus']);
-}
-
-
-if(authController.authenticatedUser!['education']!= null){
- _selected_education.value = EducationModel.fromJson(authController.authenticatedUser!['education']);
-}
-
-
-   
+    _loadAuthenticatedUserData();
   }
 
   @override
@@ -212,218 +99,515 @@ if(authController.authenticatedUser!['education']!= null){
     super.onClose();
   }
 
+  // ========== Data Loading ==========
+  /// Loads authenticated user data into the controller
+  void _loadAuthenticatedUserData() {
+    final user = authController.authenticatedUser;
+    if (user == null) return;
+
+    if (user['job'] != null) {
+      _selectedJobs.value = JobModel.fromJson(user['job']);
+    }
+
+    if (user['maritalStatus'] != null) {
+      _selectedMaritalStatus.value =
+          MaritalStatusModel.fromJson(user['maritalStatus']);
+    }
+
+    if (user['education'] != null) {
+      _selectedEducation.value = EducationModel.fromJson(user['education']);
+    }
+
+    if (user['languages'] != null && user['languages'] is List) {
+      _languages.value = (user['languages'] as List)
+          .map((lang) => LanguageModel.fromJson(lang))
+          .toList();
+    }
+  }
+
+  // ========== Setters ==========
+  void setGender(String gender) {
+    _gender.value = gender;
+    update();
+  }
+
+  void setSelectedMaritalStatus(MaritalStatusModel maritalStatus) {
+    _selectedMaritalStatus.value = maritalStatus;
+    update();
+  }
+
+  void setSelectedJob(JobModel job) {
+    _selectedJobs.value = job;
+    update();
+  }
+
+  void setSelectedRegion(RegionModel region) {
+    _selectedRegion.value = region;
+    update();
+  }
+
+  void setSelectedEducation(EducationModel education) {
+    _selectedEducation.value = education;
+    update();
+  }
+
+  void setSelectedLanguages(LanguageModel language) {
+    if (!_languages.contains(language)) {
+      _languages.add(language);
+      update();
+    }
+  }
+
+  void setSelectedUpdatedLanguages(langs) {
+    _languages.value = langs;
+    // update();
+  }
+
+  void removeLanguage(LanguageModel language) {
+    _languages.remove(language);
+    update();
+  }
+
+  void clearLanguages() {
+    _languages.clear();
+    update();
+  }
+
+  Future<void> selectedCountryCode(String code) async {
+    final regionsController = Get.put(RegionsController(Get.find()));
+    _countryCode.value = code;
+    regionsController.getAllRegions(code);
+    _selectedRegion.value = RegionModel();
+    update();
+  }
+
   void acceptAgree() {
     _agree.value = !_agree.value;
-    _agree_error_message.value = false;
+    _agreeErrorMessage.value = false;
     update();
   }
 
-  Future<void> deleteAccount(context) async {
-    print("Deleted ME 🤔");
+  // ========== File Handling ==========
+  /// Picks a CV/resume file
+  Future<void> handleFileSelection() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        _cvEmpPath.value = result.files.single.path!;
+        update();
+      }
+    } catch (e) {
+      _handleError('Failed to pick file: ${e.toString()}');
+    }
   }
 
+  /// Picks an IBAN document file
+  Future<void> handleFileSelectionForIban() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        _ibanFilePath.value = result.files.single.path!;
+        update();
+      }
+    } catch (e) {
+      _handleError('Failed to pick IBAN file: ${e.toString()}');
+    }
+  }
+
+  /// Picks a profile image from gallery
+  Future<void> pickImage() async {
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        _imagePath.value = image.path;
+        _imageFile.value = image;
+        _imagePathRequired.value = false;
+        update();
+      }
+    } catch (e) {
+      _handleError('Failed to pick image: ${e.toString()}');
+    }
+  }
+
+  /// Picks a profile image from camera
+  Future<void> takePhoto() async {
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        _imagePath.value = image.path;
+        _imageFile.value = image;
+        _imagePathRequired.value = false;
+        update();
+      }
+    } catch (e) {
+      _handleError('Failed to take photo: ${e.toString()}');
+    }
+  }
+
+  Future<void> takenPhoto(image) async {
+    try {
+      if (image != null) {
+        _imagePath.value = image.path;
+        _imageFile.value = image;
+        _imagePathRequired.value = false;
+        update();
+      }
+    } catch (e) {
+      _handleError('Failed to take photo: ${e.toString()}');
+    }
+  }
+
+  /// Clears the selected image
+  void clearImage() {
+    _imagePath.value = "";
+    _imageFile.value = XFile("");
+    update();
+  }
+
+  // ========== Validation ==========
+  void _setValidationState() {
+    _imagePathRequired.value = _imagePath.value.isEmpty;
+    update();
+  }
+
+  bool _validateRegistration() {
+    if (!agree) {
+      _agreeErrorMessage.value = true;
+      return false;
+    }
+    _agreeErrorMessage.value = false;
+    return true;
+  }
+
+  // ========== Account Operations ==========
+  /// Registers a new user account
   Future<void> register() async {
-    _isLoading.value = true;
+    if (!_validateRegistration()) {
+      return;
+    }
 
-    // if (agree == false) {
-    //   _agree_error_message.value = true;
-    //   _isLoading.value = false;
-    //   update();
+    _setLoadingState(true);
 
-    //   return;
-    //   //  Get.snackbar("Error!", "Please Accept ");
-    // } else {
-    //   _agree_error_message.value = false;
-    // }
+    // Generate temporary email - replace with actual email in production
+    final randomNumber = Random().nextInt(100000000);
 
-    update();
-
-    Random random = new Random();
-    int randomNumber = random.nextInt(100000000);
     final Map<String, dynamic> body = {
       'name': firstName,
-      'email': '$randomNumber@gmail.com',
-      // 'firstName': firstName,
-      // 'middleName': middleName,
-      // 'lastName': lastName,
-      // 'nationalID': nationalNo,
-      // 'email': email,
+      'email': '$randomNumber@gmail.com', // TODO: Use actual email
       'phone': phone,
-      // 'bankAccountName': bankAccountName,
-      // 'experts': experts,
-      // 'previous_events_past': previousEvents,
-      // 'chronic_diseases': chronicDiseases,
       'countryCode': countryCode,
-      // 'zone_id': selectedRegion.id!,
-      // 'iban': ibanNumber,
       'gender': gender,
-      // 'job_id': selectedJob.id!,
-      // 'marital_status_id': selectedMaritalStatus.id!,
-      // 'education_id': selectedEducation.id!,
       'password': password,
       'password_confirmation': confirmationPassword,
-      // 'image': imagePath,
-      // 'emp_cv': cvEmpPath,
-      // 'iban_file': ibanFilePath
     };
 
     try {
       final failureOrCustomer = await authUsecase.createAccount(body);
 
-      failureOrCustomer.fold((failure) {
-        _isLoading.value = false;
-      }, (receivedData) {
-        // Future.delayed(Duration(milliseconds: 1000))
-        //     .then((value) => Get.offAllNamed('/login'));
-        Future.delayed(Duration(milliseconds: 1000))
-            .then((value) => Get.to(() => RegistrationSuccessPage()));
-
-        _isLoading.value = false;
-        update();
-      });
-
-      _isLoading.value = false;
-
-      update();
+      failureOrCustomer.fold(
+        (failure) {
+          _setLoadingState(false);
+          _handleError('Registration failed');
+        },
+        (receivedData) {
+          _navigateToSuccessPage();
+          _setLoadingState(false);
+        },
+      );
     } on ValidationException catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-      Get.snackbar("Error!", e.data['message']);
-      _isLoading.value = false;
-      update();
+      _logError('Validation error during registration', e);
+      _handleError(e.data['message'] ?? 'Validation failed');
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-      Get.snackbar("Error!", 'wrong'.tr);
-      _isLoading.value = false;
+      _logError('Unexpected error during registration', e);
+      _handleError('wrong'.tr);
+    } finally {
+      _setLoadingState(false);
     }
-
-    update();
   }
 
+  /// Completes user profile with additional information
   Future<void> completeAccount() async {
+    _setValidationState();
     _setLoadingState(true);
 
+    if (profileImageRequired) {
+      _handleError('Please upload a profile image');
+      _setLoadingState(false);
+      return;
+    }
 
+    final Map<String, dynamic> body = {
+      'firstName': firstName,
+      'middleName': middleName,
+      'lastName': lastName,
+      'nationalID': nationalNo,
+      'bankAccountName': bankAccountName,
+      'experts': experts,
+      'previous_events_past': previousEvents,
+      'chronic_diseases': chronicDiseases,
+      'countryCode': countryCode,
+      'iban': ibanNumber,
+      'gender': gender,
+      'job_id': selectedJob.id,
+      'marital_status_id': selectedMaritalStatus.id,
+      'education_id': selectedEducation.id,
+      'image': imagePath,
+      'emp_cv': cvEmpPath,
+      'iban_file': ibanFilePath,
+    };
 
-    // try {
-      final Map<String, dynamic> body = {
-        'firstName': firstName,
-        'middleName': middleName,
-        'lastName': lastName,
-        'nationalID': nationalNo,
-        'bankAccountName': bankAccountName,
-        'experts': experts,
-        'previous_events_past': previousEvents,
-        'chronic_diseases': chronicDiseases,
-        'countryCode': countryCode,
-        'iban': ibanNumber,
-        'gender': gender,
-        'job_id': selectedJob.id!,
-        'marital_status_id': selectedMaritalStatus.id!,
-        'education_id': selectedEducation.id!,
-        'image': imagePath,
-        'emp_cv': cvEmpPath,
-        'iban_file': ibanFilePath
-      };
-
+    try {
       final failureOrCustomer = await authUsecase.completeAccount(body);
-
-
 
       failureOrCustomer.fold(
         (failure) {
-          
-          print("🔥");
-
-          print(failure);
-
-          print("🔥");
-          
-          // Handle failure case if needed
-          // You might want to show error message here.
-
+          _setLoadingState(false);
+          _handleError('Failed to complete account');
         },
         (receivedData) {
-
-          // print("sadas;dkal;sdk");
-
-          // print(receivedData);
-
-          // print("asld;as; lkdask;l d🔥");
-          
+          // Commented
+          // _updateLocalStorage(receivedData.toJson());
+          Get.snackbar(
+            'Success',
+            'Profile completed successfully',
+            snackPosition: SnackPosition.BOTTOM,
+          );
           _navigateToSuccessPage();
         },
       );
-    // } on ValidationException catch (e) {
-
-
-
-    //    if (e is ValidationException) {
-    //     _logValidationException(e);
-    //     // Re-throw or handle as needed
-    //     rethrow;
-    //   }
-
-    //   _handleError(e.data['message']);
-    // } catch (e) {
-
-    //   print("as l;sadlk ask dl;k👁️");
-
-
-    //   if (kDebugMode) {
-    //     print(e);
-    //   }
-    //   _handleError('wrong'.tr);
-    // } finally {
-
-    //   print("as l;sadlk ask dl;k👁️");
-
-    //   _setLoadingState(false);
-    // }
-
-
-          _setLoadingState(false);
-
+    } on ValidationException catch (e) {
+      _logError('Validation error during account completion', e);
+      _handleError(e.data['message'] ?? 'Validation failed');
+    } catch (e) {
+      _logError('Unexpected error during account completion', e);
+      _handleError('wrong'.tr);
+    } finally {
+      _setLoadingState(false);
+    }
   }
 
-// Helper methods for better code organization
+  /// Updates user profile information
+  Future<void> updateProfile({bool showSuccessMessage = true}) async {
+    _setLoadingState(true);
+
+    final Map<String, dynamic> body = {};
+
+    // Only include fields that have values
+    if (firstName != null && firstName!.isNotEmpty)
+      body['firstName'] = firstName;
+    if (middleName != null && middleName!.isNotEmpty)
+      body['middleName'] = middleName;
+    if (lastName != null && lastName!.isNotEmpty) body['lastName'] = lastName;
+    if (email != null && email!.isNotEmpty) body['email'] = email;
+    if (phone != null && phone!.isNotEmpty) body['phone'] = phone;
+    if (nationalNo != null && nationalNo!.isNotEmpty)
+      body['nationalID'] = nationalNo;
+    if (ibanNumber != null && ibanNumber!.isNotEmpty) body['iban'] = ibanNumber;
+    if (bankAccountName != null && bankAccountName!.isNotEmpty) {
+      body['bankAccountName'] = bankAccountName;
+    }
+    if (experts != null && experts!.isNotEmpty) body['experts'] = experts;
+    if (previousEvents != null && previousEvents!.isNotEmpty) {
+      body['previous_events_past'] = previousEvents;
+    }
+    if (chronicDiseases != null && chronicDiseases!.isNotEmpty) {
+      body['chronic_diseases'] = chronicDiseases;
+    }
+
+    body['countryCode'] = countryCode;
+    body['gender'] = gender;
+
+    if (selectedJob.id != null) body['job_id'] = selectedJob.id;
+    if (selectedMaritalStatus.id != null) {
+      body['marital_status_id'] = selectedMaritalStatus.id;
+    }
+    if (selectedEducation.id != null)
+      body['education_id'] = selectedEducation.id;
+    if (selectedRegion.id != null) body['zone_id'] = selectedRegion.id;
+
+    // Include files only if they're new/updated
+    if (imagePath.isNotEmpty) body['image'] = imagePath;
+    if (cvEmpPath.isNotEmpty) body['emp_cv'] = cvEmpPath;
+    if (ibanFilePath.isNotEmpty) body['iban_file'] = ibanFilePath;
+
+    // Include languages
+    if (_languages.isNotEmpty) {
+      body['langs'] = _languages.map((lang) => lang.id).toList();
+    }
+
+    print("🤔🤔🤔🤔🤔🤔🤔🤔🤔");
+    print(body);
+    print("🤔🤔🤔🤔🤔🤔🤔🤔🤔");
+
+    try {
+      final failureOrCustomer = await authUsecase.updateProfile(body);
+
+      failureOrCustomer.fold(
+        (failure) {
+          _setLoadingState(false);
+          _handleError('Failed to update profile');
+        },
+        (receivedData) {
+          // _updateLocalStorage(receivedData.toJson());
+          // Commented
+          // authController.refreshUserData();
+
+          if (showSuccessMessage) {
+            Get.snackbar(
+              'Success',
+              'Profile updated successfully',
+              snackPosition: SnackPosition.BOTTOM,
+              duration: const Duration(seconds: 2),
+            );
+          }
+
+          _setLoadingState(false);
+        },
+      );
+    } on ValidationException catch (e) {
+      _logError('Validation error during profile update', e);
+      _handleError(e.data['message'] ?? 'Validation failed');
+    } catch (e) {
+      _logError('Unexpected error during profile update', e);
+      _handleError('Failed to update profile. Please try again.');
+    } finally {
+      _setLoadingState(false);
+    }
+  }
+
+  /// Deletes user account
+  Future<void> deleteAccount() async {
+    _setLoadingState(true);
+
+    // try {
+    //   final failureOrSuccess = await authUsecase.deleteAccount();
+
+    //   failureOrSuccess.fold(
+    //     (failure) {
+    //       _setLoadingState(false);
+    //       _handleError('Failed to delete account');
+    //     },
+    //     (success) {
+    //       GetStorage().erase();
+    //       Get.offAllNamed('/login');
+    //       Get.snackbar(
+    //         'Success',
+    //         'Account deleted successfully',
+    //         snackPosition: SnackPosition.BOTTOM,
+    //       );
+    //     },
+    //   );
+    // } catch (e) {
+    //   _logError('Error deleting account', e);
+    //   _handleError('Failed to delete account. Please try again.');
+    // } finally {
+    //   _setLoadingState(false);
+    // }
+  }
+
+  // ========== Helper Methods ==========
   void _setLoadingState(bool isLoading) {
     _isLoading.value = isLoading;
     update();
   }
 
   void _handleError(String message) {
-    Get.snackbar("Error!", message);
+    Get.snackbar(
+      "Error",
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 3),
+    );
+
     if (kDebugMode) {
-      print("Registration error: $message");
+      developer.log(
+        'Error: $message',
+        name: 'CreateAccountController',
+        level: 900,
+      );
+    }
+  }
+
+  void _logError(String message, dynamic error) {
+    if (kDebugMode) {
+      developer.log(
+        message,
+        name: 'CreateAccountController',
+        error: error,
+        level: 1000,
+      );
+    }
+  }
+
+  void _updateLocalStorage(Map<String, dynamic> userData) {
+    GetStorage().write('userData', userData);
+
+    if (kDebugMode) {
+      developer.log(
+        'User data updated in local storage',
+        name: 'CreateAccountController',
+      );
     }
   }
 
   void _navigateToSuccessPage() {
     Future.delayed(const Duration(milliseconds: 1000)).then(
-      (value) => Get.to(() => RegistrationSuccessPage()),
+      (value) => Get.to(() => const RegistrationSuccessPage()),
     );
   }
 
-  // void _logValidationException(ValidationException e) {
-  //   // Method 1: Using dart:developer log (recommended)
-  //   developer.log(
-  //     e.getFormattedDebugInfo(),
-  //     name: 'ValidationException',
-  //     level: 1000, // Error level
-  //     error: e,
-  //   );
+  /// Resets all form fields
+  void resetForm() {
+    firstName = null;
+    middleName = null;
+    lastName = null;
+    email = null;
+    phone = null;
+    password = null;
+    confirmationPassword = null;
+    nationalNo = null;
+    ibanNumber = null;
+    bankAccountName = null;
+    experts = null;
+    previousEvents = null;
+    chronicDiseases = null;
 
-  //   // Method 2: Using debugPrint (Flutter specific)
-  //   if (kDebugMode) {
-  //     debugPrint('\n${e.getFormattedDebugInfo()}');
-  //   }
+    _gender.value = 'male';
+    _countryCode.value = 'sa';
+    _cvEmpPath.value = '';
+    _ibanFilePath.value = '';
+    _imagePath.value = '';
+    _imageFile.value = XFile('');
+    _agree.value = true;
+    _agreeErrorMessage.value = false;
+    _imagePathRequired.value = false;
 
-  //   // Method 3: Using print (basic)
-  //   // print(e.getFormattedDebugInfo());
-  // }
-  
+    _selectedMaritalStatus.value = MaritalStatusModel();
+    _selectedJobs.value = JobModel();
+    _selectedEducation.value = EducationModel();
+    _selectedRegion.value = RegionModel();
+    _languages.clear();
+
+    update();
+  }
 }

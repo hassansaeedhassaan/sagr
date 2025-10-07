@@ -29,6 +29,14 @@ class AuthUsecase {
   }
 
 
+
+  Future<Either<Failure, CustomerModel>> updateProfile(
+      Map<String, dynamic> body) async {
+    return await repository.updateProfile(body);
+  }
+
+
+
   // Future<Either<Failure, Response>> makeCustomerGift(
   //     Map<String, dynamic> body) async {
   //   return await repository.makeCustomerGift(body);

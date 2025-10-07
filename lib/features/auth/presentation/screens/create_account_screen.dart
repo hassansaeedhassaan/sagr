@@ -694,7 +694,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                 padding: const EdgeInsets.symmetric(horizontal: 0),
                                 child: EasyAppPasswordFormField(
                                   onSave: (value) => accountController.password = value!,
-                                  labelText: "Password",
+                                  labelText: "Password".tr,
                                   hintText: "",
                                   onValidate: (value) {
                                     if (value?.length == 0) {
@@ -713,7 +713,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                 padding: const EdgeInsets.symmetric(horizontal: 0),
                                 child: EasyAppPasswordFormField(
                                   onSave: (value) => accountController.confirmationPassword = value!,
-                                  labelText: "Confirm Password",
+                                  labelText: "Confirm Password".tr,
                                   hintText: "",
                                   onValidate: (value) {
                                     if (value?.length == 0) {
@@ -757,7 +757,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                             const SizedBox(height: 30),
                             _buildAnimatedCheckbox(accountController),
 
-                            if (accountController.agree_error_message)
+                            if (accountController.agreeErrorMessage)
                               _buildAnimatedField(
                                 delay: 12,
                                 child: Padding(

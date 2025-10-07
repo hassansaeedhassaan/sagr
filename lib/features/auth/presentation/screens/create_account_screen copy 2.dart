@@ -1421,7 +1421,7 @@ class CreateAccountScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                accountController.agree_error_message
+                accountController.agreeErrorMessage
                     ? Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(10, 0, 0, 0),
                         child: Text(

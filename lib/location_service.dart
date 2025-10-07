@@ -10,9 +10,10 @@ class LocationService {
   static const String _taskName = 'locationUpdateTask';
 
   // Your server endpoint
-  static const String serverEndpoint = 'https://sagr.libraryrajab.com/api/v1';
+  static const String serverEndpoint = 'https://crowds.sa/api/v1';
 
   static const String send_current_location = '/receive/current_location';
+  
   static const String get_current_users = '/current/users/live/events';
 
   Future<bool> requestPermissions() async {

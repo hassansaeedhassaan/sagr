@@ -35,6 +35,16 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure());
     }
   }
+  
+  @override
+  Future<Either<Failure, CustomerModel>> updateProfile(Map<String, dynamic> body) async {
+    try {
+      final profileData = await authDataSource.updateProfile(body);
+      return Right(profileData);
+    } on ServerException {
+      return Left(ServerFailure());
+    }
+  }
  
 }
  

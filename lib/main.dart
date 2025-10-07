@@ -17,37 +17,27 @@ import 'utilities/localizations/translation.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:workmanager/workmanager.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-
-
-
-
-
-SmartTaskManager().initialize();
-
+  SmartTaskManager().initialize();
 
   // await Firebase.initializeApp();
-   try {
+  try {
     await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+        options: DefaultFirebaseOptions.currentPlatform,
+        );
   } catch (e) {
     print('Firebase initialization error: $e');
   }
-  
+
   // await NotificationService.instance.initialize();
-
   await GetStorage.init();
-    // Initialize Firebase Service
-  // final firebaseService = FirebaseService();
-  // await firebaseService.initialize();
+  // Initialize Firebase Service
+  final firebaseService = FirebaseService();
+  await firebaseService.initialize();
 
-
-
-initializeDateFormatting().then((_) => runApp(MyApp()));
+  initializeDateFormatting().then((_) => runApp(MyApp()));
   ThemeHelper().changeTheme('primary');
 }
 
@@ -59,7 +49,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       initialBinding: ApplicationBinding(),
-      
+
       defaultTransition: Transition.noTransition,
       // transitionDuration: Duration(milliseconds: 500),
       translations: Translation(),
@@ -74,20 +64,17 @@ class MyApp extends StatelessWidget {
         primaryColor: Color(0xfff8f8f8),
         iconTheme: const IconThemeData(color: Colors.black),
         textSelectionTheme: TextSelectionThemeData(
-          selectionColor: ZAHRA_ORANGE.withOpacity(0.3),
-          selectionHandleColor: ZAHRA_RED
-        ),
+            selectionColor: ZAHRA_ORANGE.withOpacity(0.3),
+            selectionHandleColor: ZAHRA_RED),
       ),
-   
+
       locale: Locale(GetStorage().read('lang') ?? "ar"),
       fallbackLocale: const Locale('en'),
-      initialRoute: GetStorage().read('access_token') == null
-          ? '/login'
-          : '/init_view',
+      initialRoute:
+          GetStorage().read('access_token') == null ? '/login' : '/init_view',
 
       // initialRoute:  '/init_view',
       getPages: routes,
-
     );
   }
 }

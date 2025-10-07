@@ -158,7 +158,23 @@ const Map<String, String> ar = {
   "Orders & Processing": "طلبات الإستئذان",
   "Sign out of your account": "تسجيل خروج من حسابك",
   "Track your pending orders": "تابع طلبات الاستئذان",
-  "Permissions": "الاستئذانات"
-
-
+  "Permissions": "الاستئذانات",
+  "Your account has been\ncreated successfully!": "تم إنشاء حسابك بنجاح!",
+  "Success!": "نجح!",
+  "Welcome to our community!":"أهلاً وسهلاً بك في مجتمع صقر!",
+  "Back to Login": "رجوع لتسجيل الدخول",
+ "Application Submitted!": "تم تقديم الطلب!",
+  "Your job application has been successfully submitted. Please wait for the App Manager's response.": "تم تقديم طلب التوظيف الخاص بك بنجاح. يرجى انتظار رد مدير التطبيق.",
+  "Status: Under Review": "الحالة: قيد المراجعة",
+  "Expected response: 3-5 business days": "الرد المتوقع: 3-5 أيام عمل",
+  "You'll receive updates via email": "ستتلقى التحديثات عبر البريد الإلكتروني",
+  "Back to Home": "العودة إلى الصفحة الرئيسية",
+  "Confirm Password":"تأكيد كلمة المرور",
+  "Confirm Password Required!": "تأكيد كلمة المرور مطلوبة",
+  "Full Name": "الاسم ثلاثى",
+  "Terms of Use & Privacy Policy": "شروط الإستخدام وحماية الخصوصية",
+  "Complete Account": "إستكمال الملف الشخصي",
+  "First Name Required!":"الاسم الأول مطلوب",
+  "Middle Name Required!": "الاسم الثاني مطلوب",
+  "Family Name Required!": "اسم العائلة مطلوب"
 };
