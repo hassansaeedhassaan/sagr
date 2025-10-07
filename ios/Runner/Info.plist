@@ -51,5 +51,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<key>Privacy - Microphone Usage Description</key>
+	<string>Microphone access is required to enable voice communication features. Your voice will only be transmitted when you press and hold the talk button.</string>
+	
+	<key>Privacy - Camera Usage Description</key>
+	<string>Camera access is required to enable video communication features, allowing you to share live video during walkie talkie sessions.</string>
 </dict>
 </plist>
