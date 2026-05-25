@@ -34,6 +34,7 @@ import '../../widgets/custom_image_view.dart';
 import '../../widgets/go_to_map.dart';
 import '../home_three_screen/widgets/categorychipview_item_widget.dart';
 import '../home_three_screen/widgets/categorygrid_item_widget.dart';
+import '../home_three_screen/widgets/category_sections.dart';
 import '../home_three_screen/widgets/most_viewed_dropdown.dart';
 
 import 'package:flutter/material.dart';
@@ -89,42 +90,6 @@ class HomeThreeScreen extends StatelessWidget {
   }
   
 
-  List<Widget> _myWidget(int count) {
-    return List.generate(
-        count,
-        (i) => Expanded(
-                child: Container(
-              margin: EdgeInsets.symmetric(vertical: 0, horizontal: 4),
-              child: SizedBox(
-                height: 70,
-                width: 70,
-                child: Shimmer(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 36),
-                      decoration: BoxDecoration(
-                        color: Color.fromARGB(248, 250, 124, 124),
-                        //  border: Border.all(width: 0),
-                        borderRadius: BorderRadiusStyle.roundedBorder12,
-                      ),
-                    ),
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFFEBEBF4),
-                        Color.fromARGB(255, 243, 243, 243),
-                        Color(0xFFEBEBF4),
-                      ],
-                      stops: [
-                        0.1,
-                        0.3,
-                        0.4,
-                      ],
-                      begin: Alignment(-1.0, -0.3),
-                      end: Alignment(1.0, 0.3),
-                      tileMode: TileMode.clamp,
-                    )),
-              ),
-            ))).toList(); // replace * with your rupee or use Icon instead
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +129,7 @@ class HomeThreeScreen extends StatelessWidget {
 
                         SizedBox(height: 10.v),
 
-                        _buildCategoryGrid(context),
+                        const CategoryGridSection(),
                         // GetBuilder<CategoriesController>(
                         //     init: CategoriesController(Get.find()),
                         //     builder: (_catController) {
@@ -179,9 +144,9 @@ class HomeThreeScreen extends StatelessWidget {
                         //           });
                         //     }),
 
-                        _buildCategoryGridSub(context),
-                        _buildCategoryGridSSub(context),
-                        _buildCategoryGridThSub(context),
+                        const CategoryGridSubSection(),
+                        const CategoryGridSSubSection(),
+                        const CategoryGridThSubSection(),
                         // SizedBox(child: Row(children: _myWidget(5))),
 
 
@@ -1164,136 +1129,6 @@ class HomeThreeScreen extends StatelessWidget {
     );
   }
 
-  /// Section Widget
-  Widget _buildCategoryGrid(BuildContext context) {
-    return GetBuilder<CategoriesController>(
-        init: CategoriesController(Get.find()),
-        builder: (categoryController) {
-          return SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              shrinkWrap: true,
-              // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              //   mainAxisExtent: 90.v,
-              //   crossAxisCount: 5,
-              //   mainAxisSpacing: 10.h,
-              //   crossAxisSpacing: 10.h,
-              // ),
-              physics: AlwaysScrollableScrollPhysics(),
-              itemCount: categoryController.categories.length,
-              itemBuilder: (context, index) {
-                return CategorygridItemWidget(
-                  onPressed: () => categoryController
-                      .getChildLevelOne(categoryController.categories[index].id!),
-                  category: categoryController.categories[index],
-                );
-              },
-            ),
-          );
-        });
-  }
-
-  /// Section Widget
-  Widget _buildCategoryGridSub(BuildContext context) {
-    return GetBuilder<CategoriesController>(
-        init: CategoriesController(Get.find()),
-        builder: (categoryController) {
-          return categoryController.productsLoading
-              ? SizedBox(child: Row(children: _myWidget(5)))
-              : SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    shrinkWrap: true,
-                    // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    //   mainAxisExtent: 90.v,
-                    //   crossAxisCount: 5,
-                    //   mainAxisSpacing: 10.h,
-                    //   crossAxisSpacing: 10.h,
-                    // ),
-                    physics: AlwaysScrollableScrollPhysics(),
-                    itemCount: categoryController.subCategories.length,
-                    itemBuilder: (context, index) {
-                      return InkWell(
-                        // onTap: () => categoryController.getChildLevelTwo(
-                        //     categoryController.subCategories[index].id!),
-                        child: CategorygridItemWidget(
-                          onPressed: () => categoryController.getChildLevelTwo(
-                              categoryController.subCategories[index].id!),
-                          category: categoryController.subCategories[index],
-                          type: "sub",
-                        ),
-                      );
-                    },
-                  ),
-                );
-        });
-  }
-
-  /// Section Widget
-  Widget _buildCategoryGridSSub(BuildContext context) {
-    return GetBuilder<CategoriesController>(
-        init: CategoriesController(Get.find()),
-        builder: (categoryController) {
-          return SizedBox(
-            height: categoryController.subCategoriesTwo.length > 0 ? 100 : 0,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              shrinkWrap: true,
-              // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              //   mainAxisExtent: 90.v,
-              //   crossAxisCount: 5,
-              //   mainAxisSpacing: 10.h,
-              //   crossAxisSpacing: 10.h,
-              // ),
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: categoryController.subCategoriesTwo.length,
-              itemBuilder: (context, index) {
-                return InkWell(
-                  onTap: () => categoryController.getChildLevelThird(
-                      categoryController.subCategoriesTwo[index].id!),
-                  child: CategorygridItemWidget(
-                      category: categoryController.subCategoriesTwo[index]),
-                );
-              },
-            ),
-          );
-        });
-  }
-
-  /// Section Widget
-  Widget _buildCategoryGridThSub(BuildContext context) {
-    return GetBuilder<CategoriesController>(
-        init: CategoriesController(Get.find()),
-        builder: (categoryController) {
-          return GridView.builder(
-            shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              mainAxisExtent: 90.v,
-              crossAxisCount: 5,
-              mainAxisSpacing: 10.h,
-              crossAxisSpacing: 10.h,
-            ),
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: categoryController.thirdLevelSubCategories.length,
-            itemBuilder: (context, index) {
-              return CategorygridItemWidget(
-                  category: categoryController.thirdLevelSubCategories[index]);
-            },
-          );
-        });
-  }
-
-  /// Section Widget
-  Widget _buildCategoryChipView(BuildContext context) {
-    return Wrap(
-      runSpacing: 8.v,
-      spacing: 8.h,
-      children:
-          List<Widget>.generate(4, (index) => CategorychipviewItemWidget()),
-    );
-  }
 
   /// Section Widget
   Widget _buildCardStack(BuildContext context, List<Product> products) {
