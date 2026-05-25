@@ -35,6 +35,7 @@ import '../../widgets/go_to_map.dart';
 import '../home_three_screen/widgets/categorychipview_item_widget.dart';
 import '../home_three_screen/widgets/categorygrid_item_widget.dart';
 import '../home_three_screen/widgets/category_sections.dart';
+import '../home_three_screen/widgets/feature_ads_row.dart';
 import '../home_three_screen/widgets/most_viewed_dropdown.dart';
 
 import 'package:flutter/material.dart';
@@ -121,8 +122,7 @@ class HomeThreeScreen extends StatelessWidget {
                         //                             CreateAdScreen(Get.find()))),
                         
 
-                            child: _buildFeatureAdsRow(
-                              context,
+                            child: FeatureAdsRow(
                               featureAdsText: "Categories",
                               seeMoreText: "See more",
                             )),
@@ -164,8 +164,7 @@ class HomeThreeScreen extends StatelessWidget {
                                             MaterialPageRoute(
                                                 builder: (context) =>
                                                     FeatureAdsPage())),
-                                        child: _buildFeatureAdsRow(
-                                          context,
+                                        child: FeatureAdsRow(
                                           featureAdsText: "Feature ads",
                                           seeMoreText: "See more",
                                         )),
@@ -547,8 +546,7 @@ class HomeThreeScreen extends StatelessWidget {
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 LatestAdsPage())),
-                                    child: _buildFeatureAdsRow(
-                                      context,
+                                    child: FeatureAdsRow(
                                       featureAdsText: "Latest ads",
                                       seeMoreText: "See more",
                                     ),
@@ -1328,32 +1326,6 @@ class HomeThreeScreen extends StatelessWidget {
   }
 
   /// Common widget
-  Widget _buildFeatureAdsRow(
-    BuildContext context, {
-    required String featureAdsText,
-    required String seeMoreText,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          featureAdsText,
-          style: theme.textTheme.titleLarge!.copyWith(
-            color: appTheme.blueGray90001,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.only(top: 8.v),
-          child: Text(
-            seeMoreText,
-            style: CustomTextStyles.titleSmallPrimary_1.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   /// Common widget
   Widget _buildCardColumn(
