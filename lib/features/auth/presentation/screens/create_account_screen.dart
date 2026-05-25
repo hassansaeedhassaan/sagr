@@ -1,13 +1,19 @@
 import 'package:get/get.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/auth/presentation/controllers/create_account_controller.dart';
+import 'package:sagr/features/nationalities/data/models/nationality_model.dart';
+import 'package:sagr/features/nationalities/presentation/controllers/nationalities_controller.dart';
+import 'package:sagr/features/regions/data/models/region_model.dart';
+import 'package:sagr/features/regions/domain/entities/region.dart';
+import 'package:sagr/features/regions/presentation/controllers/regions_controller.dart';
+import 'package:sagr/view/widgets/Forms/custom_password_form_field.dart';
 import 'package:sagr/view/widgets/Forms/easy_app_text_form_field.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../view/widgets/Forms/easy_app_password_form_field.dart';
 import '../../../../widgets/phone_number_input.dart';
 import '/../core/utils/size_utils.dart';
-
 
 class CreateAccountScreen extends StatefulWidget {
   CreateAccountScreen({Key? key}) : super(key: key);
@@ -31,6 +37,63 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+
+  int? selectedDay;
+  int? selectedMonth;
+  int? selectedYear;
+
+  final List<String> months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+
+  List<int> getDaysInMonth() {
+    if (selectedMonth == null || selectedYear == null) {
+      return List.generate(31, (index) => index + 1);
+    }
+    int daysInMonth = DateTime(selectedYear!, selectedMonth!, 0).day;
+    return List.generate(daysInMonth, (index) => index + 1);
+  }
+
+  List<int> getYears() {
+    final currentYear = DateTime.now().year;
+    return List.generate(100, (index) => currentYear - index);
+  }
+
+  int _calculateAge() {
+    if (selectedDay == null || selectedMonth == null || selectedYear == null) {
+      return 0;
+    }
+    final birthDate = DateTime(selectedYear!, selectedMonth!, selectedDay!);
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  bool get isDateSelected =>
+      selectedDay != null && selectedMonth != null && selectedYear != null;
+
+  NationalityModel? selectedNationality;
+  List<NationalityModel> selectedNationalities = [];
+
+  NationalitiesController nationalitiesController =
+      Get.put(NationalitiesController(Get.find()));
+
+  RegionsController regionsController = Get.put(RegionsController(Get.find()));
 
   @override
   void initState() {
@@ -132,7 +195,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           
             Row(
               children: [
                 Expanded(
@@ -167,7 +229,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
     IconData icon,
   ) {
     final isSelected = accountController.gender == gender;
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -182,7 +244,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
             decoration: BoxDecoration(
               gradient: isSelected
                   ? LinearGradient(
-                      colors: [Colors.blue.shade400, Colors.blue.shade600],
+                      colors: [SAGR_PRIMARY, SAGR_PRIMARY],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     )
@@ -190,7 +252,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
               color: isSelected ? null : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? Colors.blue.shade600 : Colors.grey.shade300,
+                color: isSelected ? SAGR_PRIMARY : Colors.grey.shade300,
                 width: 2,
               ),
             ),
@@ -380,7 +442,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                   decoration: BoxDecoration(
                     gradient: accountController.agree
                         ? LinearGradient(
-                            colors: [Colors.green.shade400, Colors.green.shade600],
+                            colors: [
+                              Colors.green.shade400,
+                              Colors.green.shade600
+                            ],
                           )
                         : null,
                     color: accountController.agree ? null : Colors.white,
@@ -483,7 +548,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                     padding: const EdgeInsets.all(15),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: [Colors.blue.shade400, Colors.blue.shade600],
+                                        colors: [SAGR_PRIMARY, SAGR_PRIMARY],
                                       ),
                                       borderRadius: BorderRadius.circular(50),
                                     ),
@@ -515,18 +580,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                               ),
                             ),
                             const SizedBox(height: 40),
-
                             _buildAnimatedField(
                               delay: 1,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 0),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 0),
                                 child: EasyAppTextFormField(
-                                  onSave: (value) => accountController.firstName = value!,
+                                  onSave: (value) =>
+                                      accountController.firstName = value!,
                                   labelText: "Full Name".tr,
                                   hintText: "",
                                   prefixIcon: Icon(
                                     Icons.person_outline_rounded,
-                                    color: Colors.blue.shade600,
+                                    color: SAGR_PRIMARY,
                                   ),
                                   onValidate: (value) {
                                     if (value?.length == 0) {
@@ -537,226 +603,141 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                 ),
                               ),
                             ),
-
-              
-
-                             const SizedBox(height: 20),
-                             Container(
+                            const SizedBox(height: 20),
+                            Container(
                               child: _buildAnimatedField(
-                              delay: 4,
-                              child:SizedBox(
-                                height: 50,
-                                child: PhoneNumberInput(
-                                  isRTL: true, // or false for LTR
-                                  initialCountryCode: '+966', // Egypt
-                                  hintText: 'رقم الجوال', // or 'Phone number'
-                                  onChanged: (phone, code) => accountController.phone = phone,
-                                  onCountryChanged: (code, name, flag, iso) {
-
-                                    accountController.selectedCountryCode(code);
-                                    // Called when country changes
-                                    print('Country changed to: $name ($code)');
-                                    // You can update your UI, save to database, etc.
-                                  },
-                                ),
-                              )),
-                             ),
-                            // const SizedBox(height: 20),
-                            // _buildAnimatedField(
-                            //   delay: 4,
-                            //   child: Padding(
-                            //     padding: const EdgeInsets.symmetric(horizontal: 10),
-                            //     child: Directionality(
-                            //       textDirection: TextDirection.ltr,
-                            //       child: IntlPhoneField(
-                            //         languageCode: "en",
-                            //         textAlign: TextAlign.left,
-                            //         textAlignVertical: TextAlignVertical.center,
-                            //         disableAutoFillHints: true,
-                                    
-                            //         // dropdownIconPosition: IconPosition.trailing,
-                            //         searchText: "Search Country".tr,
-                            //         decoration: InputDecoration(
-                            //           suffixIcon: Icon(
-                            //             Icons.phone_rounded,
-                            //             color: Colors.blue.shade600,
-                            //           ),
-                            //           contentPadding: EdgeInsets.symmetric(horizontal: 15),
-                            //           labelText: "Phone Number".tr,
-                            //           hintText: ''.tr,
-                            //           alignLabelWithHint: true,
-                            //           floatingLabelAlignment: FloatingLabelAlignment.start,
-                            //           border: OutlineInputBorder(
-                            //             borderRadius: BorderRadius.circular(12),
-                            //             borderSide: BorderSide(color: Colors.grey.shade300),
-                            //           ),
-                            //           enabledBorder: OutlineInputBorder(
-                            //             borderRadius: BorderRadius.circular(12),
-                            //             borderSide: BorderSide(color: Colors.grey.shade300),
-                            //           ),
-                            //           focusedBorder: OutlineInputBorder(
-                            //             borderRadius: BorderRadius.circular(12),
-                            //             borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
-                            //           ),
-                            //         ),
-                            //         initialCountryCode: 'SA',
-                            //         onChanged: (phone) => accountController.phone = phone.completeNumber,
-                            //         onCountryChanged: (country) {
-                            //           accountController.selectedCountryCode(country.code);
-                            //         },
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
-
-
-                            // const SizedBox(height: 20),
-                            // _buildAnimatedField(
-                            //   delay: 5,
-                            //   child: Padding(
-                            //     padding: const EdgeInsets.symmetric(horizontal: 0),
-                            //     child: EasyAppTextFormField(
-                            //       onSave: (value) => accountController.nationalNo = value!,
-                            //       labelText: "National Number".tr,
-                            //       hintText: "",
-                            //       prefixIcon: Icon(
-                            //         Icons.badge_outlined,
-                            //         color: Colors.blue.shade600,
-                            //       ),
-                            //       onValidate: (value) {
-                            //         if (value?.length == 0) {
-                            //           return "National Number Required!".tr;
-                            //         }
-                            //         return null;
-                            //       },
-                            //     ),
-                            //   ),
-                            // ),
+                                  delay: 4,
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: PhoneNumberInput(
+                                      isRTL: true, // or false for LTR
+                                      initialCountryCode: '+966', // Egypt
+                                      hintText:
+                                          'رقم الجوال', // or 'Phone number'
+                                      onChanged: (phone, code) =>
+                                          accountController.phone = phone,
+                                      onCountryChanged:
+                                          (code, name, flag, iso) {
+                                        accountController
+                                            .selectedCountryCode(code);
+                                        // Called when country changes
+                                        print(
+                                            'Country changed to: $name ($code)');
+                                        // You can update your UI, save to database, etc.
+                                      },
+                                    ),
+                                  )),
+                            ),
 
                             const SizedBox(height: 25),
+                            _buildAnimatedField(
+                              delay: 1,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 0),
+                                child: EasyAppTextFormField(
+                                  onSave: (value) =>
+                                      accountController.email = value!,
+                                  labelText: "Email".tr,
+                                  hintText: "البريد الإلكتروني",
+                                  prefixIcon: Icon(
+                                    Icons.person_outline_rounded,
+                                    color: SAGR_PRIMARY,
+                                  ),
+                                  onValidate: (value) {
+                                    if (value?.length == 0) {
+                                      return "Email Required!".tr;
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 25),
                             _buildModernGenderSelector(accountController),
-
-                            // const SizedBox(height: 25),
-                            // _buildAnimatedField(
-                            //   delay: 7,
-                            //   child: Padding(
-                            //     padding: const EdgeInsets.symmetric(horizontal: 10),
-                            //     child: EasyAppTextFormField(
-                            //       enable: false,
-                            //       required: false,
-                            //       multiline: 3,
-                            //       onSave: (value) => accountController.experts = value!,
-                            //       labelText: "Experts".tr,
-                            //       hintText: "",
-                            //     ),
-                            //   ),
-                            // ),
-
-                            // const SizedBox(height: 20),
-                            // _buildAnimatedField(
-                            //   delay: 8,
-                            //   child: Padding(
-                            //     padding: const EdgeInsets.symmetric(horizontal: 10),
-                            //     child: EasyAppTextFormField(
-                            //       required: false,
-                            //       textInputType: TextInputType.number,
-                            //       onSave: (value) => accountController.previousEvents = value!,
-                            //       labelText: "Previous Events Past".tr,
-                            //       hintText: "",
-                            //       onValidate: (value) {
-                            //         if (value?.length == 0) {
-                            //           return "Previous Events Past Required!".tr;
-                            //         }
-                            //         return null;
-                            //       },
-                            //     ),
-                            //   ),
-                            // ),
-
-                            // const SizedBox(height: 20),
-                            // _buildAnimatedField(
-                            //   delay: 9,
-                            //   child: Padding(
-                            //     padding: const EdgeInsets.symmetric(horizontal: 10),
-                            //     child: EasyAppTextFormField(
-                            //       required: false,
-                            //       multiline: 3,
-                            //       onSave: (value) => accountController.chronicDiseases = value!,
-                            //       labelText: "Chronic diseases".tr,
-                            //     ),
-                            //   ),
-                            // ),
-
                             const SizedBox(height: 25),
                             _buildAnimatedField(
                               delay: 10,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 0),
-                                child: EasyAppPasswordFormField(
-                                  onSave: (value) => accountController.password = value!,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 0),
+                                child: CustomPasswordFormField(
+                                  obscureText:
+                                      accountController.obscureText.value,
+                                  onChangeTextSecure:
+                                      accountController.changeObscureText,
+                                  onSave: (value) =>
+                                      accountController.password = value!,
                                   labelText: "Password".tr,
                                   hintText: "",
                                   onValidate: (value) {
                                     if (value?.length == 0) {
                                       return "Password Required!".tr;
                                     }
+                                    if (value!.length < 8) {
+                                      return "password_short"; // Minimum 8 characters for strong password
+                                    }
+
+                                    // Check for uppercase letter
+                                    if (!value.contains(RegExp(r'[A-Z]'))) {
+                                      return "password_no_uppercase";
+                                    }
+
+                                    // Check for lowercase letter
+                                    if (!value.contains(RegExp(r'[a-z]'))) {
+                                      return "password_no_lowercase";
+                                    }
+
+                                    // Check for digit
+                                    if (!value.contains(RegExp(r'[0-9]'))) {
+                                      return "password_no_number";
+                                    }
+
+                                    // Check for special character
+                                    if (!value.contains(
+                                        RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                                      return "password_no_special_char";
+                                    }
+
                                     return null;
                                   },
                                 ),
                               ),
                             ),
-
                             const SizedBox(height: 20),
                             _buildAnimatedField(
                               delay: 11,
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 0),
-                                child: EasyAppPasswordFormField(
-                                  onSave: (value) => accountController.confirmationPassword = value!,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 0),
+                                child: CustomPasswordFormField(
+                                  obscureText: accountController
+                                      .obscureTextConfirm.value,
+                                  onChangeTextSecure: accountController
+                                      .changeObscureTextConfirm,
+                                  onSave: (value) => accountController
+                                      .confirmationPassword = value!,
                                   labelText: "Confirm Password".tr,
                                   hintText: "",
                                   onValidate: (value) {
+
                                     if (value?.length == 0) {
                                       return "Confirm Password Required!".tr;
                                     }
+
+                                    if (value != accountController.password){
+                                      return "Passwords do not match".tr;
+                                    }
+
+
+
                                     return null;
                                   },
                                 ),
                               ),
                             ),
-
-                            // const SizedBox(height: 30),
-                            // _buildAnimatedField(
-                            //   delay: 8,
-                            //   child: Row(
-                            //     children: [
-                            //       Expanded(
-                            //         child: _buildModernFileUpload(
-                            //           "إرفاق مستند الايبان",
-                            //           Icons.picture_as_pdf_rounded,
-                            //           () => accountController.handleFileSelectionForIban(),
-                            //           8,
-                            //         ),
-                            //       ),
-                            //       const SizedBox(width: 15),
-                            //       Expanded(
-                            //         child: _buildModernFileUpload(
-                            //           "إرفاق السيرة الذاتية",
-                            //           Icons.description_rounded,
-                            //           () => accountController.handleFileSelection(),
-                            //           9,
-                            //         ),
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
-
-                            // const SizedBox(height: 25),
-                            // _buildModernImageUpload(accountController),
-
                             const SizedBox(height: 30),
                             _buildAnimatedCheckbox(accountController),
-
                             if (accountController.agreeErrorMessage)
                               _buildAnimatedField(
                                 delay: 12,
@@ -772,14 +753,14 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                   ),
                                 ),
                               ),
-
                             const SizedBox(height: 35),
                             _buildAnimatedField(
                               delay: 13,
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),
                                 width: double.infinity,
-                                margin: const EdgeInsets.symmetric(horizontal: 10),
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 10),
                                 child: Material(
                                   color: Colors.transparent,
                                   child: InkWell(
@@ -787,34 +768,43 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                         ? null
                                         : () {
                                             _formKey.currentState!.save();
-                                            if (_formKey.currentState!.validate()) {
+                                            if (_formKey.currentState!
+                                                .validate()) {
                                               accountController.register();
                                             }
                                           },
                                     borderRadius: BorderRadius.circular(16),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
                                       decoration: BoxDecoration(
                                         gradient: accountController.isLoading
                                             ? LinearGradient(
-                                                colors: [Colors.grey.shade400, Colors.grey.shade500],
+                                                colors: [
+                                                  Colors.grey.shade400,
+                                                  Colors.grey.shade500
+                                                ],
                                               )
                                             : LinearGradient(
-                                                colors: [Colors.blue.shade500, Colors.blue.shade700],
+                                                colors: [
+                                                  SAGR_PRIMARY,
+                                                  SAGR_PRIMARY
+                                                ],
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                               ),
                                         borderRadius: BorderRadius.circular(16),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.blue.withOpacity(0.3),
+                                            color: SAGR_PRIMARY.withAlpha(10),
                                             blurRadius: 15,
                                             offset: const Offset(0, 5),
                                           ),
                                         ],
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           if (accountController.isLoading)
                                             SizedBox(
@@ -822,7 +812,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                               height: 20,
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(Colors.white),
                                               ),
                                             ),
                                           if (accountController.isLoading)
@@ -844,7 +836,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                 ),
                               ),
                             ),
-
                             const SizedBox(height: 30),
                             _buildAnimatedField(
                               delay: 14,

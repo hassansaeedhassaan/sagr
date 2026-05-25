@@ -18,6 +18,7 @@ abstract class EventsDataSource {
   Future<Response> apply(Map<String, dynamic> body);
 
   Future<Response> attendanceAndDeparture(Map<String, dynamic> body);
+  Future<Response> applicationStatus(Map<String, dynamic> body);
 }
 
 class EventsDataSourceImpl extends EventsDataSource {
@@ -321,7 +322,7 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
   @override
   Future<EventModel> getEventDetails(int id) async {
     var response =
-        await dio.get("https://crowds.sa/api/v1/events/${id}/show");
+        await dio.get("$BASEURL/events/${id}/show");
 
     if (response.statusCode == 200) {
       final EventModel event = EventModel.fromJson(response.data['data']);
@@ -334,11 +335,44 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
 
   @override
   Future<Response> apply(Map<String, dynamic> body) async {
-    try {
-      final response = await dio
-          .post("https://crowds.sa/api/v1/event/apply", data: body);
+    // try {
+    //   final response = await dio
+    //       .post("https://crowds.sa/api/v1/event/apply", data: body);
 
-      print('Response: ${response.data}');
+    //   print('Response: ${response.data}');
+    // } on DioException catch (e) {
+    //   // كل أخطاء Dio بتيجي هنا
+    //   if (e.type == DioExceptionType.connectionTimeout) {
+    //     print('Connection Timeout');
+    //   } else if (e.type == DioExceptionType.sendTimeout) {
+    //     print('Send Timeout');
+    //   } else if (e.type == DioExceptionType.receiveTimeout) {
+    //     print('Receive Timeout');
+    //   } else if (e.type == DioExceptionType.badResponse) {
+    //     // في حالة السيرفر رجّع استجابة بخطأ (مثلاً 400 أو 500)
+    //     final statusCode = e.response?.statusCode;
+    //     final data = e.response?.data;
+    //     print('Server error: $statusCode - $data');
+    //   } else if (e.type == DioExceptionType.cancel) {
+    //     print('Request was cancelled');
+    //   } else if (e.type == DioExceptionType.unknown) {
+    //     print('Unknown error: ${e.message}');
+    //   } else {
+    //     print('Other Dio error: ${e.message}');
+    //   }
+    // } catch (e) {
+    //   // أي خطأ ثاني غير Dio
+    //   print('Unexpected error: $e');
+    // }
+
+
+
+print(body);
+try {
+      final response = await dio
+          .post("$BASEURL/event/apply", data: body);
+
+      return response;
     } on DioException catch (e) {
       // كل أخطاء Dio بتيجي هنا
       if (e.type == DioExceptionType.connectionTimeout) {
@@ -362,15 +396,19 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
     } catch (e) {
       // أي خطأ ثاني غير Dio
       print('Unexpected error: $e');
+      
     }
 
-    var response = await dio.post("$BASEURL/event/apply", data: body);
+        throw ServerException();
 
-    if (response.statusCode == 200) {
-      return response;
-    } else {
-      throw ServerException();
-    }
+    // var response = await dio.post("$BASEURL/event/apply", data: body);
+
+    // if (response.statusCode == 200) {
+    //   return response;
+    // } else {
+    //   throw ServerException();
+    // }
+  
   }
 
 
@@ -413,5 +451,48 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
     } else {
       throw ServerException();
     }
+  }
+  @override
+  Future<Response> applicationStatus(Map<String, dynamic> body) async {
+    try {
+      final response = await dio
+          .post("$BASEURL/application/status/event", data: body);
+
+      return response;
+    } on DioException catch (e) {
+      // كل أخطاء Dio بتيجي هنا
+      if (e.type == DioExceptionType.connectionTimeout) {
+        print('Connection Timeout');
+      } else if (e.type == DioExceptionType.sendTimeout) {
+        print('Send Timeout');
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        print('Receive Timeout');
+      } else if (e.type == DioExceptionType.badResponse) {
+        // في حالة السيرفر رجّع استجابة بخطأ (مثلاً 400 أو 500)
+        final statusCode = e.response?.statusCode;
+        final data = e.response?.data;
+        print('Server error: $statusCode - $data');
+      } else if (e.type == DioExceptionType.cancel) {
+        print('Request was cancelled');
+      } else if (e.type == DioExceptionType.unknown) {
+        print('Unknown error: ${e.message}');
+      } else {
+        print('Other Dio error: ${e.message}');
+      }
+    } catch (e) {
+      // أي خطأ ثاني غير Dio
+      print('Unexpected error: $e');
+    }
+
+    // var response = await dio.post("$BASEURL/attendance/records", data: body);
+
+    // if (response.statusCode == 200) {
+    //   return response;
+    // } else {
+    //   throw ServerException();
+    // }
+
+      throw ServerException();
+
   }
 }

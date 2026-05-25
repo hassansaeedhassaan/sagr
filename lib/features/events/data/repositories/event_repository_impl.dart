@@ -64,6 +64,15 @@ class EventsRepositoryImpl implements EventRepository {
       return Left(ServerFailure());
     }
   }
+  @override
+  Future<Either<Failure, Response>> applicationStatus(Map<String, dynamic> body) async {
+     try {
+      final eventData = await eventsDataSource.applicationStatus(body);
+      return Right(eventData);
+    } on ServerException {
+      return Left(ServerFailure());
+    }
+  }
 
 
 }

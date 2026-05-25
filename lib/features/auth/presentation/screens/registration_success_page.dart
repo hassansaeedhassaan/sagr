@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:sagr/data/colors.dart';
 
 class RegistrationSuccessPage extends StatefulWidget {
   const RegistrationSuccessPage({Key? key}) : super(key: key);
@@ -174,9 +176,11 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-              Color(0xFFf093fb),
+              
+              SAGR_PRIMARY,
+              SAGR_SECONDARY,
+              // SAGR_THIRD
+              // Color(0xFFf093fb),
             ],
           ),
         ),
@@ -346,7 +350,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(28),
                                   gradient: const LinearGradient(
-                                    colors: [Colors.white, Colors.white],
+                                    colors: [SAGR_PRIMARY, SAGR_PRIMARY],
                                   ),
                                   boxShadow: [
                                     BoxShadow(
@@ -359,10 +363,18 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                 child: ElevatedButton(
                                   onPressed: () {
                                     // Navigate back to login
-                                    Navigator.of(context).pushNamedAndRemoveUntil(
-                                      '/login',
-                                      (route) => false,
-                                    );
+                                   
+                                        GetStorage().remove('access_token');
+            GetStorage().remove('userData');
+            // GetStorage().remove('loggedInUserName');
+            // GetStorage().remove('loggedInUserPhone');
+            Get.offAndToNamed("/login");
+
+            //  Navigator.of(context).pushNamedAndRemoveUntil(
+            //                           '/login',
+            //                           (route) => false,
+            //                         );
+            
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent,
@@ -376,14 +388,14 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                     children: [
                                       Icon(
                                         Icons.login,
-                                        color: Color(0xFF667eea),
+                                        color: WHITE_COLOR,
                                         size: 24,
                                       ),
                                       SizedBox(width: 12),
                                       Text(
                                         'Back to Login'.tr,
                                         style: TextStyle(
-                                          color: Color(0xFF667eea),
+                                          color: WHITE_COLOR,
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                         ),

@@ -1,5 +1,6 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sagr/helper/base_url.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +11,7 @@ class LocationService {
   static const String _taskName = 'locationUpdateTask';
 
   // Your server endpoint
-  static const String serverEndpoint = 'https://crowds.sa/api/v1';
+  static const String serverEndpoint = BASEURL;
 
   static const String send_current_location = '/receive/current_location';
   

@@ -14,33 +14,35 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var ourIndex = 0;
-
     if (Get.currentRoute == '/ads') {
       ourIndex = 1;
     } else if (Get.currentRoute == '/home') {
       ourIndex = 0;
-    } else if (Get.currentRoute == '/chat') {
+    } else if (Get.currentRoute == '/sagr_chat') {
       ourIndex = 2;
     } else if (Get.currentRoute == '/more') {
       ourIndex = 3;
     }
 
     return Container(
+    
         padding: EdgeInsets.only(right: 5.0, left: 5.0, top: 5, bottom: 4),
-        margin: EdgeInsets.only(right: 5.0, left: 5.0, top: 0, bottom: 4),
+        margin: EdgeInsets.only(right: 10.0, left: 10, top: 0, bottom: 15),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5.0),
-          color: Colors.white,
-          // border: Border.all(width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey,
-              offset: Offset(0.0, 1.0), //(x,y)
-              blurRadius: 2.0,
-            ),
-          ],
+          borderRadius: BorderRadius.all( Radius.circular(18) ),
+          color: Color(0xff0f172a),
+          border: Border.all(width: 1),
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Colors.grey,
+          //     offset: Offset(0.0, 1.0), //(x,y)
+          //     blurRadius: 2.0,
+          //   ),
+          // ],
         ),
         child: BottomNavigationBar(
+  
+
           onTap: (i) {
             // Get.nestedKey(1).currentState.popUntil((route) => route.isFirst);
             // DefaultTabController.of(context).index = i;
@@ -54,17 +56,19 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
                 break;
               case 1:
-                if (Get.currentRoute == "/category_screen") return;
+
+              print(Get.currentRoute);
+                if (Get.currentRoute == "/ads") return;
                 Navigator.pushNamedAndRemoveUntil(
                     context, '/ads', (_) => false);
                 break;
               case 2:
 
+              print(Get.currentRoute);
                 // conversations_list
-
-                if (Get.currentRoute == "/chat") return;
+                if (Get.currentRoute == "/sagr_chat") return;
                 Navigator.pushNamedAndRemoveUntil(
-                    context, '/chat_home', (_) => false);
+                    context, '/sagr_chat', (_) => false);
                 // Navigator.pushReplacement(
                 //     context,
                 //     MaterialPageRoute(
@@ -83,14 +87,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
             }
           },
 
-          backgroundColor: Colors.white,
+          backgroundColor: Color(0xff0f172a),
+          
           elevation: 0,
           type: BottomNavigationBarType.fixed,
-          selectedFontSize: 14,
-          selectedItemColor: AMBER_COLOR,
+          selectedFontSize: 12,
+          selectedItemColor: Color(0xff06987d),
           selectedIconTheme:
-              IconThemeData(color: Color.fromARGB(255, 245, 214, 38)),
-          unselectedFontSize: 14,
+              IconThemeData(color: Color(0xff06987d),),
+          unselectedFontSize: 12,
           selectedLabelStyle:
               TextStyle(fontWeight: FontWeight.w600, color: PURPLE_COLOR),
           unselectedItemColor: Color.fromARGB(255, 146, 146, 146),
@@ -106,7 +111,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 icon: Icon(Icons.home),
                 label: "Home".tr),
             new BottomNavigationBarItem(
-                backgroundColor: AMBER_COLOR,
+                // backgroundColor: AMBER_COLOR,
                 // icon: CustomImageView(
                 //   color: WHITE_COLOR,
                 //   imagePath: ImageConstant.imgNavCategory,

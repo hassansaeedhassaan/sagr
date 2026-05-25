@@ -30,11 +30,12 @@ import 'package:sagr/features/auth/presentation/controllers/login_controller.dar
 import 'package:sagr/features/chat/domain/repositories/conversations_repository.dart';
 import 'package:sagr/features/education/data/datasource/education_data_source.dart';
 import 'package:sagr/features/education/data/repositories/education_repository_impl.dart';
-import 'package:sagr/features/education/presentation/controllers/marital_status_controller.dart';
+import 'package:sagr/features/education/presentation/controllers/education_status_controller.dart';
 import 'package:sagr/features/events/data/datasource/events_data_source.dart';
 import 'package:sagr/features/events/data/repositories/event_repository_impl.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
 import 'package:sagr/features/events/presentation/controllers/events_controller.dart';
+import 'package:sagr/features/nationalities/presentation/controllers/nationalities_controller.dart';
 import 'package:sagr/features/products/data/datasources/product_data_source.dart';
 import 'package:sagr/features/products/data/repositories/products_repository_impl.dart';
 import 'package:sagr/features/products/domain/usecases/get_products.dart';
@@ -69,6 +70,9 @@ import '../features/featured/domain/usecases/get_featured_ads.dart';
 import '../features/latest/data/datasource/latest_ads_data_source.dart';
 import '../features/latest/data/repositories/latest_ads_repository_impl.dart';
 import '../features/latest/domain/usecases/get_latest_ads.dart';
+import '../features/nationalities/data/datasource/nationalities_data_source.dart';
+import '../features/nationalities/data/repositories/nationality_repository_impl.dart';
+import '../features/nationalities/domain/usecases/get_nationality.dart';
 import '../features/notifications/data/datasource/notifications_data_source.dart';
 import '../features/notifications/data/repositories/notifications_repository_impl.dart';
 import '../features/notifications/domain/usecases/get_commissions.dart';
@@ -91,7 +95,7 @@ class ApplicationBinding implements Bindings {
 
     var dio = Dio(options);
 
- // Add interceptor to dynamically add token to requests
+    // Add interceptor to dynamically add token to requests
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
@@ -100,7 +104,6 @@ class ApplicationBinding implements Bindings {
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = "Bearer $token";
           }
-          
 
           print("Hello, Hassan From interceptors 😍");
           // Add language header
@@ -108,7 +111,7 @@ class ApplicationBinding implements Bindings {
           if (language != null) {
             options.headers['Accept-Language'] = language;
           }
-          
+
           handler.next(options);
         },
         onError: (error, handler) {
@@ -206,65 +209,53 @@ class ApplicationBinding implements Bindings {
     Get.put(NotificationsUsecase(Get.find<NotificationsRepositoryImpl>()),
         permanent: true);
 
-
-
-
-
-
     Get.lazyPut(() => EventsController(Get.find()));
     Get.lazyPut(() => EventsDataSourceImpl(dio: Get.find()));
-    Get.lazyPut(() =>
-        EventsRepositoryImpl(Get.find<EventsDataSourceImpl>()));
-    Get.put(EventsUsecase(Get.find<EventsRepositoryImpl>()),
-        permanent: true);
-
+    Get.lazyPut(() => EventsRepositoryImpl(Get.find<EventsDataSourceImpl>()));
+    Get.put(EventsUsecase(Get.find<EventsRepositoryImpl>()), permanent: true);
 
     Get.lazyPut(() => EvocationsController(Get.find()));
-    
+
     Get.lazyPut(() => EvocationsDataSourceImpl(dio: Get.find()));
-    
+
     Get.lazyPut(
         () => EvocationsRepositoryImpl(Get.find<EvocationsDataSourceImpl>()));
-    
+
     Get.put(EvocationsUsecase(Get.find<EvocationsRepositoryImpl>()),
         permanent: true);
 
-
-
     Get.lazyPut(() => EducationsController(Get.find()));
-    
+
     Get.lazyPut(() => EducationDataSourceImpl(dio: Get.find()));
-    
+
     Get.lazyPut(
         () => EducationRepositoryImpl(Get.find<EducationDataSourceImpl>()));
-    
+
     Get.put(EducationUsecase(Get.find<EducationRepositoryImpl>()),
         permanent: true);
 
 
+    Get.lazyPut(() => NationalitiesController(Get.find()));
+    Get.lazyPut(() => NationalitiesDataSourceImpl(dio: Get.find()));
+    Get.lazyPut(() =>
+        NationalityRepositoryImpl(Get.find<NationalitiesDataSourceImpl>()));
+    Get.put(NationalityUsecase(Get.find<NationalityRepositoryImpl>()),
+        permanent: true);
 
-        
-        
 
 
-
-
-Get.lazyPut(() => SagrAuthController());
+    Get.lazyPut(() => SagrAuthController());
 // Get.lazyPut(() => ChatController());
-Get.lazyPut(() => ApiService());
-Get.lazyPut(() => FirebaseMessagingService());
-Get.lazyPut(() => BottomNavController());
-
-
+    Get.lazyPut(() => ApiService());
+    Get.lazyPut(() => FirebaseMessagingService());
+    Get.lazyPut(() => BottomNavController());
 
     // Banner Binndigs
     // Get.lazyPut(() => BannerDataSourceImpl(dio: Get.find()));
     // Get.lazyPut(
     //     () => BannerRepositoryImpl(Get.find<BannerDataSourceImpl>()));
     // Get.put(BannerUsecase(Get.find<BannerRepositoryImpl>()),
-    //     permanent: true);   
-
-
+    //     permanent: true);
 
     // Get.lazyPut(() => ConversationsController(Get.find()));
     // Get.lazyPut(() => MessagesController(Get.find()));
@@ -289,8 +280,6 @@ Get.lazyPut(() => BottomNavController());
     //   headers['Authorization'] = "Bearer " + GetStorage().read('accessToken');
     // }
     if (GetStorage().read('access_token') != null) {
-     
-
       headers['Authorization'] = "Bearer " + GetStorage().read('access_token');
       // headers['app_type'] = ;
 

@@ -17,6 +17,8 @@ class ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+ 
     final displayName = conversation.getDisplayName(currentUserId);
     final displayAvatar = conversation.getDisplayAvatar(currentUserId);
     final lastMessage = conversation.lastMessage;

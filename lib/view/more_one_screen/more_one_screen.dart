@@ -1,15 +1,20 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/core/utils/size_utils.dart';
+import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:sagr/helper/base_url.dart';
+import 'package:sagr/utilities/map.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../features/events/presentation/screens/event_ncalender.dart';
 import '../../theme/app_decoration.dart';
-
+import '../../widgets/Common/elegant_exit_dialog.dart';
 
 class MoreOneScreen extends StatefulWidget {
   const MoreOneScreen({Key? key}) : super(key: key);
@@ -18,7 +23,8 @@ class MoreOneScreen extends StatefulWidget {
   State<MoreOneScreen> createState() => _MoreOneScreenState();
 }
 
-class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateMixin {
+class _MoreOneScreenState extends State<MoreOneScreen>
+    with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -55,7 +61,14 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return MasterWrapper(
+     
+    return PopScope(
+      canPop: false, // Prevent default back navigation
+      onPopInvoked: (bool didPop) async {
+        if (didPop) return;
+         Get.toNamed('/home');
+      },
+      child: MasterWrapper(
       body: Scaffold(
         backgroundColor: Colors.grey.shade50,
         body: FadeTransition(
@@ -70,12 +83,12 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                   children: [
                     // Custom App Bar Space
                     SizedBox(height: 50.v),
-                    
+
                     // Enhanced Profile Section
                     _buildEnhancedProfileSection(context),
-                    
+
                     SizedBox(height: 24.v),
-                    
+
                     // Main Content
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.h),
@@ -83,21 +96,34 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Events & Activities Section
-                          _buildSectionHeader("Events & Activities".tr, Icons.event_outlined),
+                          _buildSectionHeader(
+                              "Events & Activities".tr, Icons.event_outlined),
                           SizedBox(height: 12.v),
                           _buildAnimatedSection([
                             _buildEnhancedMenuItem(
                               icon: Icons.campaign_outlined,
                               title: "Advertisements".tr,
                               subtitle: "Manage your ads".tr,
-                              onTap: () => Get.toNamed('/ads', arguments: 'ads'),
+                              onTap: () =>
+                                  Get.toNamed('/ads', arguments: 'ads'),
                             ),
                             _buildEnhancedMenuItem(
                               icon: Icons.history_outlined,
                               title: "Previous Events".tr,
                               subtitle: "View past events".tr,
-                              onTap: () => Get.toNamed('/previous_events', arguments: {'ed': 'previous'}),
+                              onTap: () => Get.toNamed('/previous_events',
+                                  arguments: {'ed': 'previous'}),
                             ),
+
+
+                              _buildEnhancedMenuItem(
+                              icon: Icons.report,
+                              title: "Attendance Reports".tr,
+                              subtitle: "View Details of Attendance and departure".tr,
+                              onTap: () => Get.toNamed('/attendance/report',
+                                  arguments: {'ed': 'previous'}),
+                            ),
+
                             // _buildEnhancedMenuItem(
                             //   icon: Icons.calendar_today_outlined,
                             //   title: "Previous Events Calendar".tr,
@@ -108,22 +134,24 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                               icon: Icons.event_note_outlined,
                               title: "My Events".tr,
                               subtitle: "Your personal events".tr,
-                              onTap: () => Get.toNamed('/events', arguments: {'es': 'my-events'}),
+                              onTap: () => Get.toNamed('/events',
+                                  arguments: {'es': 'my-events'}),
                             ),
                             _buildEnhancedMenuItem(
                               icon: Icons.date_range_outlined,
                               title: "Events Calendar".tr,
                               subtitle: "Calendar overview".tr,
                               // onTap: () => Get.toNamed('/events_calender', arguments: 'payment-fees'),
-                              onTap: () => Get.to(() => EventCalendarPage() ),
+                              onTap: () => Get.to(() => EventCalendarPage()),
                               isLast: true,
                             ),
                           ]),
-                          
+
                           SizedBox(height: 24.v),
-                          
+
                           // Orders & Processing Section
-                          _buildSectionHeader("Orders & Processing".tr, Icons.inventory_outlined),
+                          _buildSectionHeader("Orders & Processing".tr,
+                              Icons.inventory_outlined),
                           SizedBox(height: 12.v),
                           _buildAnimatedSection([
                             _buildEnhancedMenuItem(
@@ -134,17 +162,19 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                               isLast: true,
                             ),
                           ]),
-                          
+
                           SizedBox(height: 32.v),
+
                           
+
                           // Logout Section
                           _buildEnhancedLogoutSection(context),
-                          
+
                           SizedBox(height: 32.v),
-                          
+
                           // Enhanced Support Section
                           _buildEnhancedSupportSection(context),
-                          
+
                           SizedBox(height: 32.v),
                         ],
                       ),
@@ -156,7 +186,7 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
           ),
         ),
       ),
-    );
+    ));
   }
 
   /// Enhanced Profile Section with improved lighting and design
@@ -167,15 +197,17 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
         if (authController.isLoading) {
           return _buildProfileShimmer();
         }
-        
+
         return Container(
           margin: EdgeInsets.symmetric(horizontal: 16.h),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.blue.shade600,
-                Colors.blue.shade700,
-                Colors.indigo.shade700,
+                SAGR_PRIMARY,
+
+                SAGR_PRIMARY,
+                // SAGR_THIRD,
+                SAGR_PRIMARY,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -183,13 +215,13 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
             borderRadius: BorderRadius.circular(20.h),
             boxShadow: [
               BoxShadow(
-                color: Colors.blue.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
+                color: SAGR_PRIMARY,
+                blurRadius: 2,
+                offset: const Offset(0, 2),
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
+                color: SAGR_PRIMARY,
+                blurRadius: 2,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -211,7 +243,7 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                     ],
                   ),
                   child: GestureDetector(
-                    onTap: () => Get.toNamed('/create_account'),
+                    // onTap: () => Get.toNamed('/create_account'),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(40.h),
                       child: Container(
@@ -221,38 +253,44 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                           border: Border.all(color: Colors.white, width: 3),
                           borderRadius: BorderRadius.circular(40.h),
                         ),
-                        child: Image.asset(
-                          'assets/images/avatar.png',
-                          fit: BoxFit.cover,
-                        ),
+
+                        child: authController.authenticatedUser!['image'] != null ? CachedNetworkImage(imageUrl: "${HOSTURL+ authController.authenticatedUser!['image']}") : Container(),
+                        // child: Image.asset(
+                        //   'assets/images/avatar.png',
+                        //   fit: BoxFit.cover,
+                        // ),
                       ),
                     ),
                   ),
                 ),
-                
+
                 SizedBox(width: 16.h),
-                
+
                 // User Info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "${authController.authenticatedUser!['firstName']} ${authController.authenticatedUser!['middleName']} ${authController.authenticatedUser!['lastName']}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      
+                      authController.authenticatedUser!['is_completed']
+                          ? Text(
+                              "${authController.authenticatedUser!['firstName']} ${authController.authenticatedUser!['middleName']} ${authController.authenticatedUser!['lastName']}",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          : Text(
+                              authController.authenticatedUser!['name'],
+                              style: TextStyle(color: WHITE_COLOR),
+                            ),
                       SizedBox(height: 8.v),
-                      
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8.h, vertical: 4.v),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 8.h, vertical: 4.v),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8.h),
@@ -265,17 +303,16 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                           ),
                         ),
                       ),
-                      
                       SizedBox(height: 8.v),
-                      
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 6.v),
+                        authController.authenticatedUser!['is_completed'] ? Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 10.h, vertical: 6.v),
                         decoration: BoxDecoration(
-                          color: Colors.orange.shade600,
+                          color: SAGR_SECONDARY,
                           borderRadius: BorderRadius.circular(12.h),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.withOpacity(0.3),
+                              color: SAGR_SECONDARY.withAlpha(10),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -289,11 +326,19 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                             fontWeight: FontWeight.w600,
                           ),
                         ),
+                      ) : Container(
+                        margin: EdgeInsets.only(top: 4),
+                        padding: EdgeInsetsDirectional.symmetric(vertical: 5, horizontal: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: ZAHRA_ORANGE
+                        ),
+                        child: Text("الملف الشخصي غير مكتمل", style: TextStyle(color: WHITE_COLOR),),
                       ),
                     ],
                   ),
                 ),
-                
+
                 // Edit Button
                 InkWell(
                   onTap: () => Get.toNamed('/update_account'),
@@ -389,7 +434,7 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
             padding: EdgeInsets.all(10.h),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blue.shade500, Colors.indigo.shade600],
+                colors: [SAGR_PRIMARY, SAGR_PRIMARY],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -462,12 +507,14 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
         child: Container(
           padding: EdgeInsets.all(18.h),
           decoration: BoxDecoration(
-            border: !isLast ? Border(
-              bottom: BorderSide(
-                color: Colors.grey.shade100,
-                width: 1,
-              ),
-            ) : null,
+            border: !isLast
+                ? Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.shade100,
+                      width: 1,
+                    ),
+                  )
+                : null,
           ),
           child: Row(
             children: [
@@ -476,18 +523,18 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                 width: 50.h,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.blue.shade400, Colors.indigo.shade500],
+                    colors: [SAGR_SECONDARY, SAGR_SECONDARY],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14.h),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: Colors.blue.withOpacity(0.3),
+                  //     blurRadius: 8,
+                  //     offset: const Offset(0, 2),
+                  //   ),
+                  // ],
                 ),
                 child: Icon(
                   icon,
@@ -674,17 +721,17 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                 padding: EdgeInsets.all(12.h),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.green.shade500, Colors.teal.shade600],
+                    colors: [SAGR_SECONDARY, SAGR_SECONDARY],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(14.h),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
+                    // BoxShadow(
+                    //   color: SAGR_SECONDARY,
+                    //   blurRadius: 8,
+                    //   offset: const Offset(0, 2),
+                    // ),
                   ],
                 ),
                 child: Icon(
@@ -701,15 +748,15 @@ class _MoreOneScreenState extends State<MoreOneScreen> with TickerProviderStateM
                   fontWeight: FontWeight.w700,
                   color: Colors.grey.shade800,
                   decoration: TextDecoration.underline,
-                  decorationColor: Colors.green.shade600,
+                  decorationColor: SAGR_SECONDARY,
                   decorationThickness: 2,
                 ),
               ),
             ],
           ),
-          
+
           SizedBox(height: 20.v),
-          
+
           // Contact Methods
           Column(
             children: [
@@ -823,7 +870,8 @@ class MySliverAppBar extends SliverPersistentHeaderDelegate {
   MySliverAppBar({required this.expandedHeight});
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Stack(
       clipBehavior: Clip.none,
       fit: StackFit.expand,

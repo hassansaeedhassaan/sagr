@@ -4,7 +4,6 @@ import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/data/models/zone_coordinate_model.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
 import 'package:get/get.dart';
-import 'package:sagr/features/events/presentation/controllers/zone_controller.dart';
 import 'package:sagr/features/events/presentation/services/sagr_zone_location_service.dart';
 import 'package:sagr/features/evocations/data/models/evocation_model.dart';
 
@@ -106,6 +105,62 @@ class EventController extends GetxController {
       _setLoadingState(false);
     }
   }
+
+
+ // Enhanced attendance check in/out
+  Future<void> contractDecisions(String type) async {
+    if (_isLoading.value) return; // Prevent multiple calls
+
+    _setLoadingState(true);
+
+    try {
+      
+      await _performStatusAction(type);
+    } catch (e) {
+      _handleError('Attendance action failed: $e');
+    } finally {
+      _setLoadingState(false);
+    }
+  }
+
+
+
+
+   // Enhanced attendance method with better error handling
+  Future<void> _performStatusAction(String type) async {
+    // Get current position
+   
+
+    // Prepare request body
+    final Map<String, dynamic> body = {
+      'event_id': event?.id,
+      'status': type,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+
+    try {
+      // Perform attendance API call
+      final failureOrResponse = await eventsUsecase.applicationStatus(body);
+
+
+      await failureOrResponse.fold(
+        (failure) async {
+          _handleAttendanceFailure(failure);
+        }, 
+        (response) async {
+          _handleApplicationStatusSuccess(response, type);
+        }
+      );
+
+    } catch (e) {
+      _handleError('Attendance processing error: $e');
+      MessageHelper.showErrorDialog(
+        title: 'Error'.tr,
+        message: 'An unexpected error occurred. Please try again.'.tr,
+      );
+    }
+  }
+
 
   // Set loading state with UI updates
   void _setLoadingState(bool loading) {
@@ -217,7 +272,7 @@ class EventController extends GetxController {
       if (event?.zoneCoordinates != null && event!.zoneCoordinates!.isNotEmpty) {
         final locationResult = await checkCurrentLocation(event!.zoneCoordinates!);
         
-        if (locationResult?.isInside == true) {
+        if (locationResult?.isInside != true) {
           final distance = locationResult?.distanceToZone ?? 0;
           MessageHelper.showErrorDialog(
             title: 'Location Restricted'.tr,
@@ -259,6 +314,37 @@ class EventController extends GetxController {
 
   // Handle attendance success
   void _handleAttendanceSuccess(dynamic response, String type) {
+    if (response.data?['success'] == true) {
+      // Update check-in status
+      final wasCheckingIn = type == 'attendance';
+      _isCheckedIn.value = wasCheckingIn;
+      _attendanceStatus.value = wasCheckingIn 
+          ? AttendanceStatus.checkedIn 
+          : AttendanceStatus.notCheckedIn;
+      
+      _updateLastUpdateTime();
+      _updateStatusMessage();
+
+      // Show success message
+      MessageHelper.showSuccessDialog(
+        title: 'Success'.tr,
+        message: wasCheckingIn 
+            ? 'Successfully checked in! 🎉'.tr 
+            : 'Successfully checked out! 👋'.tr,
+      );
+
+      // Update event model
+      if (eventModel != null) {
+        // eventModel!.isCheckedIn = wasCheckingIn;
+      }
+    } else {
+      _handleAttendanceFailure('Server returned unsuccessful response');
+    }
+  }
+
+
+  // Handle attendance success
+  void _handleApplicationStatusSuccess(dynamic response, String type) {
     if (response.data?['success'] == true) {
       // Update check-in status
       final wasCheckingIn = type == 'attendance';

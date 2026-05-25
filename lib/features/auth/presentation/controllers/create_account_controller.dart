@@ -12,6 +12,7 @@ import 'package:sagr/features/education/data/models/education_model.dart';
 import 'package:sagr/features/jobs/data/models/job_model.dart';
 import 'package:sagr/features/language/data/models/language_model.dart';
 import 'package:sagr/features/marital_status/data/models/marital_status_model.dart';
+import 'package:sagr/features/nationalities/data/models/nationality_model.dart';
 import 'package:sagr/features/regions/presentation/controllers/regions_controller.dart';
 
 import '../../../regions/data/models/region_model.dart';
@@ -41,6 +42,26 @@ class CreateAccountController extends GetxController {
   String? experts;
   String? previousEvents;
   String? chronicDiseases;
+  
+  int? selectedDay;
+  int? selectedMonth;
+  int? selectedYear;
+
+  final List<String> months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+  ];
+
 
   // ========== Observable States ==========
   final RxString _gender = 'male'.obs;
@@ -53,14 +74,19 @@ class CreateAccountController extends GetxController {
   final RxString _ibanFilePath = "".obs;
   final RxString _imagePath = "".obs;
   final Rx<XFile> _imageFile = XFile("").obs;
+  final RxBool obscureText = true.obs;
+  final RxBool obscureTextConfirm = true.obs;
 
   // ========== Observable Models ==========
   final Rx<MaritalStatusModel> _selectedMaritalStatus =
       MaritalStatusModel().obs;
   final Rx<JobModel> _selectedJobs = JobModel().obs;
   final Rx<EducationModel> _selectedEducation = EducationModel().obs;
+  final Rx<NationalityModel> _selectedNationality = NationalityModel().obs;
   final Rx<RegionModel> _selectedRegion = RegionModel().obs;
   final RxList<LanguageModel> _languages = <LanguageModel>[].obs;
+
+
 
   // ========== Getters ==========
   bool get isLoading => _isLoading.value;
@@ -78,6 +104,7 @@ class CreateAccountController extends GetxController {
   EducationModel get selectedEducation => _selectedEducation.value;
   RegionModel get selectedRegion => _selectedRegion.value;
   List<LanguageModel> get languages => _languages.toList();
+  NationalityModel get selectedNationality => _selectedNationality.value;
 
   // ========== Image Picker ==========
   final ImagePicker _picker = ImagePicker();
@@ -97,6 +124,18 @@ class CreateAccountController extends GetxController {
   @override
   void onClose() {
     super.onClose();
+  }
+
+
+  changeObscureText() {
+    obscureText.value = !obscureText.value;
+    update();
+  }
+
+
+  changeObscureTextConfirm() {
+    obscureTextConfirm.value = !obscureTextConfirm.value;
+    update();
   }
 
   // ========== Data Loading ==========
@@ -150,6 +189,15 @@ class CreateAccountController extends GetxController {
     _selectedEducation.value = education;
     update();
   }
+
+
+
+
+  void setSelectedNationality(NationalityModel nationality) {
+    _selectedNationality.value = nationality;
+    update();
+  }
+
 
   void setSelectedLanguages(LanguageModel language) {
     if (!_languages.contains(language)) {
@@ -309,11 +357,11 @@ class CreateAccountController extends GetxController {
     _setLoadingState(true);
 
     // Generate temporary email - replace with actual email in production
-    final randomNumber = Random().nextInt(100000000);
+    // final randomNumber = Random().nextInt(100000000);
 
     final Map<String, dynamic> body = {
       'name': firstName,
-      'email': '$randomNumber@gmail.com', // TODO: Use actual email
+      'email': email, // TODO: Use actual email
       'phone': phone,
       'countryCode': countryCode,
       'gender': gender,
@@ -374,6 +422,9 @@ class CreateAccountController extends GetxController {
       'image': imagePath,
       'emp_cv': cvEmpPath,
       'iban_file': ibanFilePath,
+      'nationality_id': selectedNationality.id,
+      'region_id': selectedRegion.id,
+      'birthdate': DateTime(selectedYear!, selectedMonth!, selectedDay!)
     };
 
     try {
@@ -610,4 +661,39 @@ class CreateAccountController extends GetxController {
 
     update();
   }
+
+
+  
+
+  List<int> getDaysInMonth() {
+    if (selectedMonth == null || selectedYear == null) {
+      return List.generate(31, (index) => index + 1);
+    }
+    int daysInMonth = DateTime(selectedYear!, selectedMonth!, 0).day;
+    return List.generate(daysInMonth, (index) => index + 1);
+  }
+
+  List<int> getYears() {
+    final currentYear = DateTime.now().year;
+    return List.generate(100, (index) => currentYear - index);
+  }
+
+  int _calculateAge() {
+    if (selectedDay == null || selectedMonth == null || selectedYear == null) {
+      return 0;
+    }
+    final birthDate = DateTime(selectedYear!, selectedMonth!, selectedDay!);
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  bool get isDateSelected =>
+      selectedDay != null && selectedMonth != null && selectedYear != null;
+      
+
 }

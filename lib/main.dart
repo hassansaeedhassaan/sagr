@@ -4,40 +4,48 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/firebase_options.dart';
-import 'package:sagr/location_service.dart';
 import 'package:sagr/smart_task_manager_service.dart';
-import 'background_tasks.dart';
 import 'bindings/application_binding.dart';
-import 'core/services/firebase_service.dart';
-import 'core/services/notification_service.dart';
+import 'core/services/unified-notification-service.dart';
 import 'data/colors.dart';
 import 'routes/routes.dart';
 import 'theme/theme_helper.dart';
 import 'utilities/localizations/translation.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:workmanager/workmanager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   SmartTaskManager().initialize();
 
+  // StatusBarHelper.setDarkStatusBar();
+
+
+ await GetStorage.init();
+
+  
   // await Firebase.initializeApp();
   try {
     await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-        );
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     print('Firebase initialization error: $e');
   }
+ 
+
+// GetStorage().remove('access_token');
+//           GetStorage().remove('userData');
 
   // await NotificationService.instance.initialize();
-  await GetStorage.init();
   // Initialize Firebase Service
-  final firebaseService = FirebaseService();
-  await firebaseService.initialize();
+  // final firebaseService = FirebaseService();
+  // await firebaseService.initialize();
+  Get.put(UnifiedNotificationService()).init();
+
 
   initializeDateFormatting().then((_) => runApp(MyApp()));
+
   ThemeHelper().changeTheme('primary');
 }
 
@@ -61,7 +69,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: Color(0xfff6f6f6),
         fontFamily: "URW",
-        primaryColor: Color(0xfff8f8f8),
+        // primaryColor: Color(0xfff8f8f8),
         iconTheme: const IconThemeData(color: Colors.black),
         textSelectionTheme: TextSelectionThemeData(
             selectionColor: ZAHRA_ORANGE.withOpacity(0.3),

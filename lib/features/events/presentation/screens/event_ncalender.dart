@@ -19,8 +19,14 @@ class EventCalendarPage extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Advanced Events Calendar'),
+          title: const Text('Events Calendar', style: TextStyle(color: WHITE_COLOR),),
+          foregroundColor: WHITE_COLOR,
+          backgroundColor: SAGR_PRIMARY,
+
           bottom: TabBar(
+            labelColor: SAGR_SECONDARY,
+            unselectedLabelColor: WHITE_COLOR,
+            indicatorColor: SAGR_SECONDARY,
             onTap: (index) => controller.setTabIndex(index),
             tabs: const [
               Tab(text: 'Calendar', icon: Icon(Icons.calendar_month)),
@@ -28,13 +34,13 @@ class EventCalendarPage extends StatelessWidget {
             ],
           ),
           actions: [
-            Obx(() => IconButton(
-              icon: Icon(controller.calendarFormat.value == CalendarFormat.month
-                  ? Icons.view_week
-                  : Icons.calendar_month),
-              onPressed: controller.toggleCalendarFormat,
-              tooltip: 'Toggle calendar format',
-            )),
+            // Obx(() => IconButton(
+            //   icon: Icon(controller.calendarFormat.value == CalendarFormat.month
+            //       ? Icons.view_week
+            //       : Icons.calendar_month),
+            //   onPressed: controller.toggleCalendarFormat,
+            //   tooltip: 'Toggle calendar format',
+            // )),
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: controller.loadEventsFromApi,
@@ -48,11 +54,11 @@ class EventCalendarPage extends StatelessWidget {
             _buildEventsListTab(controller),
           ],
         )),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _showAddEventDialog(controller),
-          child: const Icon(Icons.add),
-          tooltip: 'Add new event',
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () => _showAddEventDialog(controller),
+        //   child: const Icon(Icons.add),
+        //   tooltip: 'Add new event',
+        // ),
       ),
     );
   }
@@ -224,12 +230,12 @@ class EventCalendarPage extends StatelessWidget {
             ],
           ],
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () => controller.deleteEvent(event),
-          tooltip: 'Delete event',
-        ),
-        onTap: () => _showEventDetails(event, controller),
+        // trailing: IconButton(
+        //   icon: const Icon(Icons.delete_outline),
+        //   onPressed: () => controller.deleteEvent(event),
+        //   tooltip: 'Delete event',
+        // ),
+        // onTap: () => _showEventDetails(event, controller),
       ),
     );
   }

@@ -16,4 +16,6 @@ abstract class EventRepository {
   Future<Either<Failure, Response>> apply(Map<String, dynamic> body);
   
   Future<Either<Failure, Response>> attendanceAndDeparture(Map<String, dynamic> body);
+  
+  Future<Either<Failure, Response>> applicationStatus(Map<String, dynamic> body);
 }

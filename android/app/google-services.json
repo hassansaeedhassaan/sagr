@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "576258583050",
-    "project_id": "sagr-chat",
-    "storage_bucket": "sagr-chat.firebasestorage.app"
+    "project_number": "797191789316",
+    "project_id": "crowds-828e4",
+    "storage_bucket": "crowds-828e4.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:576258583050:android:89df34d540b71b63bc4df3",
+        "mobilesdk_app_id": "1:797191789316:android:cd572de973d094a9738e51",
         "android_client_info": {
-          "package_name": "com.example.sagr"
+          "package_name": "com.etlaq.sagr"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCCDyYt6v__C41bz2mscoPtqgh_11k-jwQ"
+          "current_key": "AIzaSyDV4kyZXWoKCvhNNi8ogRHLTtvmHECy0oo"
         }
       ],
       "services": {

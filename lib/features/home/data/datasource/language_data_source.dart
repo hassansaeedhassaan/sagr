@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:sagr/helper/base_url.dart';
 import '../../../../core/error/exceptions.dart';
 import '../models/language_model.dart';
 
@@ -16,7 +17,7 @@ class LanguagesDataSourceImpl extends LanguagesDataSource {
   @override
   Future<List<LanguageModel>> getLanguages() async{
     
-    var response = await dio.get('https://crowds.sa/api/v1/languages');
+    var response = await dio.get('$BASEURL/languages');
 
     if (response.statusCode == 200) {
 

@@ -32,7 +32,7 @@ class CustomerModel {
         nationalID: json['nationalID'] ?? '',
         isCompleted: json['is_completed'],
         gender: json['gender'],
-            countryCode: json['countryCode']
+        countryCode: json['countryCode']
         );
   }
 

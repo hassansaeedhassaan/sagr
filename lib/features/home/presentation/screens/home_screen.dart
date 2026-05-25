@@ -7,14 +7,18 @@ import 'package:sagr/features/events/presentation/controllers/events_controller.
 import 'package:sagr/features/jobs/data/models/job_model.dart';
 import 'package:sagr/features/jobs/presentation/controllers/marital_status_controller.dart';
 import 'package:sagr/sagr_chat/routes/app_routes.dart';
+import 'package:sagr/utilities/map.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 
 import '../../../../data/colors.dart';
 import '../../../../sagr_chat/screens/home/home_screen.dart';
+import '../../../../widgets/Common/elegant_exit_dialog.dart';
+import '../../../../widgets/Common/no_results.dart';
+import '../../../events/presentation/screens/attendance_report.dart';
 
 // Modern Color Palette
 class AppColors {
-  static const primary = Color(0xFF6366F1);
+  static const primary = Color(0xff0f172a);
   static const primaryLight = Color(0xFF818CF8);
   static const primaryDark = Color(0xFF4F46E5);
   static const secondary = Color(0xFF06B6D4);
@@ -35,41 +39,45 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Future<bool?> _showExitDialog() {
-      return showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Exit App'.tr),
-          content: Text('Are you sure you want to exit the app?'.tr),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel'.tr),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Exit'.tr),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-            ),
-          ],
+      return showGeneralDialog<bool>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'Exit Dialog',
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return const SizedBox.shrink();
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return ScaleTransition(
+        scale: CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutBack,
+        ),
+        child: FadeTransition(
+          opacity: animation,
+          child: const ElegantExitDialog(),
         ),
       );
+    },
+  );
     }
 
-    return PopScope(
-      canPop: false, // Prevent default back navigation
-      onPopInvoked: (bool didPop) async {
-        if (didPop) return;
+    return 
+    // PopScope(
+    //   canPop: false, // Prevent default back navigation
+    //   onPopInvoked: (bool didPop) async {
+    //     if (didPop) return;
 
-        // Show exit confirmation dialog
-        final shouldExit = await _showExitDialog();
-        if (shouldExit == true) {
-          // Exit the app
-          SystemNavigator.pop();
-        }
-      },
-      child: MasterWrapper(
+    //     // Show exit confirmation dialog
+    //     final shouldExit = await _showExitDialog();
+    //     if (shouldExit == true) {
+    //       // Exit the app
+    //       SystemNavigator.pop();
+    //     }
+    //   },
+    //   child:
+       MasterWrapper(
         body: Scaffold(
           backgroundColor: AppColors.surface,
           appBar: _buildAppBar(),
@@ -96,6 +104,11 @@ class HomeScreen extends StatelessWidget {
               // ),
               // ),
 
+//               InkWell(
+//                 onTap: () => Get.toNamed('/attendance/report'),
+// child: Text("GOOOO"),
+//               ),
+
               // Jobs Section
               _buildJobsSectionV2(),
 
@@ -109,7 +122,7 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
+      
     );
   }
 
@@ -117,19 +130,15 @@ class HomeScreen extends StatelessWidget {
     return AppBar(
       scrolledUnderElevation: 0,
       elevation: 0,
-      backgroundColor: Colors.transparent,
+      backgroundColor: WHITE_COLOR,
       title: InkWell(
         onTap: () => Get.toNamed(AppRoutes.HOME),
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Text(
-            "Sagr".tr,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
+          child: Image.asset(
+            'assets/images/sagr-logo.png',
+            width: 40,
           ),
         ),
       ),
@@ -188,10 +197,10 @@ class HomeScreen extends StatelessWidget {
                   color: AppColors.onSurface,
                 ),
               ),
-              TextButton(
-                onPressed: () {}, // Navigate to all jobs
-                child: Text("عرض الكل"),
-              ),
+              // TextButton(
+              //   onPressed: () {}, // Navigate to all jobs
+              //   child: Text("عرض الكل", style: TextStyle(color: AppColors.primary),),
+              // ),
             ],
           ),
         ),
@@ -295,7 +304,10 @@ class HomeScreen extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {}, // Navigate to all jobs
-                child: Text("عرض الكل"),
+                child: Text(
+                  "عرض الكل",
+                  style: TextStyle(color: AppColors.primary),
+                ),
               ),
             ],
           ),
@@ -542,7 +554,10 @@ class HomeScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {}, // Navigate to all events
-            child: Text("عرض الكل"),
+            child: Text(
+              "عرض الكل",
+              style: TextStyle(color: AppColors.primary),
+            ),
           ),
         ],
       ),
@@ -553,6 +568,18 @@ class HomeScreen extends StatelessWidget {
     return GetBuilder<EventsController>(
       init: EventsController(Get.find()),
       builder: (EventsController eventController) {
+        if (eventController.events.isEmpty && !eventController.isLoading ) {
+          return NoResults(
+            title: 'No Results Found for Future Events'.tr,
+            message:
+                '',
+            // onRetry: () {
+            //   // Handle retry action
+            //   print('Retry tapped');
+            // },
+          );
+        }
+
         if (eventController.isLoading && eventController.events.isEmpty) {
           return Center(
             child: LoadingAnimationWidget.twistingDots(
@@ -565,7 +592,7 @@ class HomeScreen extends StatelessWidget {
 
         return SmartRefresher(
           controller: eventController.refreshController,
-          enablePullDown: true,
+          enablePullDown: false,
           enablePullUp: true,
           onRefresh: eventController.onRefresh,
           onLoading: eventController.onLoading,
@@ -580,7 +607,7 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 0),
             itemCount: eventController.events.length,
             itemBuilder: (context, index) {
-              return _buildEventCard(eventController.events[index]);
+              return _buildEventCard(eventController.events[index], context);
             },
           ),
         );
@@ -588,7 +615,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEventCard(dynamic event) {
+  Widget _buildEventCard(dynamic event, context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
@@ -651,7 +678,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    _buildEventLogo(),
+                    _buildEventLogo(context),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -736,10 +763,44 @@ class HomeScreen extends StatelessWidget {
                             );
                         }
                       },
-                      child: _buildStatusButton(event.appliedStatus),
+                      child: Row(
+                        children: [
+
+                         
+                           InkWell(
+                            onTap: () => MapsUtils.openMap(event!.location),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                              decoration: BoxDecoration(
+                                color: SAGR_PRIMARY,
+                                border: Border.all(width: 1, color: WHITE_COLOR),
+                                 borderRadius: BorderRadius.circular(12)
+                              ),
+                              child: Column(
+                                children: [
+                              
+                                  Row(
+                                    children: [Icon(Icons.location_on_outlined, color: WHITE_COLOR, size: 16,), Text("Location".tr, style: TextStyle(color: WHITE_COLOR),)],
+                                  ),
+                                   SizedBox(width: 50),
+                                ],
+                              ),
+                            ),
+                           ),
+                                  SizedBox(width: 5),
+                          _buildStatusButton(event.appliedStatus),
+
+               
+              
+                        ],
+                        
+                      ),
                     ),
+
+                   
                   ],
                 ),
+           
               ],
             ),
           ),
@@ -748,7 +809,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEventLogo() {
+  Widget _buildEventLogo(context) {
     return Container(
       width: 60,
       height: 60,

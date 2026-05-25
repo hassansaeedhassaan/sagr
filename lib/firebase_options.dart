@@ -55,11 +55,11 @@ class DefaultFirebaseOptions {
 
   // Initialize Firebase
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCGeBXQAP02QWmhn2cAR5cw6dtywy6B7Hk',
-    appId: '1:533327852831:ios:1f2e464a0695176bff2c2a',
-    messagingSenderId: '533327852831',
-    projectId: 'sagr-app',
-    storageBucket: 'sagr-app.firebasestorage.app',
-    iosBundleId: 'sa.sos.sagr-app',
+    apiKey: 'AIzaSyCeuE_EZ6dvZ46ppTiXHQlYYAmHGoblENo',
+    appId: '1:797191789316:ios:688512b4432e4add738e51',
+    messagingSenderId: '797191789316',
+    projectId: 'crowds-828e4',
+    storageBucket: 'crowds-828e4.firebasestorage.app',
+    iosBundleId: 'com.etlaq.sagrapp',
   );
 }

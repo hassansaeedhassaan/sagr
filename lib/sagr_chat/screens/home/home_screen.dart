@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:sagr/data/colors.dart';
+import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/conversation.dart';
@@ -14,65 +16,81 @@ class HomeScreenChat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Chats',
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
+
+    
+
+   return 
+   PopScope(
+      canPop: false, // Prevent default back navigation
+      onPopInvoked: (bool didPop) async {
+        if (didPop) return;
+         Get.toNamed('/home');
+      },
+      child: MasterWrapper(
+      body:    Scaffold(
+          appBar: CustomAppBar(
+            title: 'Conversations'.tr,
+            // actions: [
+            //   IconButton(
+            //     icon: const Icon(Icons.search),
+            //     onPressed: () => Get.toNamed('/contacts'),
+            //   ),
+            //   PopupMenuButton(
+            //     itemBuilder: (context) => [
+            //       PopupMenuItem(
+            //         child: const Text('Profile'),
+            //         onTap: () => _showProfileBottomSheet(context),
+            //       ),
+            //       PopupMenuItem(
+            //         child: const Text('New Group'),
+            //         onTap: () => _showNewGroupDialog(context),
+            //       ),
+            //       PopupMenuItem(
+            //         child: const Text('Settings'),
+            //         onTap: () {/* Navigate to settings */},
+            //       ),
+            //       PopupMenuItem(
+            //         child: const Text('Logout'),
+            //         onTap: () => authController.logout(),
+            //       ),
+            //     ],
+            //   ),
+            // ],
+          ),
+          body: Obx(() {
+            if (chatController.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
+        
+            if (chatController.conversations.isEmpty) {
+              return _buildEmptyState();
+            }
+        
+            return RefreshIndicator(
+              onRefresh: chatController.loadConversations,
+              child: ListView.builder(
+                itemCount: chatController.conversations.length,
+                itemBuilder: (context, index) {
+                  final conversation = chatController.conversations[index];
+        
+                
+                  return ConversationTile(
+                    conversation: conversation,
+                    currentUserId: authController.currentUser.value!.id,
+                    onTap: () => _openChat(conversation),
+                  );
+                },
+              ),
+            );
+          }),
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: SAGR_PRIMARY,
             onPressed: () => Get.toNamed('/contacts'),
+            child: const Icon(Icons.chat, color: SAGR_SECONDARY,),
           ),
-          PopupMenuButton(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                child: const Text('Profile'),
-                onTap: () => _showProfileBottomSheet(context),
-              ),
-              PopupMenuItem(
-                child: const Text('New Group'),
-                onTap: () => _showNewGroupDialog(context),
-              ),
-              PopupMenuItem(
-                child: const Text('Settings'),
-                onTap: () {/* Navigate to settings */},
-              ),
-              PopupMenuItem(
-                child: const Text('Logout'),
-                onTap: () => authController.logout(),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Obx(() {
-        if (chatController.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (chatController.conversations.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        return RefreshIndicator(
-          onRefresh: chatController.loadConversations,
-          child: ListView.builder(
-            itemCount: chatController.conversations.length,
-            itemBuilder: (context, index) {
-              final conversation = chatController.conversations[index];
-              return ConversationTile(
-                conversation: conversation,
-                currentUserId: authController.currentUser.value!.id,
-                onTap: () => _openChat(conversation),
-              );
-            },
-          ),
-        );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/contacts'),
-        child: const Icon(Icons.chat),
-      ),
-    );
+        ),
+      
+    ));
   }
 
   Widget _buildEmptyState() {

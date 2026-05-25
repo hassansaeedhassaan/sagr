@@ -5,6 +5,7 @@ import 'package:sagr/data/colors.dart';
 import 'package:get/get.dart';
 import 'package:sagr/features/events/presentation/controllers/events_controller.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../../utilities/map.dart';
 import '../../../home/presentation/screens/home_screen.dart';
 import '../controllers/event_controller.dart';
 
@@ -165,7 +166,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
       slivers: [
         // Modern App Bar with Hero Image
         SliverAppBar(
-          expandedHeight: 300,
+          expandedHeight: 220,
           pinned: true,
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -249,7 +250,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
                         const SizedBox(height: 24),
 
                         // Task and Requirements Cards
-                        _buildInfoCards(),
+                        _buildInfoCards(eventController),
                         const SizedBox(height: 24),
 
                         // Preparation Section
@@ -257,11 +258,11 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
                         const SizedBox(height: 24),
 
                         // Event Details
-                        _buildEventDetails(),
+                        _buildEventDetails(eventController),
                         const SizedBox(height: 24),
 
                         // Location Link
-                        _buildLocationLink(),
+                        _buildLocationLink(eventController),
                         const SizedBox(height: 32),
 
                         // Action Button
@@ -343,6 +344,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
 
   Widget _buildEventDescription(EventController eventController) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -386,33 +388,45 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
     );
   }
 
-  Widget _buildInfoCards() {
+  Widget _buildInfoCards(EventController eventController) {
     return Row(
       children: [
+        // Expanded(
+        //   child: _buildInfoCard(
+        //     title: "المهام الاساسية",
+        //     items: ["إدارة البوابات", "إدارة التذاكر", "التنظيم داخل المهرجان", "تنظيم الدخول والخروج"],
+        //     gradient: LinearGradient(
+        //       colors: [Colors.green.shade50, Colors.teal.shade50],
+        //       begin: Alignment.topLeft,
+        //       end: Alignment.bottomRight,
+        //     ),
+        //     iconColor: Colors.green.shade600,
+        //     icon: Icons.task_alt,
+        //   ),
+        // ),
+
+        // Column(
+        //   children: eventController.event!.jobs!.map( (job) {
+
+          
+        //         return job.displayName.toString();
+            
+
+        //   }).toList(),
+        // ),
+        // const SizedBox(width: 16),
         Expanded(
           child: _buildInfoCard(
-            title: "المهام الاساسية",
-            items: ["إدارة البوابات", "إدارة التذاكر", "التنظيم داخل المهرجان", "تنظيم الدخول والخروج"],
+            title: "إحتياج الفعالية",
+            items: eventController.event!.jobs!.map( (job) {
+                return job.displayName.toString();
+          }).toList(),
             gradient: LinearGradient(
-              colors: [Colors.green.shade50, Colors.teal.shade50],
+              colors: [SAGR_SECONDARY, SAGR_PRIMARY],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            iconColor: Colors.green.shade600,
-            icon: Icons.task_alt,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildInfoCard(
-            title: "احتياج الفعالية",
-            items: ["٥٠ منظم", "٢٠ منظمة", "١٠ مواجهين", "١٠ حرس شخصي"],
-            gradient: LinearGradient(
-              colors: [Colors.orange.shade50, Colors.red.shade50],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            iconColor: Colors.orange.shade600,
+            iconColor: SAGR_SECONDARY,
             icon: Icons.people,
           ),
         ),
@@ -460,7 +474,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                    color: WHITE_COLOR,
                   ),
                 ),
               ),
@@ -485,7 +499,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
                     item,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade700,
+                      color: WHITE_COLOR,
                     ),
                   ),
                 ),
@@ -501,7 +515,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: WHITE_COLOR,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.blue.shade100, width: 1),
         boxShadow: [
@@ -543,19 +557,19 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
     );
   }
 
-  Widget _buildEventDetails() {
+  Widget _buildEventDetails(EventController eventController) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple.shade50, Colors.pink.shade50],
+          colors: [SAGR_SECONDARY, SAGR_PRIMARY,SAGR_PRIMARY],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.1),
+            color: SAGR_THIRD.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -566,14 +580,14 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.purple.shade600),
+              Icon(Icons.info_outline, color: SAGR_SECONDARY),
               const SizedBox(width: 8),
               Text(
                 "التفاصيل",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
+                  color: WHITE_COLOR,
                 ),
               ),
             ],
@@ -581,20 +595,32 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
           const SizedBox(height: 12),
           _buildDetailItem(
             Icons.calendar_today,
-            "الجمعة ٢٠ اغسطس ٢٠٢٤",
-            Colors.purple.shade600,
+            eventController.event!.datetime!,
+            SAGR_SECONDARY,
           ),
           const SizedBox(height: 8),
-          _buildDetailItem(
-            Icons.schedule,
-            "من الساعة ١٠ صباحاً حتي الساعة ١٠ مساءاً",
-            Colors.purple.shade600,
-          ),
+          
+
+          Column(
+      children: eventController.event!.periods!.map((period) {
+        return _buildDetailItemPeriod(
+          Icons.schedule,
+          period.period.toString(),
+          SAGR_SECONDARY,
+        );
+      }).toList(),
+      
+    ),
+
+
+
+
+      
           const SizedBox(height: 8),
           _buildDetailItem(
             Icons.location_on,
-            "حديقة المدينة شارع الثقافة الرياض",
-            Colors.purple.shade600,
+            eventController.event!.address!,
+            SAGR_SECONDARY,
           ),
         ],
       ),
@@ -611,7 +637,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
             text,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade700,
+              color: WHITE_COLOR,
             ),
           ),
         ),
@@ -619,21 +645,39 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
     );
   }
 
-  Widget _buildLocationLink() {
-    return GestureDetector(
-      onTap: () {
-        // Handle location navigation
-      },
+  Widget _buildDetailItemPeriod(IconData icon, String text, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: WHITE_COLOR,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationLink(eventController) {
+    return InkWell(
+      onTap: () =>  MapsUtils.openMap(eventController.event!.location),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.green.shade50,
+          color: SAGR_SECONDARY.withAlpha(9),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.green.shade200),
+          border: Border.all(color: SAGR_SECONDARY),
         ),
         child: Row(
           children: [
-            Icon(Icons.map, color: Colors.green.shade600),
+            Icon(Icons.map, color: SAGR_SECONDARY),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -641,13 +685,13 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.green.shade700,
+                  color: SAGR_SECONDARY,
                   decoration: TextDecoration.underline,
                 ),
               ),
             ),
             Icon(Icons.arrow_forward_ios, 
-                size: 16, color: Colors.green.shade600),
+                size: 16, color: SAGR_SECONDARY),
           ],
         ),
       ),
@@ -660,18 +704,18 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
       height: 56,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.green.shade400, Colors.green.shade600],
+          colors: [SAGR_PRIMARY,SAGR_PRIMARY],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.green.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: SAGR_SECONDARY.withOpacity(0.3),
+        //     blurRadius: 14,
+        //     offset: const Offset(0, 2),
+        //   ),
+        // ],
       ),
       child: Material(
         color: Colors.transparent,

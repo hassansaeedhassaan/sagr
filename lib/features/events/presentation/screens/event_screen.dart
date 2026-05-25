@@ -113,6 +113,11 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
     
     // Show success animation
     await Future.delayed(const Duration(milliseconds: 500));
+
+    final decision = isAccept? 'accepted' : 'rejected';
+
+    _eventController.contractDecisions(decision);
+    
     _showStatusDialog(isAccept);
   }
   
@@ -886,7 +891,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
               SizedBox(
                 height: 600,
                 child: SfPdfViewer.network(
-                  "https://crowds.sa/${_eventController.event!.attachment!}"
+                  "https://sagr.net/${_eventController.event!.attachment!}"
                 ),
               ),
                   ],

@@ -1,4 +1,4 @@
-package com.example.sagr
+package com.etlaq.sagr
 
 import io.flutter.embedding.android.FlutterActivity
 

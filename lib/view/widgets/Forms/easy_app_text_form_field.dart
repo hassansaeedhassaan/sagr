@@ -58,19 +58,22 @@ class EasyAppTextFormField extends StatelessWidget {
     return Container(
       child: TextFormField(
         inputFormatters: inputFormatters ?? [],
-        maxLength: maxLength ?? null,
+        maxLength: maxLength?? null,
+        maxLengthEnforcement: MaxLengthEnforcement.enforced,
         // enabled: enable,
         // textDirection: TextDirection.rtl,
         initialValue: initialValue ?? "",
         onSaved: onSave,
         onChanged: onChanged,
         validator: onValidate,
-
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         maxLines: multiline ?? 1,
         enableInteractiveSelection: true,
         enableSuggestions: true,
         keyboardType: textInputType ?? TextInputType.text,
+        
         decoration: InputDecoration(
+        
             contentPadding: padding != null ? padding : EdgeInsets.all(12),
             filled: false,
             fillColor: FILL_COLOR,

@@ -93,6 +93,8 @@ class EventAcceptScreen extends StatelessWidget {
 
                       SizedBox(height: 32),
 
+
+                     
                       // Text(eventController.event!.zoneCoordinates.toString()),
                       // Countdown Timer
                       eventController.isLoading

@@ -84,11 +84,11 @@ class LoginController extends GetxController {
     try {
       Map<String, dynamic> body = {"phone": phone, "password": password};
 
+
+
       await _authRepository.login(body).then((data) {
 
-
         final response = Map<String, dynamic>.from(data.data);
-
 
         GetStorage().write('access_token', response['access_token']);
         
@@ -97,7 +97,7 @@ class LoginController extends GetxController {
         if (response['access_token'] != "") {
 
 
-          GetStorage().write('userData', response['user']);
+        GetStorage().write('userData', response['user']);
 
         // _authRepository.fetchUser().then( (value){
 
@@ -118,12 +118,10 @@ class LoginController extends GetxController {
         }
       });
       isLoading.value = false;
-    } catch (e) {
-      print(e);
-      Get.snackbar("Error!", 'wrong'.tr);
+    } catch (e) {      print(e);
+      Get.snackbar("Error!", 'wrong'.tr );
       isLoading.value = false;
     }
-
 
 
     update();

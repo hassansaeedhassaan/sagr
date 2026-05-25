@@ -543,6 +543,7 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
             // Phone Number Input (Right side in RTL, but input is still LTR)
             Expanded(
               child: TextField(
+              
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 textDirection: TextDirection.ltr, // Always LTR for phone numbers
@@ -551,6 +552,7 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(15),
                 ],
+    
                 decoration: (widget.decoration ?? const InputDecoration()).copyWith(
                   hintText: widget.hintText ?? 'Phone number',
                   hintTextDirection: TextDirection.rtl, // RTL hint text
@@ -571,7 +573,7 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
               onTap: _showCountryPicker,
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
                   border: Border(
                     right: BorderSide(color: Colors.grey.shade300),
@@ -604,13 +606,26 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
             
             // Phone Number Input
             Expanded(
-              child: TextField(
+              child: TextFormField(
+               
+                validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a number';
+              }
+              if (value.length != 9) {
+                return 'Must be exactly 9 digits';
+              }
+              if (!RegExp(r'^\d{9}$').hasMatch(value)) {
+                return 'Only numbers are allowed';
+              }
+              return null;
+            },
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 textDirection: TextDirection.ltr, // Always LTR for phone numbers
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(15),
+                  LengthLimitingTextInputFormatter(9),
                 ],
                 decoration: (widget.decoration ?? const InputDecoration()).copyWith(
                   hintText: widget.hintText ?? 'Phone number',
@@ -619,9 +634,10 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
                   focusedBorder: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 16,
+                    vertical: 10,
                   ),
                 ),
+                
               ),
             ),
           ],

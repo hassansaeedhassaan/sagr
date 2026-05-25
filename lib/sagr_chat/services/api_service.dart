@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sagr/helper/base_url.dart';
 import '../models/user.dart';
 import '../models/conversation.dart';
 import '../models/message.dart';
@@ -9,7 +10,7 @@ class ApiService extends GetxService {
   late dio.Dio _dio;
   final _storage = GetStorage();
 
-  static const String baseUrl = 'https://crowds.sa/api/v1';
+
 
   @override
   void onInit() {
@@ -19,7 +20,7 @@ class ApiService extends GetxService {
 
   _initDio() {
      _dio = dio.Dio(dio.BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: BASEURL,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {
@@ -32,8 +33,6 @@ class ApiService extends GetxService {
     _dio.interceptors.add(dio.InterceptorsWrapper(
       onRequest: (options, handler) {
         final token = _storage.read('access_token');
-
-        print("l;askd;las 🔥");
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
@@ -42,7 +41,7 @@ class ApiService extends GetxService {
       onError: (error, handler) {
         if (error.response?.statusCode == 401) {
 
-          print("as klj");
+    
           // Handle unauthorized - redirect to login
           // _storage.remove('access_token');
           // _storage.remove('userData');
@@ -132,6 +131,8 @@ class ApiService extends GetxService {
   // Conversation methods
   Future<List<Conversation>> getConversations() async {
     final response = await _dio.get('/conversations');
+
+  
     return (response.data['conversations'] as List)
         .map((conv) => Conversation.fromJson(conv))
         .toList();
@@ -182,6 +183,7 @@ class ApiService extends GetxService {
         'reply_to_id': replyToId,
       },
     );
+
 
     return Message.fromJson(response.data['message']);
   }

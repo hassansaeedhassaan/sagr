@@ -1,3 +1,4 @@
+import 'package:sagr/features/events/data/models/job_model.dart';
 import 'package:sagr/features/events/data/models/period_model.dart';
 import 'package:sagr/features/events/data/models/start_date_time_model.dart';
 
@@ -31,6 +32,8 @@ class EventModel extends Event {
 
   final String? nationalID;
 
+  final String? location;
+
   final bool? assigned;
   final int? zone_id;
   final int? user_id;
@@ -38,6 +41,7 @@ class EventModel extends Event {
   final ChannelInfo? channel;
   final ChannelInfo? supervisorChannel;
   final List<ZoneCoordinates>? zoneCoordinates;
+  final List<JobModel>? jobs;
 
   final String? userType;
 
@@ -66,6 +70,8 @@ class EventModel extends Event {
       this.attachment,
       this.supervisorChannel,
       this.zoneCoordinates,
+      this.jobs,
+      this.location,
       this.zone_id,
       this.user_id,
       this.isCheckedIn,
@@ -103,6 +109,7 @@ class EventModel extends Event {
       date: json['date'],
       time: json['time'],
       address: json['address'],
+      location: json['location'],
       ago: json['ago'],
       preparing: json['preparing'],
       appliedStatus: json['appliedStatus'] ?? 'undefined',
@@ -128,6 +135,15 @@ class EventModel extends Event {
                   .map((item) => ZoneCoordinates.fromJson(item))
                   .toList()
               : null,
+
+
+       jobs:
+          json.containsKey('jobs') && json['jobs'] != null
+              ? (json['jobs'] as List)
+                  .map((item) => JobModel.fromJson(item))
+                  .toList()
+              : null,
+
     );
   }
 
@@ -142,6 +158,7 @@ class EventModel extends Event {
       'date': date,
       'time': time,
       'address': address,
+      'location': location,
       'ago': ago,
       'preparing': preparing,
       'periods': periods,
@@ -154,7 +171,8 @@ class EventModel extends Event {
       'zoneCoordinates': zoneCoordinates,
       'zone_id': zone_id,
       'user_id': user_id,
-      'attachment': attachment
+      'attachment': attachment,
+      'jobs': jobs,
     };
   }
 

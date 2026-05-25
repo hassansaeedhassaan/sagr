@@ -183,6 +183,8 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - open_file_ios (0.0.1):
+    - Flutter
   - package_info_plus (0.4.5):
     - Flutter
   - path_provider_foundation (0.0.1):
@@ -193,9 +195,9 @@ PODS:
   - PromisesObjC (2.4.0)
   - record_ios (1.0.0):
     - Flutter
-  - SDWebImage (5.19.7):
-    - SDWebImage/Core (= 5.19.7)
-  - SDWebImage/Core (5.19.7)
+  - SDWebImage (5.21.1):
+    - SDWebImage/Core (= 5.21.1)
+  - SDWebImage/Core (5.21.1)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -237,6 +239,7 @@ DEPENDENCIES:
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - iris_method_channel (from `.symlinks/plugins/iris_method_channel/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/darwin`)
+  - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -309,6 +312,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/iris_method_channel/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/darwin"
+  open_file_ios:
+    :path: ".symlinks/plugins/open_file_ios/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
@@ -369,12 +374,13 @@ SPEC CHECKSUMS:
   iris_method_channel: 4e3fe7fe6b2db1b84feae956e98ce1479402627a
   just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  open_file_ios: 461db5853723763573e140de3193656f91990d9e
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   record_ios: 1bbc430ab8406174d70332f23e06a3dc751239b4
-  SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
+  SDWebImage: f29024626962457f3470184232766516dee8dfea
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4

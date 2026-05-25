@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImageEditPreview extends StatefulWidget {
@@ -52,8 +53,8 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Profile Image',
+               Text(
+                'Profile Image'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -62,7 +63,7 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: Colors.blue),
-                title: const Text('Camera'),
+                title:  Text('Camera'.tr),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);
@@ -76,15 +77,15 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
               //     _pickImage(ImageSource.gallery);
               //   },
               // ),
-              if (_selectedImage != null || widget.initialImageUrl != null)
-                ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.red),
-                  title: const Text('Remove Image'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _removeImage();
-                  },
-                ),
+              // if (_selectedImage != null || widget.initialImageUrl != null)
+              //   ListTile(
+              //     leading: const Icon(Icons.delete, color: Colors.red),
+              //     title:  Text('Remove Image'.tr),
+              //     onTap: () {
+              //       Navigator.pop(context);
+              //       _removeImage();
+              //     },
+              //   ),
             ],
           ),
         ),
@@ -207,8 +208,8 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Image',
+                 Text(
+                  'Profile Image'.tr,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -223,7 +224,7 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      _selectedImage != null ? 'New' : 'Existing',
+                      _selectedImage != null ? 'New'.tr : 'Existing'.tr,
                       style: TextStyle(
                         color: Colors.green[800],
                         fontSize: 12,
@@ -235,7 +236,7 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
             ),
             const SizedBox(height: 16),
             GestureDetector(
-              onTap: _showImageSourceDialog,
+              onTap:  () => _pickImage(ImageSource.camera),
               child: _buildImagePreview(),
             ),
             const SizedBox(height: 16),
@@ -245,7 +246,7 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
                   child: OutlinedButton.icon(
                     onPressed: () => _pickImage(ImageSource.camera),
                     icon: const Icon(Icons.camera_alt),
-                    label: const Text('Open Camera to take a profile image'),
+                    label:  Text('Open Camera to take a profile image'.tr),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),

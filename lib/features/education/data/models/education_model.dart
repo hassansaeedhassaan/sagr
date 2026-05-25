@@ -1,4 +1,5 @@
-import '../../domain/entities/education.dart';
+
+import 'package:sagr/features/education/domain/entities/education.dart';
 
 class EducationModel extends Education {
 

@@ -51,7 +51,7 @@ class _HomeSliderWidgetState extends State<HomeSliderWidget> {
                       const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
                   decoration: BoxDecoration(
                     
-                    image: DecorationImage(image: NetworkImage(IMAGE_PATH+'/${slide['image']}'), fit: BoxFit.fill),
+                    image: DecorationImage(image: NetworkImage('/${slide['image']}'), fit: BoxFit.fill),
                     borderRadius: BorderRadius.circular(4),
                     // boxShadow: [
                     //   BoxShadow(

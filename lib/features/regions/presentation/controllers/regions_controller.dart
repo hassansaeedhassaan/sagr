@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:sagr/features/auth/presentation/screens/complete_account_screen.dart';
+import '../../../auth/presentation/screens/create_account_screen.dart';
 import '../../data/models/region_model.dart';
 import '../../domain/usecases/get_region.dart';
 
@@ -17,6 +19,18 @@ class RegionsController extends GetxController {
   // Rx Filters  Getter
   bool get isLoading => _isLoading.value;
   List<RegionModel> get regions => _items.toList();
+
+
+   // Convert NationalityModel list to DropdownItem list
+  List<ProDropdownOption<RegionModel>> get regionsItems {
+    return regions
+        .map((n) => ProDropdownOption(
+              value: n,
+              label: n.name ?? 'Unknown',
+            ))
+        .toList();
+  }
+  
 
   @override
   void onInit() {

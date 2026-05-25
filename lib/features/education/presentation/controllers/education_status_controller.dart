@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
-import '../../data/models/education_model.dart';
-import '../../domain/usecases/get_education.dart';
+import 'package:sagr/features/education/data/models/education_model.dart';
+import 'package:sagr/features/education/domain/usecases/get_education.dart';
+
 
 class EducationsController extends GetxController {
   

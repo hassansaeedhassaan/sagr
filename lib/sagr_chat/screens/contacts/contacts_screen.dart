@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sagr/data/colors.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/user.dart';
@@ -71,6 +72,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Contacts'),
+        backgroundColor: WHITE_COLOR,
         actions: [
           IconButton(
             icon: const Icon(Icons.group_add),

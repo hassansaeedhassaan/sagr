@@ -215,7 +215,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Advanced Events Calendar'),
+        title: const Text('Events Calendar'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
