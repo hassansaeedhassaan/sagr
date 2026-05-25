@@ -165,21 +165,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                               delay: 0,
                               child: Column(
                                 children: [
-                                  // Container(
-                                  //   padding: const EdgeInsets.all(15),
-                                  //   decoration: BoxDecoration(
-                                  //     gradient: LinearGradient(
-                                  //       colors: [Colors.blue.shade400, Colors.blue.shade600],
-                                  //     ),
-                                  //     borderRadius: BorderRadius.circular(50),
-                                  //   ),
-                                  //   child: Icon(
-                                  //     Icons.person_3_rounded,
-                                  //     size: 30,
-                                  //     color: Colors.white,
-                                  //   ),
-                                  // ),
-                                  // const SizedBox(height: 20),
                                   Text(
                                     "Complete Account".tr,
                                     style: TextStyle(
@@ -617,53 +602,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                               ),
                             ),
 
-                            // Exist Before But Commented
-                            // const SizedBox(height: 20),
-                            // AnimatedField(
-                            //   delay: 4,
-                            //   child: Padding(
-                            //     padding: const EdgeInsets.symmetric(horizontal: 10),
-                            //     child: Directionality(
-                            //       textDirection: TextDirection.rtl,
-                            //       child: IntlPhoneField(
-                            //         languageCode: "ar",
-                            //         textAlign: TextAlign.right,
-                            //         textAlignVertical: TextAlignVertical.center,
-                            //         disableAutoFillHints: true,
-                            //         dropdownIconPosition: IconPosition.trailing,
-                            //         searchText: "Search Country".tr,
-                            //         decoration: InputDecoration(
-                            //           suffixIcon: Icon(
-                            //             Icons.phone_rounded,
-                            //             color: Colors.blue.shade600,
-                            //           ),
-                            //           contentPadding: EdgeInsets.symmetric(horizontal: 15),
-                            //           labelText: "Phone Number".tr,
-                            //           hintText: ''.tr,
-                            //           alignLabelWithHint: true,
-                            //           floatingLabelAlignment: FloatingLabelAlignment.start,
-                            //           border: OutlineInputBorder(
-                            //             borderRadius: BorderRadius.circular(12),
-                            //             borderSide: BorderSide(color: Colors.grey.shade300),
-                            //           ),
-                            //           enabledBorder: OutlineInputBorder(
-                            //             borderRadius: BorderRadius.circular(12),
-                            //             borderSide: BorderSide(color: Colors.grey.shade300),
-                            //           ),
-                            //           focusedBorder: OutlineInputBorder(
-                            //             borderRadius: BorderRadius.circular(12),
-                            //             borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
-                            //           ),
-                            //         ),
-                            //         initialCountryCode: 'SA',
-                            //         onChanged: (phone) => accountController.phone = phone.completeNumber,
-                            //         onCountryChanged: (country) {
-                            //           accountController.selectedCountryCode(country.code);
-                            //         },
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
 
                             SizedBox(height: 15),
 
@@ -694,13 +632,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                     searchHint: 'Search nationalities...'.tr,
                                     onChanged: (value) => accountController
                                         .setSelectedNationality(value!),
-                                    // onChanged: (value) {
-                                    //   setState(() {
-                                    //     selectedNationality = value;
-                                    //   });
-                                    //   print(
-                                    //       'Selected: ${value?.name} (ID: ${value?.id})');
-                                    // },
                                     items: nationalitiesController
                                         .nationalityItems)),
 
@@ -714,13 +645,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                     searchHint: 'Search regions...'.tr,
                                     onChanged: (region) => accountController
                                         .setSelectedRegion(region!),
-                                    // onChanged: (value) {
-                                    //   // setState(() {
-                                    //   //   selectedNationality = value;
-                                    //   // });
-                                    //   print(
-                                    //       'Selected: ${value?.name} (ID: ${value?.id})');
-                                    // },
                                     items: regionsController.regionsItems)),
 
                             const SizedBox(height: 16),
@@ -987,12 +911,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                       accountController.previousEvents = value!,
                                   labelText: "Previous Events Past".tr,
                                   hintText: "",
-                                  // onValidate: (value) {
-                                  //   if (value?.length == 0) {
-                                  //     return "Previous Events Past Required!".tr;
-                                  //   }
-                                  //   return null;
-                                  // },
                                 ),
                               ),
                             ),
@@ -1238,34 +1156,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                               ),
                             ),
 
-                            // const SizedBox(height: 30),
-                            // AnimatedField(
-                            //   delay: 14,
-                            //   child: GestureDetector(
-                            //     onTap: () => Get.toNamed('/login'),
-                            //     child: Row(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text(
-                            //           "Already have an account?".tr,
-                            //           style: TextStyle(
-                            //             fontSize: 16,
-                            //             color: Colors.grey[600],
-                            //           ),
-                            //         ),
-                            //         const SizedBox(width: 8),
-                            //         Text(
-                            //           "Login".tr,
-                            //           style: TextStyle(
-                            //             fontSize: 16,
-                            //             color: Colors.blue.shade700,
-                            //             fontWeight: FontWeight.bold,
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),
