@@ -21,7 +21,6 @@ import '../feature_ads_page/widgets/userprofile_item_widget.dart';
 
 import 'package:flutter/material.dart';
 
-import '../home_three_screen/home_three_screen.dart';
 import '../home_three_screen/widgets/most_viewed_dropdown.dart';
 
 // ignore_for_file: must_be_immutable

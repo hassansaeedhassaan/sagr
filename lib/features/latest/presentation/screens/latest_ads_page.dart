@@ -10,7 +10,6 @@ import '../../../../data/colors.dart';
 import '../../../../theme/app_decoration.dart';
 import '../../../../theme/theme_helper.dart';
 import '../../../../view/feature_ads_page/widgets/userprofile_item_widget.dart';
-import '../../../../view/home_three_screen/home_three_screen.dart';
 import '../../../../view/home_three_screen/widgets/most_viewed_dropdown.dart';
 import '../../../../widgets/Common/custom_dropdown.dart';
 import '../../../../widgets/custom_image_view.dart';

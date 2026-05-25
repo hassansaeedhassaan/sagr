@@ -3,37 +3,24 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
-import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:sagr/features/categories/presentation/controllers/categories_controller.dart';
 import 'package:sagr/features/countries/domain/entities/country.dart';
 import 'package:sagr/features/countries/presentation/controllers/countries_controller.dart';
 import 'package:sagr/features/featured/presentation/controllers/featured_ads_controller.dart';
 import 'package:sagr/features/latest/presentation/controllers/latest_ads_controller.dart';
 import 'package:sagr/features/latest/presentation/screens/latest_ads_page.dart';
-import 'package:sagr/features/products/domain/entities/product.dart';
 import 'package:sagr/view/feature_ads_page/feature_ads_page.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 import 'package:sagr/widgets/appbar/build_core_app_bar.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/image_constant.dart';
 import '../../features/banner/presentation/controllers/banner_controller.dart';
 import '../../features/categories/domain/entities/category.dart';
-import '../../theme/app_decoration.dart';
-import '../../theme/custom_text_style.dart';
 import '../../theme/theme_helper.dart';
 import '../../widgets/Common/custom_dropdown.dart';
-import '../../widgets/app_bar/appbar_leading_iconbutton.dart';
-import '../../widgets/app_bar/appbar_title_iconbutton.dart';
-import '../../widgets/app_bar/appbar_title_image.dart';
-import '../../widgets/app_bar/appbar_trailing_iconbutton.dart';
-import '../../widgets/app_bar/custom_app_bar.dart';
-import '../../widgets/custom_icon_button.dart';
 import '../../widgets/custom_image_view.dart';
 import '../../widgets/go_to_map.dart';
-import '../home_three_screen/widgets/categorychipview_item_widget.dart';
-import '../home_three_screen/widgets/categorygrid_item_widget.dart';
 import '../home_three_screen/widgets/card_column.dart';
 import '../home_three_screen/widgets/card_stack.dart';
 import '../home_three_screen/widgets/category_sections.dart';
@@ -1074,59 +1061,5 @@ class HomeThreeScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// Section Widget
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return CustomAppBar(
-      height: 70.v,
-      leadingWidth: 54.h,
-      leading: AppbarLeadingIconbutton(
-        imagePath: ImageConstant.imgGlobe,
-        margin: EdgeInsets.only(
-          left: 16.h,
-          top: 16.v,
-          bottom: 16.v,
-        ),
-      ),
-      title: Padding(
-        padding: EdgeInsets.only(left: 8.h),
-        child: Row(
-          children: [
-            AppbarTitleIconbutton(
-              imagePath: ImageConstant.imgSearch141BlueGray90001,
-            ),
-            AppbarTitleImage(
-              imagePath: ImageConstant.imgLayer1,
-              margin: EdgeInsets.only(
-                left: 60.h,
-                top: 2.v,
-                bottom: 3.v,
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        AppbarTrailingIconbutton(
-          imagePath: ImageConstant.imgVuesaxTwotoneNotification,
-          margin: EdgeInsets.only(
-            left: 15.h,
-            top: 16.v,
-            right: 16.h,
-          ),
-        ),
-        AppbarTrailingIconbutton(
-          imagePath: ImageConstant.imgClockPrimary,
-          margin: EdgeInsets.only(
-            left: 8.h,
-            top: 16.v,
-            right: 31.h,
-          ),
-        ),
-      ],
-      styleType: Style.bgFill,
-    );
-  }
-
 
 }
