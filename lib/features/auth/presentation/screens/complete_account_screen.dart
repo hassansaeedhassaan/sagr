@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/auth/presentation/controllers/create_account_controller.dart';
+import 'package:sagr/features/auth/presentation/widgets/animated_field.dart';
 import 'package:sagr/features/auth/presentation/widgets/pro_dropdown.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
 import 'package:sagr/features/education/presentation/controllers/education_status_controller.dart';
@@ -111,26 +112,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
     super.dispose();
   }
 
-  Widget _buildAnimatedField({
-    required Widget child,
-    required int delay,
-  }) {
-    return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 800 + (delay * 100)),
-      tween: Tween(begin: 0.0, end: 1.0),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 30 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: child,
-          ),
-        );
-      },
-      child: child,
-    );
-  }
 
   NationalitiesController nationalitiesController =
       Get.put(NationalitiesController(Get.find()));
@@ -143,7 +124,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
     VoidCallback onTap,
     int delay,
   ) {
-    return _buildAnimatedField(
+    return AnimatedField(
       delay: delay,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 0),
@@ -218,7 +199,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
   }
 
   Widget _buildModernImageUpload(CreateAccountController accountController) {
-    return _buildAnimatedField(
+    return AnimatedField(
       delay: 10,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -287,7 +268,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
   }
 
   Widget _buildAnimatedCheckbox(CreateAccountController accountController) {
-    return _buildAnimatedField(
+    return AnimatedField(
       delay: 11,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -405,7 +386,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 0,
                               child: Column(
                                 children: [
@@ -446,7 +427,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
                             const SizedBox(height: 40),
 
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 1,
                               child: Padding(
                                 padding:
@@ -471,7 +452,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
 
                             const SizedBox(height: 20),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 2,
                               child: Padding(
                                 padding:
@@ -496,7 +477,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
 
                             const SizedBox(height: 20),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 3,
                               child: Padding(
                                 padding:
@@ -521,7 +502,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
 
                             const SizedBox(height: 20),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 5,
                               child: EasyAppTextFormField(
                                 onSave: (value) =>
@@ -554,7 +535,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             // Educations
                             SizedBox(
                               height: 50,
-                              child: _buildAnimatedField(
+                              child: AnimatedField(
                                   delay: 3,
                                   child: Container(
                                     // margin:
@@ -863,7 +844,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
 
                             // Exist Before But Commented
                             // const SizedBox(height: 20),
-                            // _buildAnimatedField(
+                            // AnimatedField(
                             //   delay: 4,
                             //   child: Padding(
                             //     padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -1201,7 +1182,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             // _buildModernGenderSelector(accountController),
 
                             const SizedBox(height: 25),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 7,
                               child: Padding(
                                 padding:
@@ -1219,7 +1200,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
 
                             const SizedBox(height: 20),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 8,
                               child: Padding(
                                 padding:
@@ -1242,7 +1223,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
 
                             const SizedBox(height: 20),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 9,
                               child: Padding(
                                 padding:
@@ -1258,7 +1239,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
 
                             const SizedBox(height: 30),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 8,
                               child: Row(
                                 children: [
@@ -1382,7 +1363,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             _buildAnimatedCheckbox(accountController),
 
                             if (accountController.agreeErrorMessage)
-                              _buildAnimatedField(
+                              AnimatedField(
                                 delay: 12,
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 10),
@@ -1399,7 +1380,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                               ),
 
                             const SizedBox(height: 35),
-                            _buildAnimatedField(
+                            AnimatedField(
                               delay: 13,
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),
@@ -1483,7 +1464,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
 
                             // const SizedBox(height: 30),
-                            // _buildAnimatedField(
+                            // AnimatedField(
                             //   delay: 14,
                             //   child: GestureDetector(
                             //     onTap: () => Get.toNamed('/login'),
