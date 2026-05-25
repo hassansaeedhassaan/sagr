@@ -63,13 +63,6 @@ class HomeThreeScreen extends StatelessWidget {
 
                         GestureDetector(
                             onTap: () =>  Navigator.pushNamedAndRemoveUntil(context,'/category_screen',(_) => false),
-                        //  onTap: () => Navigator.push(
-                        //                     context,
-                        //                     MaterialPageRoute(
-                        //                         builder: (context) =>
-                        //                             CreateAdScreen(Get.find()))),
-                        
-
                             child: FeatureAdsRow(
                               featureAdsText: "Categories",
                               seeMoreText: "See more",
@@ -78,20 +71,6 @@ class HomeThreeScreen extends StatelessWidget {
                         SizedBox(height: 10.v),
 
                         const CategoryGridSection(),
-                        // GetBuilder<CategoriesController>(
-                        //     init: CategoriesController(Get.find()),
-                        //     builder: (_catController) {
-                        //       return ListView.builder(
-                        //           shrinkWrap: true,
-                        //           itemCount: _catController
-                        //                 .categoriesList.length,
-                        //           itemBuilder: (context, index) {
-                        //             return Text(_catController
-                        //                 .categoriesList[0].values.toList()
-                        //                 .toString());
-                        //           });
-                        //     }),
-
                         const CategoryGridSubSection(),
                         const CategoryGridSSubSection(),
                         const CategoryGridThSubSection(),
@@ -117,145 +96,6 @@ class HomeThreeScreen extends StatelessWidget {
           }),
 
                         const LatestAdsSection(),
-
-                        // _buildCardStack(context),
-                        // SizedBox(height: 24.v),
-                        // _buildFeatureAdsRow(
-                        //   context,
-                        //   featureAdsText: "Explore more ads",
-                        //   seeMoreText: "See more",
-                        // ),
-                        // SizedBox(height: 10.v),
-
-                        // Row(
-                        //   mainAxisSize: MainAxisSize.min,
-                        //   mainAxisAlignment: MainAxisAlignment.start,
-                        //   children: [
-                        //     Expanded(
-                        //       flex: 2,
-                        //       child: Container(
-                        //         margin: EdgeInsetsDirectional.only(end: 0),
-                        //         child: CustomDropDown(
-                        //           // width: 112.h,
-                        //           icon: Container(
-                        //             margin: EdgeInsets.symmetric(
-                        //               horizontal: 2.h,
-                        //               vertical: 6.v,
-                        //             ),
-                        //             child: CustomImageView(
-                        //               imagePath:
-                        //                   ImageConstant.imgArrowdownGray60001,
-                        //               height: 16.adaptSize,
-                        //               width: 16.adaptSize,
-                        //             ),
-                        //           ),
-                        //           hintText: "Category",
-                        //           hintStyle: TextStyle(fontSize: 12),
-                        //           items: dropdownItemList,
-                        //           onChanged: (value) {},
-                        //         ),
-                        //       ),
-                        //     ),
-                        //     Expanded(
-                        //       flex: 2,
-                        //       child: Container(
-                        //         margin: EdgeInsetsDirectional.only(
-                        //             end: 5, start: 4),
-                        //         child: CustomDropDown(
-                        //           icon: Container(
-                        //             margin: EdgeInsets.symmetric(
-                        //               horizontal: 2.h,
-                        //               vertical: 6.v,
-                        //             ),
-                        //             child: CustomImageView(
-                        //               imagePath:
-                        //                   ImageConstant.imgArrowdownGray60001,
-                        //               height: 16.adaptSize,
-                        //               width: 16.adaptSize,
-                        //             ),
-                        //           ),
-                        //           hintText: "City",
-                        //           hintStyle: TextStyle(fontSize: 12),
-                        //           items: dropdownItemListCities,
-                        //           onChanged: (value) {},
-                        //         ),
-                        //       ),
-                        //     ),
-                        //     Expanded(
-                        //       flex: 2,
-                        //       child: Container(
-                        //         padding: EdgeInsets.symmetric(
-                        //             horizontal: 1, vertical: 7),
-                        //         margin: EdgeInsetsDirectional.only(end: 5),
-                        //         decoration: BoxDecoration(
-                        //             color: appTheme.orange400.withOpacity(0.1),
-                        //             borderRadius: BorderRadius.circular(6),
-                        //             border: Border.all(
-                        //                 width: 1, color: appTheme.orange400)),
-                        //         child: Row(
-                        //           mainAxisAlignment:
-                        //               MainAxisAlignment.spaceEvenly,
-                        //           children: [
-                        //             Text(
-                        //               "Near By",
-                        //               style: TextStyle(
-                        //                   color: appTheme.orange400,
-                        //                   fontSize: 11),
-                        //             ),
-                        //             CustomImageView(
-                        //                 imagePath: ImageConstant.imgClose,
-                        //                 height: 16.adaptSize,
-                        //                 width: 16.adaptSize),
-                        //           ],
-                        //         ),
-                        //       ),
-                        //     ),
-                        //     Expanded(
-                        //         flex: 2,
-                        //         child: Container(
-                        //           padding: EdgeInsets.symmetric(
-                        //               horizontal: 1, vertical: 9),
-                        //           decoration: BoxDecoration(
-                        //               color: WHITE_COLOR,
-                        //               borderRadius: BorderRadius.circular(6)),
-                        //           child: Text("Available Photo",
-                        //               style: TextStyle(
-                        //                   fontSize: 10.5,
-                        //                   fontWeight: FontWeight.w600),
-                        //               textAlign: TextAlign.center),
-                        //         ))
-                        //   ],
-                        // ),
-
-                        // SizedBox(height: 8.v),
-                        // Row(
-                        //   children: [
-                        //     CustomDropDown(
-                        //       width: 112.h,
-                        //       icon: Container(
-                        //         margin: EdgeInsets.symmetric(
-                        //           horizontal: 8.h,
-                        //           vertical: 6.v,
-                        //         ),
-                        //         child: CustomImageView(
-                        //           imagePath:
-                        //               ImageConstant.imgArrowdownGray60001,
-                        //           height: 20.adaptSize,
-                        //           width: 20.adaptSize,
-                        //         ),
-                        //       ),
-                        //       hintText: "Most viewed",
-                        //       hintStyle: TextStyle(fontSize: 12),
-                        //       items: dropdownItemList,
-                        //       onChanged: (value) {},
-                        //     ),
-                        //     GoToMap(context),
-                        //   ],
-                        // ),
-
-                        // SizedBox(height: 12.v),
-                        // _buildCardStack(context),
-                        // _buildFavoriteHorizontalScroll1(context),
                       ],
                     ),
                   ),
@@ -264,7 +104,6 @@ class HomeThreeScreen extends StatelessWidget {
             ],
           ),
         ),
-        // bottomNavigationBar: _buildBottomBar(context),
         floatingActionButton: FloatingActionButton(
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(50.0))),
@@ -288,14 +127,6 @@ class HomeThreeScreen extends StatelessWidget {
                     ],
                   )
 
-                  //  LinearGradient(
-                  //   //  begin: Alignment(-0.11, -0.23),
-                  //   end: Alignment(0.60, 0.2),
-                  //   colors: [
-                  //     Color(0xffD20653),
-                  //     Color(0xffFF951D),
-                  //   ],
-                  // ),
 
                   ),
             )),
