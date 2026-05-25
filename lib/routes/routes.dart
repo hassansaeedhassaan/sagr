@@ -1,11 +1,12 @@
 
 import 'package:get/get.dart';
 import 'package:sagr/features/ads/presentation/bindings/ads_bindings.dart';
-import 'package:sagr/features/ads_olllld/presentation/screens/ads_screen.dart';
+import 'package:sagr/features/attendance/presentation/bindings/attendance_bindings.dart';
 import 'package:sagr/features/auth/presentation/screens/login_screen.dart';
 import 'package:sagr/features/auth/presentation/screens/update_profile_screen.dart';
 import 'package:sagr/features/education/presentation/bindings/education_bindings.dart';
 import 'package:sagr/features/events/presentation/bindings/events_bindings.dart';
+import 'package:sagr/features/events/presentation/screens/attendance_report.dart';
 import 'package:sagr/features/events/presentation/screens/event_accept_screen.dart';
 import 'package:sagr/features/events/presentation/screens/event_apply_screen.dart';
 import 'package:sagr/features/events/presentation/screens/event_calender.dart';
@@ -314,7 +315,7 @@ final List<GetPage> routes = [
     //   binding: AuthBinding(),
     // ),
     GetPage(
-      name: AppRoutes.HOME,
+      name: '/sagr_chat',
       page: () => HomeScreenChat(),
       bindings:[ApplicationBinding(), ChatBinding()],
     ),
@@ -326,6 +327,12 @@ final List<GetPage> routes = [
     GetPage(
       name: AppRoutes.CONTACTS,
       page: () => ContactsScreen(),
+    ),
+
+    GetPage(
+      name: '/attendance/report',
+      page: () => AttendanceReportPage(),
+      bindings: [ApplicationBinding(),AttendanceBindings()]
     )
     
 
