@@ -35,6 +35,7 @@ import '../../widgets/go_to_map.dart';
 import '../home_three_screen/widgets/categorychipview_item_widget.dart';
 import '../home_three_screen/widgets/categorygrid_item_widget.dart';
 import '../home_three_screen/widgets/card_column.dart';
+import '../home_three_screen/widgets/card_stack.dart';
 import '../home_three_screen/widgets/category_sections.dart';
 import '../home_three_screen/widgets/feature_ads_row.dart';
 import '../home_three_screen/widgets/most_viewed_dropdown.dart';
@@ -510,8 +511,8 @@ class HomeThreeScreen extends StatelessWidget {
                                                   CircularProgressIndicator(),
                                             ),
                                           )
-                                        : _buildCardStack(context,
-                                            featuredController.products),
+                                        : CardStack(
+                                            products: featuredController.products),
                                   ],
                                 );
                               }),
@@ -1128,199 +1129,4 @@ class HomeThreeScreen extends StatelessWidget {
   }
 
 
-  /// Section Widget
-  Widget _buildCardStack(BuildContext context, List<Product> products) {
-    return SizedBox(
-        height: 258.v,
-        width: 398.h,
-        child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            shrinkWrap: true,
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsetsDirectional.only(end: 5),
-                child: CardColumn(
-                  id: products[index].id!,
-                  negotiable: products.elementAt(index).isNegotiable.toString(),
-                  cars: "#cars",
-                  image: products[index].image!,
-                  inVar: " in ${products[index].created_at}",
-                  mercedesBenz: products[index].name,
-                  dakahliaMansoura:
-                      "${products[index].nationality.name}, ${products[index].city!.name}",
-                  price: "${products[index].price} ${products[index].currency}",
-                  premium: "${products[index].type}"
-                ),
-              );
-            }));
-
-    return SizedBox(
-      height: 258.v,
-      width: 398.h,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        // alignment: Alignment.center,
-        children: [
-          Padding(
-            padding: EdgeInsetsDirectional.only(end: 5),
-            // child: _buildCardColumn(
-            //   context,
-            //   negotiable: "Negotiable",
-            //   image: "",
-            //   cars: "#cars",
-            //   inVar: " in 22/1/2023",
-            //   mercedesBenz: "Mercedes-Benz ",
-            //   dakahliaMansoura: "Dakahlia, Mansoura",
-            //   price: "1000 EGP",
-            // ),
-          ),
-          Padding(
-            padding: EdgeInsetsDirectional.only(end: 5),
-            // child: _buildCardColumn(
-            //   context,
-            //   negotiable: "Negotiable",
-            //   image: "",
-            //   cars: "#cars",
-            //   inVar: " in 22/1/2023",
-            //   mercedesBenz: "Mercedes-Benz ",
-            //   dakahliaMansoura: "Dakahlia, Mansoura",
-            //   price: "1000 EGP",
-            // ),
-          ),
-          Padding(
-            padding: EdgeInsetsDirectional.only(end: 5),
-            // child: _buildCardColumn(
-            //   context,
-            //   negotiable: "Negotiable",
-            //   image: "",
-            //   cars: "#cars",
-            //   inVar: " in 22/1/2023",
-            //   mercedesBenz: "Mercedes-Benz ",
-            //   dakahliaMansoura: "Dakahlia, Mansoura",
-            //   price: "1000 EGP",
-            // ),
-          ),
-          Padding(
-            padding: EdgeInsetsDirectional.only(end: 5),
-            // child: _buildCardColumn(
-            //   context,
-            //   image: "",
-            //   negotiable: "Negotiable",
-            //   cars: "#cars",
-            //   inVar: " in 22/1/2023",
-            //   mercedesBenz: "Mercedes-Benz ",
-            //   dakahliaMansoura: "Dakahlia, Mansoura",
-            //   price: "1000 EGP",
-            // ),
-          ),
-          // Align(
-          //   alignment: Alignment.center,
-          //   child: SingleChildScrollView(
-          //     scrollDirection: Axis.horizontal,
-          //     child: IntrinsicWidth(
-          //       child: Column(
-          //         children: [
-          //           Row(
-          //             mainAxisAlignment: MainAxisAlignment.center,
-          //             children: [
-          //               SizedBox(
-          //                 height: 147.v,
-          //                 width: 173.h,
-          //                 child: Stack(
-          //                   alignment: Alignment.topCenter,
-          //                   children: [
-          //                     CustomImageView(
-          //                       imagePath: ImageConstant.imgRectangle12,
-          //                       height: 147.v,
-          //                       width: 173.h,
-          //                       radius: BorderRadius.vertical(
-          //                         top: Radius.circular(12.h),
-          //                       ),
-          //                       alignment: Alignment.center,
-          //                     ),
-          //                     Align(
-          //                       alignment: Alignment.topCenter,
-          //                       child: Padding(
-          //                         padding: EdgeInsets.only(top: 8.v),
-          //                         child: Row(
-          //                           mainAxisAlignment: MainAxisAlignment.center,
-          //                           mainAxisSize: MainAxisSize.min,
-          //                           children: [
-          //                             CustomIconButton(
-          //                               height: 28.adaptSize,
-          //                               width: 28.adaptSize,
-          //                               padding: EdgeInsets.all(4.h),
-          //                               child: CustomImageView(
-          //                                 imagePath: ImageConstant.imgFavorite,
-          //                               ),
-          //                             ),
-          //                             Padding(
-          //                               padding: EdgeInsets.only(left: 8.h),
-          //                               child: CustomIconButton(
-          //                                 height: 28.adaptSize,
-          //                                 width: 28.adaptSize,
-          //                                 padding: EdgeInsets.all(5.h),
-          //                                 child: CustomImageView(
-          //                                   imagePath:
-          //                                       ImageConstant.imgGroup58519,
-          //                                 ),
-          //                               ),
-          //                             ),
-          //                             Container(
-          //                               width: 80.h,
-          //                               margin: EdgeInsets.only(left: 13.h),
-          //                               padding: EdgeInsets.symmetric(
-          //                                 horizontal: 10.h,
-          //                                 vertical: 4.v,
-          //                               ),
-          //                               decoration:
-          //                                   AppDecoration.fillTealA.copyWith(
-          //                                 borderRadius:
-          //                                     BorderRadiusStyle.roundedBorder8,
-          //                               ),
-          //                               child: Text(
-          //                                 "Negotiable",
-          //                                 style: CustomTextStyles
-          //                                     .labelLargeOnPrimary,
-          //                               ),
-          //                             ),
-          //                           ],
-          //                         ),
-          //                       ),
-          //                     ),
-          //                   ],
-          //                 ),
-          //               ),
-          //               Padding(
-          //                 padding: EdgeInsets.only(left: 189.h),
-          //                 child: _buildFavoriteStack(
-          //                   context,
-          //                   negotiableText: "Negotiable",
-          //                 ),
-          //               ),
-          //             ],
-          //           ),
-          //           _buildCars(
-          //             context,
-          //             cars: "#cars",
-          //             inVar: " in 22/1/2023",
-          //             mercedesBenz: "Mercedes-Benz ",
-          //             dakahliaMansoura: "Dakahlia, Mansoura",
-          //             price: "1000 EGP",
-          //             cars1: "#cars",
-          //             in1: " in 22/1/2023",
-          //             mercedesBenz1: "Mercedes-Benz ",
-          //             dakahliaMansoura1: "Dakahlia, Mansoura",
-          //             price1: "1000 EGP",
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
-        ],
-      ),
-    );
-  }
 }
