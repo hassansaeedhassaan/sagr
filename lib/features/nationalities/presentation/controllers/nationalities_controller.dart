@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:sagr/features/nationalities/data/models/nationality_model.dart';
-import '../../../auth/presentation/screens/complete_account_screen.dart';
+import 'package:sagr/features/auth/presentation/widgets/pro_dropdown.dart';
 import '../../../auth/presentation/screens/create_account_screen.dart';
 import '../../domain/usecases/get_nationality.dart';
 

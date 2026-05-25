@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:sagr/features/auth/presentation/screens/complete_account_screen.dart';
+import 'package:sagr/features/auth/presentation/widgets/pro_dropdown.dart';
 import '../../../auth/presentation/screens/create_account_screen.dart';
 import '../../data/models/region_model.dart';
 import '../../domain/usecases/get_region.dart';
