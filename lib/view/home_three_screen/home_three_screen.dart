@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
@@ -12,7 +11,6 @@ import 'package:sagr/features/latest/presentation/screens/latest_ads_page.dart';
 import 'package:sagr/view/feature_ads_page/feature_ads_page.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 import 'package:sagr/widgets/appbar/build_core_app_bar.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/image_constant.dart';
 import '../../features/banner/presentation/controllers/banner_controller.dart';
@@ -21,6 +19,7 @@ import '../../theme/theme_helper.dart';
 import '../../widgets/Common/custom_dropdown.dart';
 import '../../widgets/custom_image_view.dart';
 import '../../widgets/go_to_map.dart';
+import '../home_three_screen/home_three_helpers.dart';
 import '../home_three_screen/widgets/card_column.dart';
 import '../home_three_screen/widgets/card_stack.dart';
 import '../home_three_screen/widgets/category_sections.dart';
@@ -36,48 +35,6 @@ class HomeThreeScreen extends StatelessWidget {
         );
 
 
-  Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Test if location services are enabled.
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Location services are not enabled don't continue
-      // accessing the position and request users of the
-      // App to enable the location services.
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        // Permissions are denied, next time you could try
-        // requesting permissions again (this is also where
-        // Android's shouldShowRequestPermissionRationale
-        // returned true. According to Android guidelines
-        // your App should show an explanatory UI now.
-        return Future.error('Location permissions are denied');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      // Permissions are denied forever, handle appropriately.
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
-    }
-
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
-    return await Geolocator.getCurrentPosition();
-  }
-
-    Future<void> appLaunchUrl(url) async {
-    if (!await launchUrl(Uri.parse(url))) {
-      throw Exception('Could not launch $url');
-    }
-  }
   
 
 
@@ -343,7 +300,7 @@ class HomeThreeScreen extends StatelessWidget {
                                           child: InkWell(
                                             onTap: () {
                                               
-                                              _determinePosition();
+                                              determinePosition();
 
                                               featuredController.nearByFilter();
                                             },
@@ -711,7 +668,7 @@ class HomeThreeScreen extends StatelessWidget {
                                         flex: 1,
                                         child: InkWell(
                                           onTap: () {
-                                            _determinePosition();
+                                            determinePosition();
 
                                             latestController.nearByFilter();
                                           },
