@@ -34,6 +34,7 @@ import '../../widgets/custom_image_view.dart';
 import '../../widgets/go_to_map.dart';
 import '../home_three_screen/widgets/categorychipview_item_widget.dart';
 import '../home_three_screen/widgets/categorygrid_item_widget.dart';
+import '../home_three_screen/widgets/card_column.dart';
 import '../home_three_screen/widgets/category_sections.dart';
 import '../home_three_screen/widgets/feature_ads_row.dart';
 import '../home_three_screen/widgets/most_viewed_dropdown.dart';
@@ -865,10 +866,9 @@ class HomeThreeScreen extends StatelessWidget {
                                               padding:
                                                   EdgeInsetsDirectional.only(
                                                       end: 5),
-                                              child: _buildCardColumn(
+                                              child: CardColumn(
                                                 id: latestController
                                                     .products[index].id!,
-                                                context,
                                                 negotiable: "${latestController.products[index].isNegotiable}",
                                                 cars: "#cars",
                                                 image: latestController
@@ -1140,9 +1140,8 @@ class HomeThreeScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               return Padding(
                 padding: EdgeInsetsDirectional.only(end: 5),
-                child: _buildCardColumn(
+                child: CardColumn(
                   id: products[index].id!,
-                  context,
                   negotiable: products.elementAt(index).isNegotiable.toString(),
                   cars: "#cars",
                   image: products[index].image!,
@@ -1324,192 +1323,4 @@ class HomeThreeScreen extends StatelessWidget {
       ),
     );
   }
-
-  /// Common widget
-
-  /// Common widget
-  Widget _buildCardColumn(
-    BuildContext context, {
-    required int id,
-    required String negotiable,
-    required String cars,
-    required String inVar,
-    required String mercedesBenz,
-    required String dakahliaMansoura,
-    required String price,
-    required String image,
-    required String premium,
-  }) {
-    return InkResponse(
-      onTap: () => Get.toNamed('/product_detail_screen', arguments: id),
-
-      // onTap: () => Navigator.push(
-      //     context, MaterialPageRoute(builder: (context) => AdsDetailsScreen())),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            height: 147.v,
-            width: 173.h,
-            child: Stack(
-              alignment: Alignment.topCenter,
-              children: [
-                Container(
-                  height: 147.v,
-                  width: 173.h,
-                  child: image == ""
-                      ? Image.asset("assets/images/logo.png")
-                      : ClipRRect(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(12.h),
-                          ),
-                          child: Image.network(
-                            image,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                ),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(8.h, 8.v, 8.h, 111.v),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CustomIconButton(
-                          height: 28.adaptSize,
-                          width: 28.adaptSize,
-                          padding: EdgeInsets.all(4.h),
-                          child: CustomImageView(
-                            imagePath: ImageConstant.imgFavorite,
-                          ),
-                        ),
-              
-
-                
-                      premium != "free"  ?  SizedBox.shrink() : Padding(
-                          padding: EdgeInsets.only(left: 0.h),
-                          child: CustomIconButton(
-                            height: 28.adaptSize,
-                            width: 28.adaptSize,
-                            padding: EdgeInsets.all(5.h),
-                            child: CustomImageView(
-                              imagePath: ImageConstant.imgGroup58519,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 80.h,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.h,
-                            vertical: 4.v,
-                          ),
-                            decoration: negotiable != 'true' ?  BoxDecoration() : AppDecoration.fillTealA.copyWith(
-                            borderRadius: BorderRadiusStyle.roundedBorder8,
-                          ),
-                          child: negotiable == 'true' ?  Text(
-                            negotiable == 'true' ? "Negotiable" : "",
-                            style:
-                                CustomTextStyles.labelLargeOnPrimary.copyWith(
-                              color: theme.colorScheme.onPrimary.withOpacity(1),
-                            ),
-                          ): SizedBox.shrink(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 173.h,
-            padding: EdgeInsets.symmetric(
-              horizontal: 8.h,
-              vertical: 6.v,
-            ),
-            decoration: AppDecoration.fillOnPrimary.copyWith(
-              borderRadius: BorderRadiusStyle.customBorderBL12,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(right: 1.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        cars,
-                        style: CustomTextStyles.bodySmallOrange400.copyWith(
-                          color: appTheme.orange400,
-                        ),
-                      ),
-                      Text(
-                        inVar,
-                        style: CustomTextStyles.bodySmall10.copyWith(
-                          color: appTheme.gray60001,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 1.v),
-                Flexible(
-                  child: Text(
-                    mercedesBenz,
-                    overflow: TextOverflow.ellipsis,
-                    style: CustomTextStyles.titleSmallSemiBold.copyWith(
-                      color: appTheme.blueGray90001,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 5.v),
-                Padding(
-                  padding: EdgeInsets.only(right: 13.h),
-                  child: Row(
-                    children: [
-                      CustomImageView(
-                        imagePath: ImageConstant.imgLinkedin,
-                        height: 16.adaptSize,
-                        width: 16.adaptSize,
-                        margin: EdgeInsets.only(
-                          top: 1.v,
-                          bottom: 2.v,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 4.h),
-                        child: FittedBox(
-                          child: Container(
-                            width: 122,
-                            child: Text(
-                              overflow: TextOverflow.ellipsis,
-                              dakahliaMansoura,
-                              style: theme.textTheme.bodyMedium!.copyWith(
-                                color: appTheme.blueGray90001,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10.v),
-                Text(
-                  price,
-                  style: theme.textTheme.titleMedium!.copyWith(
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
 }
