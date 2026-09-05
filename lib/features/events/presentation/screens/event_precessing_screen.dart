@@ -1,14 +1,29 @@
-import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
-import 'package:readmore/readmore.dart';
-import 'package:sagr/data/colors.dart';
-import 'package:get/get.dart';
-import 'package:sagr/features/events/presentation/controllers/events_controller.dart';
-import 'package:shimmer/shimmer.dart';
-import '../../../../utilities/map.dart';
-import '../../../home/presentation/screens/home_screen.dart';
-import '../controllers/event_controller.dart';
+import 'dart:ui';
 
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+
+import 'package:sagr/data/colors.dart';
+import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/utilities/map.dart';
+import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
+
+import '../../data/models/job_model.dart';
+import '../../data/models/start_date_time_model.dart';
+import '../controllers/event_controller.dart';
+import '../widgets/event_status_pill.dart';
+
+const _tabular = [FontFeature.tabularFigures()];
+
+/// Premium, compact "application pending" screen.
+///
+/// Shown when the user's application status is `pending` — awaiting a decision
+/// from the organizer. Surfaces a calm amber review banner with a three-step
+/// timeline (Submitted → Under Review → Decision), an event hero, countdown,
+/// quick stats, location card and roles wrap. Uses the shared AppTheme tokens
+/// and the unified [EventBottomNavigation].
 class EventProcessingScreen extends StatefulWidget {
   const EventProcessingScreen({super.key});
 
@@ -17,321 +32,358 @@ class EventProcessingScreen extends StatefulWidget {
 }
 
 class _EventProcessingScreenState extends State<EventProcessingScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late AnimationController _fadeController;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _fadeAnimation;
+    with SingleTickerProviderStateMixin {
+  final EventController eventController = Get.put(EventController(Get.find()));
+
+  late final AnimationController _fade;
+  late final Animation<double> _fadeAnim;
+
+  String get _locale => Get.locale?.toString() ?? 'ar';
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    _fade = AnimationController(
+      duration: const Duration(milliseconds: 350),
       vsync: this,
-    );
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _slideAnimation = Tween<double>(
-      begin: 50,
-      end: 0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _fadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-
-    _animationController.forward();
-    _fadeController.forward();
+    )..forward();
+    _fadeAnim = CurvedAnimation(parent: _fade, curve: Curves.easeOut);
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    _fadeController.dispose();
+    _fade.dispose();
     super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    await eventController.getEventInfo();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppTheme.scaffold,
+      appBar: _appBar(),
       body: GetBuilder<EventController>(
-        init: EventController(Get.find()),
-        builder: (EventController eventController) {
-          return eventController.isLoading
-              ? _buildModernShimmer()
-              : _buildEventContent(context, eventController);
+        init: eventController,
+        builder: (c) {
+          if (c.isLoading && c.event == null) return _shimmer();
+          return FadeTransition(
+            opacity: _fadeAnim,
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              color: AppTheme.brand,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _reviewBanner(),
+                    const SizedBox(height: 12),
+                    _timelineCard(),
+                    const SizedBox(height: 12),
+                    _eventHero(c),
+                    const SizedBox(height: 12),
+                    _countdownCard(c),
+                    const SizedBox(height: 12),
+                    _quickStats(c),
+                    const SizedBox(height: 12),
+                    _locationCard(c),
+                    const SizedBox(height: 12),
+                    _aboutCard(c),
+                    _rolesSection(c),
+                  ],
+                ),
+              ),
+            ),
+          );
         },
       ),
-    );
-  }
-
-  Widget _buildModernShimmer() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[200]!,
-      highlightColor: Colors.grey[50]!,
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Hero image shimmer
-            Container(
-              height: 300,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title shimmer
-                  Container(
-                    height: 24,
-                    width: 200,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  // Description shimmer
-                  ...List.generate(3, (index) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Container(
-                      height: 14,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  )),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Cards shimmer
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Container(
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      bottomNavigationBar: EventBottomNavigation(
+        active: EventNavTab.attendance,
+        eventId: eventController.event?.id?.toString(),
       ),
     );
   }
 
-  Widget _buildEventContent(BuildContext context, EventController eventController) {
-    return CustomScrollView(
-      slivers: [
-        // Modern App Bar with Hero Image
-        SliverAppBar(
-          expandedHeight: 220,
-          pinned: true,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
-              // backdropFilter: BlurEffect(),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Get.back(),
-            ),
-          ),
-          actions: [
-            Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.share, color: Colors.white),
-                onPressed: () => _showShareBottomSheet(context),
-              ),
-            ),
-          ],
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-                image: const DecorationImage(
-                  image: AssetImage("assets/images/cover.jpg"),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
-                  ),
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.7),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+  // ---- AppBar ----
+  PreferredSizeWidget _appBar() {
+    return AppBar(
+      backgroundColor: WHITE_COLOR,
+      foregroundColor: AppTheme.textTitle,
+      scrolledUnderElevation: 0,
+      elevation: 0,
+      centerTitle: false,
+      title: Text(
+        'Application Status'.tr,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.textTitle,
         ),
-
-        // Content
-        SliverToBoxAdapter(
-          child: AnimatedBuilder(
-            animation: _slideAnimation,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, _slideAnimation.value),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Event Title with modern styling
-                        _buildEventTitle(eventController),
-                        const SizedBox(height: 16),
-
-                        // Event Description
-                        _buildEventDescription(eventController),
-                        const SizedBox(height: 24),
-
-                        // Task and Requirements Cards
-                        _buildInfoCards(eventController),
-                        const SizedBox(height: 24),
-
-                        // Preparation Section
-                        _buildPreparationSection(eventController),
-                        const SizedBox(height: 24),
-
-                        // Event Details
-                        _buildEventDetails(eventController),
-                        const SizedBox(height: 24),
-
-                        // Location Link
-                        _buildLocationLink(eventController),
-                        const SizedBox(height: 32),
-
-                        // Action Button
-                        _buildActionButton(),
-                        const SizedBox(height: 100),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
+      ),
+      actions: const [
+        Padding(
+          padding: EdgeInsets.only(right: 12, left: 12),
+          child: Center(
+            child: EventStatusPill(status: 'pending', compact: true),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildEventTitle(EventController eventController) {
+  // ---- Amber review banner ----
+  Widget _reviewBanner() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue.shade50, Colors.purple.shade50],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          colors: [
+            AppTheme.warning.withOpacity(0.16),
+            AppTheme.warning.withOpacity(0.08),
+          ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.warning.withOpacity(0.45)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppTheme.warning.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.hourglass_top_rounded,
+              color: AppTheme.warning,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Application under review'.tr,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textTitle,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  "We'll notify you once a decision is made".tr,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.textMuted,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- Three-step timeline (Submitted → Under Review → Decision) ----
+  Widget _timelineCard() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: AppTheme.navy.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _timelineStep(
+            icon: Icons.check_rounded,
+            label: 'Submitted'.tr,
+            state: _StepState.done,
+          ),
+          _timelineConnector(active: true),
+          _timelineStep(
+            icon: Icons.hourglass_bottom_rounded,
+            label: 'Under Review'.tr,
+            state: _StepState.current,
+          ),
+          _timelineConnector(active: false),
+          _timelineStep(
+            icon: Icons.flag_outlined,
+            label: 'Decision'.tr,
+            state: _StepState.pending,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timelineStep({
+    required IconData icon,
+    required String label,
+    required _StepState state,
+  }) {
+    late final Color bg;
+    late final Color fg;
+    late final Color textColor;
+    late final FontWeight fontWeight;
+    switch (state) {
+      case _StepState.done:
+        bg = AppTheme.success;
+        fg = Colors.white;
+        textColor = AppTheme.textTitle;
+        fontWeight = FontWeight.w700;
+        break;
+      case _StepState.current:
+        bg = AppTheme.warning;
+        fg = Colors.white;
+        textColor = AppTheme.warning;
+        fontWeight = FontWeight.w800;
+        break;
+      case _StepState.pending:
+        bg = AppTheme.field;
+        fg = AppTheme.textMuted;
+        textColor = AppTheme.textMuted;
+        fontWeight = FontWeight.w600;
+        break;
+    }
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: bg,
+              shape: BoxShape.circle,
+              boxShadow: state == _StepState.current
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.warning.withOpacity(0.32),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Icon(icon, color: fg, size: 17),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: fontWeight,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timelineConnector({required bool active}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Container(
+        width: 22,
+        height: 2,
+        decoration: BoxDecoration(
+          color: active ? AppTheme.success : AppTheme.line,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
+
+  // ---- Event hero (teal gradient) ----
+  Widget _eventHero(EventController c) {
+    final String name = c.event?.name?.isNotEmpty == true
+        ? c.event!.name!
+        : 'Event'.tr;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.brand, AppTheme.brandDark],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brand.withOpacity(0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: Colors.blue.shade100,
+              color: Colors.white.withOpacity(0.18),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              Icons.celebration,
-              color: Colors.blue.shade700,
-              size: 24,
+            child: const Icon(
+              Icons.event_rounded,
+              color: Colors.white,
+              size: 22,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "تفاصيل الفعالية" ,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                    height: 1.25,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "${eventController.event?.name}",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                  _heroDate(c),
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -342,115 +394,42 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
     );
   }
 
-  Widget _buildEventDescription(EventController eventController) {
+  String _heroDate(EventController c) {
+    final raw = c.event?.date;
+    if (raw == null || raw.isEmpty) return c.event?.datetime ?? '';
+    try {
+      final dt = DateTime.tryParse(raw);
+      if (dt != null) {
+        return DateFormat.yMMMMd(_locale).format(dt);
+      }
+    } catch (_) {}
+    return raw;
+  }
+
+  // ---- Countdown card ----
+  Widget _countdownCard(EventController c) {
+    final StartDateTimeModel? sdt = c.event?.startDateTime;
+    if (sdt == null) return const SizedBox.shrink();
+
+    final Color statusColor =
+        Color(sdt.status?.colorValue ?? AppTheme.warning.value);
+    final String label = sdt.isFinished
+        ? 'Event ended'.tr
+        : sdt.isActive
+            ? 'Event in progress'.tr
+            : 'Event starts in'.tr;
+
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ReadMoreText(
-        '${eventController.event?.description}',
-        trimMode: TrimMode.Line,
-        trimCollapsedText: "قراءة المزيد",
-        trimExpandedText: " أقراء اقل ",
-        trimLines: 3,
-        colorClickableText: Colors.blue.shade600,
-        style: TextStyle(
-          fontSize: 16,
-          height: 1.6,
-          color: Colors.grey.shade700,
-        ),
-        moreStyle: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: Colors.blue.shade600,
-        ),
-        annotations: [
-          Annotation(
-            regExp: RegExp(r'#([a-zA-Z0-9_]+)'),
-            spanBuilder: ({required String text, TextStyle? textStyle}) =>
-                TextSpan(
-              text: text,
-              style: textStyle?.copyWith(color: Colors.blue.shade600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoCards(EventController eventController) {
-    return Row(
-      children: [
-        // Expanded(
-        //   child: _buildInfoCard(
-        //     title: "المهام الاساسية",
-        //     items: ["إدارة البوابات", "إدارة التذاكر", "التنظيم داخل المهرجان", "تنظيم الدخول والخروج"],
-        //     gradient: LinearGradient(
-        //       colors: [Colors.green.shade50, Colors.teal.shade50],
-        //       begin: Alignment.topLeft,
-        //       end: Alignment.bottomRight,
-        //     ),
-        //     iconColor: Colors.green.shade600,
-        //     icon: Icons.task_alt,
-        //   ),
-        // ),
-
-        // Column(
-        //   children: eventController.event!.jobs!.map( (job) {
-
-          
-        //         return job.displayName.toString();
-            
-
-        //   }).toList(),
-        // ),
-        // const SizedBox(width: 16),
-        Expanded(
-          child: _buildInfoCard(
-            title: "إحتياج الفعالية",
-            items: eventController.event!.jobs!.map( (job) {
-                return job.displayName.toString();
-          }).toList(),
-            gradient: LinearGradient(
-              colors: [SAGR_SECONDARY, SAGR_PRIMARY],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            iconColor: SAGR_SECONDARY,
-            icon: Icons.people,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoCard({
-    required String title,
-    required List<String> items,
-    required Gradient gradient,
-    required Color iconColor,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: iconColor.withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: AppTheme.navy.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -459,204 +438,300 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: iconColor, size: 20),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: WHITE_COLOR,
-                  ),
+              _statusBadge(sdt.statusText.tr, statusColor),
+              const Spacer(),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: AppTheme.textMuted,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
+          if (!sdt.isFinished) ...[
+            const SizedBox(height: 12),
+            Row(
               children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: iconColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
+                _timeBox('${sdt.days}', 'days'.tr),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: WHITE_COLOR,
-                    ),
-                  ),
-                ),
+                _timeBox(sdt.hours.toString().padLeft(2, '0'), 'hours'.tr),
+                const SizedBox(width: 8),
+                _timeBox(sdt.minutes.toString().padLeft(2, '0'), 'minutes'.tr),
+                const SizedBox(width: 8),
+                _timeBox(sdt.seconds.toString().padLeft(2, '0'), 'seconds'.tr),
               ],
             ),
-          )).toList(),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildPreparationSection(EventController eventController) {
+  Widget _statusBadge(String text, Color color) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: WHITE_COLOR,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.blue.shade100, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(Icons.lightbulb_outline, color: Colors.blue.shade600),
-              const SizedBox(width: 8),
-              Text(
-                "كيفية التحضير",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade800,
-                ),
-              ),
-            ],
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(width: 6),
           Text(
-            "${eventController.event?.preparing}",
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.6,
-              color: Colors.grey.shade700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEventDetails(EventController eventController) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [SAGR_SECONDARY, SAGR_PRIMARY,SAGR_PRIMARY],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: SAGR_THIRD.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.info_outline, color: SAGR_SECONDARY),
-              const SizedBox(width: 8),
-              Text(
-                "التفاصيل",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: WHITE_COLOR,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildDetailItem(
-            Icons.calendar_today,
-            eventController.event!.datetime!,
-            SAGR_SECONDARY,
-          ),
-          const SizedBox(height: 8),
-          
-
-          Column(
-      children: eventController.event!.periods!.map((period) {
-        return _buildDetailItemPeriod(
-          Icons.schedule,
-          period.period.toString(),
-          SAGR_SECONDARY,
-        );
-      }).toList(),
-      
-    ),
-
-
-
-
-      
-          const SizedBox(height: 8),
-          _buildDetailItem(
-            Icons.location_on,
-            eventController.event!.address!,
-            SAGR_SECONDARY,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailItem(IconData icon, String text, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
             text,
             style: TextStyle(
-              fontSize: 14,
-              color: WHITE_COLOR,
+              color: color,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.4,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timeBox(String value, String unit) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.field,
+          borderRadius: BorderRadius.circular(12),
         ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textTitle,
+                height: 1,
+                fontFeatures: _tabular,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              unit,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---- Quick stats row ----
+  Widget _quickStats(EventController c) {
+    final e = c.event;
+    final int periodsCount = e?.periods?.length ?? 0;
+    final int jobsCount = e?.jobs?.length ?? 0;
+    return Row(
+      children: [
+        _stat(Icons.calendar_today_rounded, _heroDate(c).isNotEmpty
+            ? _heroDate(c)
+            : (e?.date ?? '—'), 'Date'.tr),
+        const SizedBox(width: 8),
+        _stat(Icons.access_time_rounded, e?.time ?? '—', 'Time'.tr),
+        const SizedBox(width: 8),
+        _stat(Icons.work_outline_rounded, '$jobsCount', 'Roles'.tr),
+        const SizedBox(width: 8),
+        _stat(Icons.event_repeat_rounded, '$periodsCount', 'Shifts'.tr),
       ],
     );
   }
 
-  Widget _buildDetailItemPeriod(IconData icon, String text, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+  Widget _stat(IconData icon, String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.line),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 16, color: AppTheme.brand),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textTitle,
+                fontFeatures: _tabular,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 9.5,
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---- Location card with Open-in-Maps CTA ----
+  Widget _locationCard(EventController c) {
+    final String address = (c.event?.address?.isNotEmpty == true
+            ? c.event!.address!
+            : null) ??
+        'Event Location'.tr;
+    final bool hasLocation = (c.event?.location ?? '').isNotEmpty;
+
+    return Container(
+      width: double.infinity,
+      height: 170,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/map.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppTheme.navy.withOpacity(0.0),
+                      AppTheme.navy.withOpacity(0.55),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(top: 12, right: 12, child: _gpsChip()),
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _addressBar(address, hasLocation, c),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _gpsChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.gps_fixed_rounded, color: AppTheme.success, size: 14),
+          SizedBox(width: 5),
+          Text(
+            'GPS',
+            style: TextStyle(
+              color: AppTheme.success,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _addressBar(String address, bool hasLocation, EventController c) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 12),
+          const Icon(Icons.location_on_rounded,
+              color: AppTheme.brand, size: 18),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              text,
-              style: TextStyle(
-                color: WHITE_COLOR,
+              address,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.textTitle,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: hasLocation
+                ? () => MapsUtils.openMap(c.event?.location ?? '')
+                : null,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: hasLocation
+                    ? AppTheme.navy
+                    : AppTheme.navy.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.navigation_rounded,
+                      color: Colors.white, size: 13),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Open'.tr,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -665,138 +740,136 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
     );
   }
 
-  Widget _buildLocationLink(eventController) {
-    return InkWell(
-      onTap: () =>  MapsUtils.openMap(eventController.event!.location),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: SAGR_SECONDARY.withAlpha(9),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: SAGR_SECONDARY),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.map, color: SAGR_SECONDARY),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                "رابط الوصول لموقع الفعالية",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: SAGR_SECONDARY,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, 
-                size: 16, color: SAGR_SECONDARY),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton() {
-    return Container(
-      width: double.infinity,
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [SAGR_PRIMARY,SAGR_PRIMARY],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: SAGR_SECONDARY.withOpacity(0.3),
-        //     blurRadius: 14,
-        //     offset: const Offset(0, 2),
-        //   ),
-        // ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // Handle button action
-          },
-          child: const Center(
-            child: Text(
-              "قيد الاجراء",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+  // ---- About card ----
+  Widget _aboutCard(EventController c) {
+    final String desc = c.event?.description ?? '';
+    if (desc.trim().isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _sectionCard(
+        title: 'About'.tr,
+        icon: Icons.info_outline_rounded,
+        child: Text(
+          desc,
+          maxLines: 5,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 12.5,
+            color: AppTheme.textBody,
+            height: 1.5,
           ),
         ),
       ),
     );
   }
 
-  void _showShareBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+  // ---- Roles (jobs) chip wrap ----
+  Widget _rolesSection(EventController c) {
+    final List<JobModel> jobs = c.event?.jobs ?? [];
+    if (jobs.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _sectionCard(
+        title: 'Roles'.tr,
+        icon: Icons.work_outline_rounded,
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: jobs
+              .map((j) => Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brand.withOpacity(0.10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      j.name,
+                      style: const TextStyle(
+                        color: AppTheme.brand,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ))
+              .toList(),
         ),
+      ),
+    );
+  }
+
+  Widget _sectionCard({
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppTheme.brand),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textTitle,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+
+  // ---- Shimmer / skeleton loader ----
+  Widget _shimmer() {
+    return AppShimmer(
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'مشاركة الفعالية',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _buildShareOption(Icons.share, 'مشاركة', () {}),
-            _buildShareOption(Icons.link, 'نسخ الرابط', () {}),
-            _buildShareOption(Icons.bookmark_outline, 'حفظ', () {}),
-            const SizedBox(height: 20),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Bone(width: double.infinity, height: 64, radius: 14),
+            SizedBox(height: 12),
+            Bone(width: double.infinity, height: 86, radius: 14),
+            SizedBox(height: 12),
+            Bone(width: double.infinity, height: 80, radius: 18),
+            SizedBox(height: 12),
+            Bone(width: double.infinity, height: 96, radius: 14),
+            SizedBox(height: 12),
+            Bone(width: double.infinity, height: 64, radius: 12),
+            SizedBox(height: 12),
+            Bone(width: double.infinity, height: 170, radius: 18),
+            SizedBox(height: 12),
+            Bone(width: double.infinity, height: 110, radius: 14),
           ],
         ),
       ),
     );
   }
-
-  Widget _buildShareOption(IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, color: Colors.blue.shade600),
-      ),
-      title: Text(title),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: onTap,
-    );
-  }
 }
 
-class BlurEffect {
-  // Placeholder for backdrop filter effect
-}
+enum _StepState { done, current, pending }

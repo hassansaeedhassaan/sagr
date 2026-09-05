@@ -18,6 +18,10 @@ class EventCalendarController extends GetxController {
   var events = <DateTime, List<EventCalenderModel>>{}.obs;
     // Rx<Map<DateTime, List<EventCalenderModel>>> events = <DateTime, List<EventCalenderModel>>{}.obs;
 
+  /// Flat, de-duplicated list of all events. Used for range-aware lookups so a
+  /// multi-day event (startTime..endTime) shows on every day it spans.
+  final RxList<EventCalenderModel> allEventsFlat = <EventCalenderModel>[].obs;
+
   var selectedEvents = <EventCalenderModel>[].obs;
   var calendarFormat = CalendarFormat.month.obs;
   var rangeSelectionMode = RangeSelectionMode.toggledOff.obs;
@@ -132,25 +136,44 @@ final RxBool _isLoading = true.obs;
     };
   }
 
-  // Get events for a specific day
-  List<EventCalenderModel> getEventsForDay(DateTime day) {
-    return events[DateTime.utc(day.year, day.month, day.day)] ?? [];
+  // Rebuild the flat, de-duplicated list from the per-day [events] map.
+  void _rebuildFlat() {
+    final seen = <int>{};
+    final out = <EventCalenderModel>[];
+    for (final dayEvents in events.values) {
+      for (final e in dayEvents) {
+        if (e.id == null || seen.add(e.id!)) out.add(e);
+      }
+    }
+    allEventsFlat.assignAll(out);
   }
 
-  // Get events for a date range
+  // Get events active on a specific day (inclusive of startTime..endTime span).
+  List<EventCalenderModel> getEventsForDay(DateTime day) {
+    final d = DateTime(day.year, day.month, day.day);
+    return allEventsFlat.where((e) {
+      final s = DateTime(e.startTime.year, e.startTime.month, e.startTime.day);
+      final en = DateTime(e.endTime.year, e.endTime.month, e.endTime.day);
+      return !d.isBefore(s) && !d.isAfter(en);
+    }).toList();
+  }
+
+  // Get events for a date range (de-duplicated across spanning days)
   List<EventCalenderModel> getEventsForRange(DateTime start, DateTime end) {
     final days = daysInRange(start, end);
-    return [
-      for (final day in days) ...getEventsForDay(day),
-    ];
+    final seen = <int>{};
+    final out = <EventCalenderModel>[];
+    for (final day in days) {
+      for (final e in getEventsForDay(day)) {
+        if (e.id == null || seen.add(e.id!)) out.add(e);
+      }
+    }
+    return out;
   }
 
-  // Get all events sorted by date
+  // Get all events sorted by start date
   List<EventCalenderModel> getAllEventsSorted() {
-    List<EventCalenderModel> allEvents = [];
-    for (final dayEvents in events.values) {
-      allEvents.addAll(dayEvents);
-    }
+    final allEvents = [...allEventsFlat];
     allEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
     return allEvents;
   }
@@ -279,6 +302,7 @@ final RxBool _isLoading = true.obs;
 
     // Update the observable
     events.refresh();
+    _rebuildFlat();
 
     // Update selected events if the new event is on the selected day
     if (selectedDay.value != null && isSameDay(day, selectedDay.value!)) {
@@ -315,6 +339,7 @@ final RxBool _isLoading = true.obs;
 
     // Update the observable
     events.refresh();
+    _rebuildFlat();
 
     // Update selected events
     if (selectedDay.value != null) {
@@ -358,6 +383,7 @@ print(receivedProduct);
 print("🖨️🖨️🖨️🖨️🖨️🖨️");
 
 events.value = receivedProduct;
+_rebuildFlat();
 update();
 
 

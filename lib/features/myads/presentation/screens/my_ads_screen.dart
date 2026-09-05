@@ -2,6 +2,7 @@
 
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/myads/presentation/controllers/my_ads_controller.dart';
 import 'package:sagr/features/products/domain/entities/product.dart';
@@ -52,7 +53,7 @@ class MyAdsScreen extends StatelessWidget {
                                                 } else if (mode ==
                                                     LoadStatus.loading) {
                                                   body =
-                                                      CircularProgressIndicator();
+                                                      AppLoader.inline();
                                                 } else if (mode ==
                                                     LoadStatus.failed) {
                                                   body = Text(

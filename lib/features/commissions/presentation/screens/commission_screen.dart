@@ -4,6 +4,7 @@ import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/commissions/presentation/controllers/commissions_controller.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../../../core/utils/image_constant.dart';
 import '../../../../theme/app_decoration.dart';
@@ -32,7 +33,7 @@ class CommissionScreen extends StatelessWidget {
           builder: (CommissionsController _commissionCntr) {
             return Scaffold(
               appBar: AppBar(
-                title: Text("My Commissions"),
+                title: Text("My Commissions".tr),
               ),
               body: Container(
                 width: double.maxFinite,
@@ -48,7 +49,7 @@ class CommissionScreen extends StatelessWidget {
                     _buildPayAllCommissions(context),
                     SizedBox(height: 12.v),
 
-                    _commissionCntr.isLoadingList ?  Center(child: CircularProgressIndicator(),) : ListView.builder(
+                    _commissionCntr.isLoadingList ?  AppLoader.list() : ListView.builder(
                         shrinkWrap: true,
                         itemCount: _commissionCntr.commissions.length,
                         itemBuilder: (_, index) {
@@ -316,7 +317,7 @@ class CommissionScreen extends StatelessWidget {
                                             MainAxisAlignment.center,
                                         children: [
                                           Expanded(
-                                            child: _controller.isLoadingPay ? Center(child: CircularProgressIndicator(),) : SizedBox(
+                                            child: _controller.isLoadingPay ? AppLoader.inline() : SizedBox(
                                               height: 48.h,
                                               child: CustomElevatedButton(
                                                 onPressed: () => _controller.payAllCommissions(context),
@@ -368,7 +369,7 @@ class CommissionScreen extends StatelessWidget {
                   ),
                 ));
       },
-      text: "Pay all commissions",
+      text: "Pay all commissions".tr,
       buttonStyle: CustomButtonStyles.none,
       decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,
     );

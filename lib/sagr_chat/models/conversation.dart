@@ -14,6 +14,7 @@ class Conversation {
   final int participantsCount;
   final DateTime updatedAt;
   final Map<String, dynamic>? settings;
+  final int unreadCount;
 
   Conversation({
     required this.id,
@@ -26,6 +27,7 @@ class Conversation {
     required this.participantsCount,
     required this.updatedAt,
     this.settings,
+    this.unreadCount = 0,
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class Conversation {
       participantsCount: json['participants_count'] ?? 0,
       updatedAt: DateTime.parse(json['updated_at']),
       settings: json['settings'],
+      unreadCount: json['unread_count'] ?? json['unread'] ?? 0,
     );
   }
 
@@ -54,28 +57,27 @@ class Conversation {
     if (isGroupChat) {
       return name ?? 'Group Chat';
     }
-    
-    // For private chats, return the other participant's name
-    final otherParticipant = participants.firstWhere(
-      (p) => p.id != currentUserId,
-      orElse: () => User(id: 0, name: 'Unknown', email: '', status: 'offline'),
-    );
-    
-    return otherParticipant.name;
+
+    // Prefer the other participant's name, but the conversations index may
+    // omit `participants` — the backend already resolves the private-chat
+    // title into `name`, so fall back to that before giving up.
+    final otherParticipant =
+        participants.firstWhereOrNull((p) => p.id != currentUserId);
+
+    return otherParticipant?.name ?? name ?? 'Unknown';
   }
 
   String? getDisplayAvatar(int currentUserId) {
     if (isGroupChat) {
       return avatar;
     }
-    
-    // For private chats, return the other participant's avatar
-    final otherParticipant = participants.firstWhere(
-      (p) => p.id != currentUserId,
-      orElse: () => User(id: 0, name: 'Unknown', email: '', status: 'offline'),
-    );
-    
-    return otherParticipant.avatar;
+
+    // Same fallback logic as getDisplayName — top-level `avatar` carries the
+    // other user's image when `participants` is absent.
+    final otherParticipant =
+        participants.firstWhereOrNull((p) => p.id != currentUserId);
+
+    return otherParticipant?.avatar ?? avatar;
   }
 // User? getOtherParticipant(int currentUserId) {
 //   if (isPrivateChat) {

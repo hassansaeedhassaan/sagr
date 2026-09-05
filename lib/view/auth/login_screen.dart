@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:sagr/core/utils/size_utils.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/view/forgot_password_screen/forgot_password_screen.dart';
 
 import '../../app/view_model/auth/login_controller.dart';
@@ -120,7 +121,7 @@ class LoginScreen extends StatelessWidget {
                 SizedBox(height: 24.v),
 
                 Obx(() => _controller.isLoading == true
-                    ? CircularProgressIndicator()
+                    ? AppLoader.inline()
                     : CustomElevatedButton(
                         onPressed: _controller.isLoading == true
                             ? null

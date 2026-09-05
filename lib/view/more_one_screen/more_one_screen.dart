@@ -8,6 +8,7 @@ import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:sagr/helper/base_url.dart';
+import 'package:sagr/theme/app_theme.dart';
 import 'package:sagr/utilities/map.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 import 'package:shimmer/shimmer.dart';
@@ -70,7 +71,7 @@ class _MoreOneScreenState extends State<MoreOneScreen>
       },
       child: MasterWrapper(
       body: Scaffold(
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: AppTheme.scaffold,
         body: FadeTransition(
           opacity: _fadeAnimation,
           child: SlideTransition(
@@ -159,6 +160,13 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                               title: "Orders Under Processing".tr,
                               subtitle: "Track your pending orders".tr,
                               onTap: () => Get.toNamed('/permissions'),
+                            ),
+                            _buildEnhancedMenuItem(
+                              icon: Icons.payments_outlined,
+                              title: "My Commissions".tr,
+                              subtitle: "Track your commissions".tr,
+                              onTap: () =>
+                                  Get.toNamed('/commissions_screen'),
                               isLast: true,
                             ),
                           ]),
@@ -203,31 +211,23 @@ class _MoreOneScreenState extends State<MoreOneScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                SAGR_PRIMARY,
-
-                SAGR_PRIMARY,
-                // SAGR_THIRD,
-                SAGR_PRIMARY,
+                AppTheme.navy,
+                AppTheme.brandDark,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20.h),
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
             boxShadow: [
               BoxShadow(
-                color: SAGR_PRIMARY,
-                blurRadius: 2,
-                offset: const Offset(0, 2),
-              ),
-              BoxShadow(
-                color: SAGR_PRIMARY,
-                blurRadius: 2,
-                offset: const Offset(0, 2),
+                color: AppTheme.navy.withOpacity(0.18),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Container(
-            padding: EdgeInsets.all(20.h),
+            padding: EdgeInsets.all(16.h),
             child: Row(
               children: [
                 // Enhanced Avatar
@@ -236,22 +236,23 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: GestureDetector(
                     // onTap: () => Get.toNamed('/create_account'),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(40.h),
+                      borderRadius: BorderRadius.circular(32.h),
                       child: Container(
-                        width: 80.h,
-                        height: 80.h,
+                        width: 64.h,
+                        height: 64.h,
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white, width: 3),
-                          borderRadius: BorderRadius.circular(40.h),
+                          border: Border.all(
+                              color: Colors.white.withOpacity(0.9), width: 2),
+                          borderRadius: BorderRadius.circular(32.h),
                         ),
 
                         child: authController.authenticatedUser!['image'] != null ? CachedNetworkImage(imageUrl: "${HOSTURL+ authController.authenticatedUser!['image']}") : Container(),
@@ -273,12 +274,19 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                     children: [
                       authController.authenticatedUser!['is_completed']
                           ? Text(
-                              "${authController.authenticatedUser!['firstName']} ${authController.authenticatedUser!['middleName']} ${authController.authenticatedUser!['lastName']}",
+                              [
+                                authController.authenticatedUser!['firstName'],
+                                authController.authenticatedUser!['middleName'],
+                                authController.authenticatedUser!['lastName'],
+                              ]
+                                  .where((p) =>
+                                      p != null && p.toString().isNotEmpty)
+                                  .join(' '),
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 18,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
+                                letterSpacing: 0.2,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -287,36 +295,29 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                               authController.authenticatedUser!['name'],
                               style: TextStyle(color: WHITE_COLOR),
                             ),
-                      SizedBox(height: 8.v),
+                      SizedBox(height: 6.v),
                       Container(
                         padding: EdgeInsets.symmetric(
                             horizontal: 8.h, vertical: 4.v),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8.h),
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         ),
                         child: Text(
                           '${authController.authenticatedUser!['phone'] ?? "--".tr}',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
                         ),
                       ),
-                      SizedBox(height: 8.v),
+                      SizedBox(height: 6.v),
                         authController.authenticatedUser!['is_completed'] ? Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 10.h, vertical: 6.v),
+                            horizontal: 10.h, vertical: 5.v),
                         decoration: BoxDecoration(
-                          color: SAGR_SECONDARY,
-                          borderRadius: BorderRadius.circular(12.h),
-                          boxShadow: [
-                            BoxShadow(
-                              color: SAGR_SECONDARY.withAlpha(10),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          color: AppTheme.brand,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         ),
                         child: Text(
                           'ID: ${authController.authenticatedUser!['nationalID'] ?? "--"}',
@@ -330,8 +331,8 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                         margin: EdgeInsets.only(top: 4),
                         padding: EdgeInsetsDirectional.symmetric(vertical: 5, horizontal: 10),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: ZAHRA_ORANGE
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                          color: AppTheme.warning
                         ),
                         child: Text("الملف الشخصي غير مكتمل", style: TextStyle(color: WHITE_COLOR),),
                       ),
@@ -342,16 +343,17 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                 // Edit Button
                 InkWell(
                   onTap: () => Get.toNamed('/update_account'),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   child: Container(
-                    padding: EdgeInsets.all(12.h),
+                    padding: EdgeInsets.all(10.h),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12.h),
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                     ),
                     child: Icon(
                       Icons.edit_outlined,
                       color: Colors.white,
-                      size: 20,
+                      size: 18,
                     ),
                   ),
                 ),
@@ -367,24 +369,18 @@ class _MoreOneScreenState extends State<MoreOneScreen>
   Widget _buildProfileShimmer() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.h),
-      padding: EdgeInsets.all(20.h),
+      padding: EdgeInsets.all(16.h),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20.h),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.line),
       ),
       child: Row(
         children: [
           Shimmer.fromColors(
             baseColor: Colors.grey.shade300,
             highlightColor: Colors.grey.shade100,
-            child: CircleAvatar(radius: 40.h),
+            child: CircleAvatar(radius: 32.h),
           ),
           SizedBox(width: 16.h),
           Expanded(
@@ -427,40 +423,29 @@ class _MoreOneScreenState extends State<MoreOneScreen>
   /// Section Header with enhanced styling
   Widget _buildSectionHeader(String title, IconData icon) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4.h, vertical: 8.v),
+      padding: EdgeInsets.symmetric(horizontal: 4.h, vertical: 6.v),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(10.h),
+            padding: EdgeInsets.all(8.h),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [SAGR_PRIMARY, SAGR_PRIMARY],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12.h),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: AppTheme.brand.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
             child: Icon(
               icon,
-              size: 22,
-              color: Colors.white,
+              size: 18,
+              color: AppTheme.brand,
             ),
           ),
-          SizedBox(width: 16.h),
+          SizedBox(width: 12.h),
           Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Colors.grey.shade800,
-              letterSpacing: 0.5,
+              color: AppTheme.textTitle,
+              letterSpacing: 0.2,
             ),
           ),
         ],
@@ -472,18 +457,14 @@ class _MoreOneScreenState extends State<MoreOneScreen>
   Widget _buildAnimatedSection(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.h),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-          BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -503,14 +484,14 @@ class _MoreOneScreenState extends State<MoreOneScreen>
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16.h),
+        borderRadius: BorderRadius.circular(AppTheme.radius),
         child: Container(
-          padding: EdgeInsets.all(18.h),
+          padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 12.v),
           decoration: BoxDecoration(
             border: !isLast
                 ? Border(
                     bottom: BorderSide(
-                      color: Colors.grey.shade100,
+                      color: AppTheme.line,
                       width: 1,
                     ),
                   )
@@ -519,30 +500,19 @@ class _MoreOneScreenState extends State<MoreOneScreen>
           child: Row(
             children: [
               Container(
-                height: 50.h,
-                width: 50.h,
+                height: 40.h,
+                width: 40.h,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [SAGR_SECONDARY, SAGR_SECONDARY],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14.h),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.blue.withOpacity(0.3),
-                  //     blurRadius: 8,
-                  //     offset: const Offset(0, 2),
-                  //   ),
-                  // ],
+                  color: AppTheme.brand.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
                 child: Icon(
                   icon,
-                  color: Colors.white,
-                  size: 24,
+                  color: AppTheme.brand,
+                  size: 20,
                 ),
               ),
-              SizedBox(width: 16.h),
+              SizedBox(width: 14.h),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -550,33 +520,26 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                     Text(
                       title,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade800,
+                        color: AppTheme.textTitle,
                       ),
                     ),
-                    SizedBox(height: 4.v),
+                    SizedBox(height: 2.v),
                     Text(
                       subtitle,
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey.shade600,
+                        color: AppTheme.textMuted,
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: EdgeInsets.all(8.h),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8.h),
-                ),
-                child: Icon(
-                  Icons.arrow_forward_ios,
-                  size: 14,
-                  color: Colors.grey.shade600,
-                ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppTheme.textHint,
               ),
             ],
           ),
@@ -590,23 +553,12 @@ class _MoreOneScreenState extends State<MoreOneScreen>
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 0.h),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.red.shade50, Colors.red.shade100],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16.h),
+        color: AppTheme.danger.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(AppTheme.radius),
         border: Border.all(
-          color: Colors.red.shade200,
+          color: AppTheme.danger.withOpacity(0.25),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.red.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -618,26 +570,25 @@ class _MoreOneScreenState extends State<MoreOneScreen>
             GetStorage().remove('loggedInUserPhone');
             Get.offAndToNamed("/login");
           },
-          borderRadius: BorderRadius.circular(16.h),
+          borderRadius: BorderRadius.circular(AppTheme.radius),
           child: Container(
-            padding: EdgeInsets.all(18.h),
+            padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 12.v),
             child: Row(
               children: [
                 Container(
-                  height: 50.h,
-                  width: 50.h,
+                  height: 40.h,
+                  width: 40.h,
                   decoration: BoxDecoration(
-                    color: Colors.red.shade100,
-                    borderRadius: BorderRadius.circular(14.h),
-                    border: Border.all(color: Colors.red.shade200),
+                    color: AppTheme.danger.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
                   child: Icon(
                     Icons.logout_outlined,
-                    color: Colors.red.shade700,
-                    size: 24,
+                    color: AppTheme.danger,
+                    size: 20,
                   ),
                 ),
-                SizedBox(width: 16.h),
+                SizedBox(width: 14.h),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -645,33 +596,26 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                       Text(
                         "تسجيل خروج",
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: Colors.red.shade700,
+                          color: AppTheme.danger,
                         ),
                       ),
-                      SizedBox(height: 4.v),
+                      SizedBox(height: 2.v),
                       Text(
                         "Sign out of your account".tr,
                         style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.red.shade600,
+                          fontSize: 12,
+                          color: AppTheme.danger.withOpacity(0.8),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.all(8.h),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade100,
-                    borderRadius: BorderRadius.circular(8.h),
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_ios,
-                    size: 14,
-                    color: Colors.red.shade600,
-                  ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: AppTheme.danger.withOpacity(0.6),
                 ),
               ],
             ),
@@ -684,30 +628,18 @@ class _MoreOneScreenState extends State<MoreOneScreen>
   /// Enhanced Support Section with lighting effects
   Widget _buildEnhancedSupportSection(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(24.h),
+      padding: EdgeInsets.all(16.h),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.green.shade50,
-            Colors.teal.shade50,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20.h),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
         border: Border.all(
-          color: Colors.green.shade200,
+          color: AppTheme.line,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.15),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -718,44 +650,30 @@ class _MoreOneScreenState extends State<MoreOneScreen>
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(12.h),
+                padding: EdgeInsets.all(8.h),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [SAGR_SECONDARY, SAGR_SECONDARY],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(14.h),
-                  boxShadow: [
-                    // BoxShadow(
-                    //   color: SAGR_SECONDARY,
-                    //   blurRadius: 8,
-                    //   offset: const Offset(0, 2),
-                    // ),
-                  ],
+                  color: AppTheme.brand.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                 ),
                 child: Icon(
                   Icons.support_agent_outlined,
-                  color: Colors.white,
-                  size: 24,
+                  color: AppTheme.brand,
+                  size: 20,
                 ),
               ),
-              SizedBox(width: 16.h),
+              SizedBox(width: 12.h),
               Text(
                 "الدعم".tr,
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade800,
-                  decoration: TextDecoration.underline,
-                  decorationColor: SAGR_SECONDARY,
-                  decorationThickness: 2,
+                  color: AppTheme.textTitle,
                 ),
               ),
             ],
           ),
 
-          SizedBox(height: 20.v),
+          SizedBox(height: 16.v),
 
           // Contact Methods
           Column(
@@ -763,19 +681,19 @@ class _MoreOneScreenState extends State<MoreOneScreen>
               _buildContactMethod(
                 Icons.phone_outlined,
                 "+966566467735",
-                Colors.blue.shade600,
+                AppTheme.brand,
               ),
-              SizedBox(height: 12.v),
+              SizedBox(height: 10.v),
               _buildContactMethod(
                 Icons.email_outlined,
                 "sagr@mail.com",
-                Colors.orange.shade600,
+                AppTheme.brand,
               ),
-              SizedBox(height: 12.v),
+              SizedBox(height: 10.v),
               _buildContactMethod(
                 Icons.telegram,
                 "sagr@mail.com",
-                Colors.blue.shade700,
+                AppTheme.brand,
               ),
             ],
           ),
@@ -787,29 +705,23 @@ class _MoreOneScreenState extends State<MoreOneScreen>
   /// Contact Method Item
   Widget _buildContactMethod(IconData icon, String text, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.h, vertical: 12.v),
+      padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 10.v),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.h),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.field,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(color: AppTheme.line),
       ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(8.h),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8.h),
+              color: color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             ),
             child: Icon(
               icon,
-              size: 20,
+              size: 18,
               color: color,
             ),
           ),
@@ -818,9 +730,9 @@ class _MoreOneScreenState extends State<MoreOneScreen>
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey.shade800,
+                color: AppTheme.textTitle,
               ),
               textDirection: TextDirection.ltr,
             ),
@@ -828,7 +740,7 @@ class _MoreOneScreenState extends State<MoreOneScreen>
           Icon(
             Icons.copy_outlined,
             size: 18,
-            color: Colors.grey.shade500,
+            color: AppTheme.textHint,
           ),
         ],
       ),
@@ -880,15 +792,15 @@ class MySliverAppBar extends SliverPersistentHeaderDelegate {
           alignment: Alignment.centerLeft,
           decoration: const BoxDecoration(
             borderRadius: BorderRadius.only(
-              bottomRight: Radius.circular(10),
-              bottomLeft: Radius.circular(10),
+              bottomRight: Radius.circular(AppTheme.radiusSm),
+              bottomLeft: Radius.circular(AppTheme.radiusSm),
             ),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xff8360c3),
-                Color(0xff2ebf91),
+                AppTheme.navy,
+                AppTheme.brand,
               ],
             ),
           ),
@@ -898,7 +810,7 @@ class MySliverAppBar extends SliverPersistentHeaderDelegate {
             },
             icon: const Icon(
               Icons.arrow_back_ios,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
         ),

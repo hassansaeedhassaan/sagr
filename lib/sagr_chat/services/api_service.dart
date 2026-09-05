@@ -214,6 +214,23 @@ class ApiService extends GetxService {
     await _dio.put('/messages/$messageId/read');
   }
 
+  /// Mark every unread message in a conversation as read (single broadcast).
+  Future<void> markConversationAsRead(int conversationId) async {
+    await _dio.post('/conversations/$conversationId/read');
+  }
+
+  /// Broadcast a typing indicator to the other participants. Fire-and-forget.
+  Future<void> sendTyping(int conversationId, bool isTyping) async {
+    try {
+      await _dio.post(
+        '/conversations/$conversationId/typing',
+        data: {'is_typing': isTyping},
+      );
+    } catch (_) {
+      // Typing is best-effort; ignore failures.
+    }
+  }
+
   Future<void> deleteMessage(int messageId) async {
     await _dio.delete('/messages/$messageId');
   }

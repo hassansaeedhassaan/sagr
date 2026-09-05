@@ -1,18 +1,32 @@
 import 'dart:async';
 import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
-import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
-import 'package:sagr/features/evocations/presentation/controllers/evocations_controller.dart';
-import 'package:sagr/sagr_chat/routes/app_routes.dart';
-import 'package:intl/intl.dart';
-import '../../../evocations/data/models/evocation_model.dart';
-import '../../../evocations/presentation/widgets/evocation_create.dart';
-import 'loading.dart';
-import 'package:geolocator/geolocator.dart';
 
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+
+import 'package:sagr/data/colors.dart';
+import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/utilities/map.dart';
+import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
+import 'package:sagr/walkie_talkie/widgets/push_to_talk_button.dart';
+
+import '../../../evocations/data/models/evocation_model.dart';
+import '../../../evocations/presentation/controllers/evocations_controller.dart';
+import '../../../evocations/presentation/widgets/evocation_create.dart';
+import '../../data/models/job_model.dart';
+import '../../data/models/start_date_time_model.dart';
+import '../controllers/event_controller.dart';
+import 'loading.dart';
+
+const _tabular = [FontFeature.tabularFigures()];
+
+/// Premium, compact attendance & departure screen.
+/// Compact event hero with live clock → status row → location card with
+/// Open-in-Maps CTA → primary Check-In/Out CTA → permissions request →
+/// minimal bottom nav. Uses the unified AppTheme tokens; no gimmicky borders.
 class AttendanceAndDepartureScreen extends StatefulWidget {
   AttendanceAndDepartureScreen({super.key});
 
@@ -22,131 +36,51 @@ class AttendanceAndDepartureScreen extends StatefulWidget {
 }
 
 class _AttendanceAndDepartureScreenState
-    extends State<AttendanceAndDepartureScreen> with TickerProviderStateMixin {
-  final _key = GlobalKey<ExpandableFabState>();
-  final Completer<GoogleMapController> googleMapController = Completer();
-  
-  // Enhanced Animation Controllers
-  late AnimationController _pulseController;
-  late AnimationController _slideController;
-  late AnimationController _fadeController;
-  late AnimationController _scaleController;
-  
-  // Enhanced Animations
-  late Animation<double> _pulseAnimation;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+    extends State<AttendanceAndDepartureScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+  Timer? _clockTimer;
+  String _now = '';
 
   final EventController eventController = Get.put(EventController(Get.find()));
   final EvocationsController evocationsController =
       Get.put(EvocationsController(Get.find()));
 
+  String get _locale => Get.locale?.toString() ?? 'ar';
+
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
-  }
-
-  void _initializeAnimations() {
-    // Pulse Animation for Check-in Button
-    _pulseController = AnimationController(
-      duration: Duration(seconds: 2),
+    _pulse = AnimationController(
+      duration: const Duration(milliseconds: 1600),
       vsync: this,
     )..repeat(reverse: true);
-
-    // Slide Animation for Main Content
-    _slideController = AnimationController(
-      duration: Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    // Fade Animation for Status Changes
-    _fadeController = AnimationController(
-      duration: Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    // Scale Animation for Buttons
-    _scaleController = AnimationController(
-      duration: Duration(milliseconds: 300),
-      vsync: this,
-    );
-
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-        parent: _slideController, curve: Curves.elasticOut));
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
-    );
-
-    _slideController.forward();
-    _fadeController.forward();
-    _scaleController.forward();
+    _refreshNow();
+    _clockTimer = Timer.periodic(const Duration(seconds: 20), (_) {
+      if (mounted) setState(_refreshNow);
+    });
   }
 
-  Future<void> showCreateEvocationBottomSheet({
-    required BuildContext context,
-    required Function(EvocationModel) onEvocationCreated,
-    EvocationModel? initialEvocation,
-  }) {
-    return showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CreateEvocationBottomSheet(
-        onEvocationCreated: onEvocationCreated,
-        initialEvocation: initialEvocation,
-      ),
-    );
-  }
-
-  // Dynamic time formatting
-  String _getFormattedTime() {
-    // if (eventController.event?.startDateTime != null) {
-    //   try {
-    //     final DateTime time = DateTime.parse(eventController.event!.startDateTime!);
-    //     return DateFormat('hh:mm a').format(time);
-    //   } catch (e) {
-    //     return DateFormat('hh:mm a').format(DateTime.now());
-    //   }
-    // }
-    return DateFormat('hh:mm a').format(DateTime.now());
-  }
-
-  // Get event status color
-  Color _getStatusColor() {
-    if (eventController.isCheckedIn) {
-      return Colors.orange;
-    }
-    return Colors.green;
-  }
-
-  // Get status text
-  String _getStatusText() {
-    if (eventController.isLoading) return 'Processing...'.tr;
-    if (eventController.isCheckedIn) return 'Checked In'.tr;
-    return 'Ready to Check In'.tr;
+  void _refreshNow() {
+    _now = DateFormat.jm(_locale).format(DateTime.now());
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
-    _slideController.dispose();
-    _fadeController.dispose();
-    _scaleController.dispose();
+    _clockTimer?.cancel();
+    _pulse.dispose();
     super.dispose();
+  }
+
+  Future<void> _openEvocationSheet() {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CreateEvocationBottomSheet(
+        onEvocationCreated: (EvocationModel e) => evocationsController.apply(e),
+      ),
+    );
   }
 
   @override
@@ -157,298 +91,279 @@ class _AttendanceAndDepartureScreenState
           circleColor: Colors.transparent,
           circleSize: 70.0,
           child: Scaffold(
-            backgroundColor: Color(0xFFF8FAFC),
-            appBar: _buildEnhancedAppBar(),
-            body: Column(
-              children: [
-                Expanded(
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: SingleChildScrollView(
-                      physics: BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          children: [
-                            SizedBox(height: 20),
-                            _buildEventHeaderCard(),
-                            SizedBox(height: 25),
-                            _buildStatusIndicator(),
-                            SizedBox(height: 25),
-                            _buildLocationCard(),
-                            SizedBox(height: 35),
-                            _buildEnhancedActionButtons(),
-                            SizedBox(height: 30),
-                            _buildPermissionsButton(),
-                            SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
+            backgroundColor: AppTheme.scaffold,
+            appBar: _appBar(),
+            body: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                children: [
+                  _eventHero(),
+                  const SizedBox(height: 12),
+                  _countdownCard(),
+                  const SizedBox(height: 12),
+                  _statusRow(),
+                  const SizedBox(height: 12),
+                  _quickStats(),
+                  const SizedBox(height: 12),
+                  _locationCard(),
+                  const SizedBox(height: 18),
+                  _primaryAction(),
+                  // Once checked in, the employee can talk on the event's
+                  // walkie channel without leaving this screen.
+                  if (eventController.isCheckedIn &&
+                      (eventController.event?.channel?.channelName ?? '')
+                          .isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    PushToTalkButton(
+                      key: ValueKey(
+                          eventController.event!.channel!.channelName),
+                      channelName:
+                          eventController.event!.channel!.channelName,
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                  const SizedBox(height: 8),
+                  _hint(),
+                  const SizedBox(height: 16),
+                  _aboutCard(),
+                  _rolesSection(),
+                  _permissionsCard(),
+                ],
+              ),
             ),
-            bottomNavigationBar: Container(
-                margin: EdgeInsets.only(bottom: 20),
-                child: GradientAnimatedBorderContainer(
-                    animationDuration: Duration(seconds: 3),
-                    borderWidth: 3,
-                    child: _buildModernBottomNav(eventController.event?.id?.toString() ?? '0'))),
+            bottomNavigationBar: EventBottomNavigation(
+              active: EventNavTab.attendance,
+              eventId: eventController.event?.id?.toString(),
+            ),
           ),
         ));
   }
 
-  PreferredSizeWidget _buildEnhancedAppBar() {
+  // ---- AppBar ----
+  PreferredSizeWidget _appBar() {
     return AppBar(
-      title: Text(
-        "Attendance & Departure".tr,
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 20,
-          color: Color(0xFF1E293B),
-        ),
-      ),
+      backgroundColor: WHITE_COLOR,
+      foregroundColor: AppTheme.textTitle,
       scrolledUnderElevation: 0,
-      backgroundColor: Color(0xFFF8FAFC),
-      centerTitle: false,
       elevation: 0,
-      leading: Container(
-        margin: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 16,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: Color(0xFF64748B), size: 18),
-          onPressed: () => Navigator.pop(context),
+      centerTitle: false,
+      title: Text(
+        'Attendance & Departure'.tr,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: AppTheme.textTitle,
         ),
       ),
     );
   }
 
-  Widget _buildEventHeaderCard() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(28),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF6366F1),
-              Color(0xFF8B5CF6),
-              Color(0xFFA855F7),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0xFF6366F1).withOpacity(0.25),
-              blurRadius: 24,
-              offset: Offset(0, 12),
-            ),
-          ],
+  // ---- Event hero with live clock ----
+  Widget _eventHero() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.brand, AppTheme.brandDark],
         ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.event,
-              color: Colors.white,
-              size: 32,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brand.withOpacity(0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
             ),
-            SizedBox(height: 16),
-            Text(
-              eventController.event?.name ?? 'Event Name',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 20),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.access_time,
+            child: const Icon(Icons.event_rounded,
+                color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  eventController.event?.name ?? 'Event'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
-                    size: 18,
+                    letterSpacing: 0.2,
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    _getFormattedTime(),
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
-                      letterSpacing: 1.2,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Live attendance window'.tr,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.80),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withOpacity(0.30)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.access_time_rounded,
+                    color: Colors.white, size: 12),
+                const SizedBox(width: 4),
+                Text(
+                  _now,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    fontFeatures: _tabular,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---- Status row (pulse dot + label + icon) ----
+  Widget _statusRow() {
+    final bool checkedIn = eventController.isCheckedIn;
+    final Color color = checkedIn ? AppTheme.warning : AppTheme.success;
+    final String label = eventController.isLoading
+        ? 'Processing...'.tr
+        : checkedIn
+            ? 'Checked In'.tr
+            : 'Ready to Check In'.tr;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          ScaleTransition(
+            scale: Tween<double>(begin: 0.85, end: 1.15).animate(
+              CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
+            ),
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: color.withOpacity(0.40), blurRadius: 8),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusIndicator() {
-    return ScaleTransition(
-      scale: _scaleAnimation,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: _getStatusColor().withOpacity(0.3),
-            width: 2,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: _getStatusColor().withOpacity(0.1),
-              blurRadius: 12,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: _getStatusColor(),
-                shape: BoxShape.circle,
-              ),
-            ),
-            SizedBox(width: 12),
-            Text(
-              _getStatusText(),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: _getStatusColor(),
+                color: color,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
               ),
             ),
-          ],
-        ),
+          ),
+          Icon(
+            checkedIn
+                ? Icons.timer_outlined
+                : Icons.check_circle_outline_rounded,
+            color: color,
+            size: 18,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildLocationCard() {
+  // ---- Location card with Open-in-Maps CTA ----
+  Widget _locationCard() {
+    final String address = (eventController.event?.address?.isNotEmpty == true
+            ? eventController.event!.address!
+            : null) ??
+        'Event Location'.tr;
+
     return Container(
       width: double.infinity,
-      height: 220,
+      height: 170,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 20,
-            offset: Offset(0, 8),
+            color: AppTheme.navy.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         child: Stack(
           children: [
-            // Map or Image
             Positioned.fill(
               child: Image.asset(
                 'assets/images/map.png',
                 fit: BoxFit.cover,
               ),
             ),
-            // Gradient Overlay
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.4),
-                  ],
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppTheme.navy.withOpacity(0.0),
+                      AppTheme.navy.withOpacity(0.55),
+                    ],
+                  ),
                 ),
               ),
             ),
-            // Location Info
+            Positioned(top: 12, right: 12, child: _gpsChip()),
             Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.95),
-                  borderRadius: BorderRadius.circular(16),
-                  // backdropFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      color: Color(0xFF6366F1),
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        eventController.event?.appliedStatus ?? 'Event Location',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Location Accuracy Indicator
-            Positioned(
-              top: 16,
-              right: 16,
-              child: Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Icons.gps_fixed,
-                  color: Colors.green,
-                  size: 20,
-                ),
-              ),
+              left: 12,
+              right: 12,
+              bottom: 12,
+              child: _addressBar(address),
             ),
           ],
         ),
@@ -456,399 +371,551 @@ class _AttendanceAndDepartureScreenState
     );
   }
 
-  Widget _buildEnhancedActionButtons() {
-    return Column(
-      children: [
-        // Check In Button
-        Obx(() => !eventController.isCheckedIn
-            ? _buildCheckInButton()
-            : _buildCheckOutButton()),
-        
-        // Additional Info
-        SizedBox(height: 16),
-        Text(
-          'Tap to record your attendance'.tr,
-          style: TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+  Widget _gpsChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.gps_fixed_rounded, color: AppTheme.success, size: 14),
+          SizedBox(width: 5),
+          Text(
+            'GPS',
+            style: TextStyle(
+              color: AppTheme.success,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildCheckInButton() {
-    return GestureDetector(
-      onTap: eventController.isLoading 
-          ? null 
-          : () => eventController.attendanceCheckInOut('attendance'),
-      child: AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: eventController.isLoading ? 1.0 : _pulseAnimation.value,
+  Widget _addressBar(String address) {
+    final hasLocation = (eventController.event?.location ?? '').isNotEmpty;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.96),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.location_on_rounded,
+              color: AppTheme.brand, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              address,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.textTitle,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: hasLocation
+                ? () => MapsUtils.openMap(eventController.event!.location!)
+                : null,
             child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 20),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF10B981),
-                    Color(0xFF059669),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF10B981).withOpacity(0.4),
-                    blurRadius: 20,
-                    offset: Offset(0, 10),
-                  ),
-                ],
+                color: hasLocation
+                    ? AppTheme.navy
+                    : AppTheme.navy.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: eventController.isLoading
-                        ? SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Icon(
-                            Icons.fingerprint,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                  ),
-                  SizedBox(width: 16),
+                  const Icon(Icons.navigation_rounded,
+                      color: Colors.white, size: 13),
+                  const SizedBox(width: 4),
                   Text(
-                    "Check In".tr,
-                    style: TextStyle(
+                    'Open'.tr,
+                    style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCheckOutButton() {
+  // ---- Primary check-in / check-out CTA ----
+  Widget _primaryAction() {
+    final bool checkedIn = eventController.isCheckedIn;
+    final bool loading = eventController.isLoading;
+    final Color color = checkedIn ? AppTheme.danger : AppTheme.success;
+    final Color dark =
+        checkedIn ? const Color(0xffdc2626) : const Color(0xff15803d);
+    final String label = checkedIn ? 'Check Out'.tr : 'Check In'.tr;
+    final IconData icon =
+        checkedIn ? Icons.logout_rounded : Icons.fingerprint_rounded;
+
     return GestureDetector(
-      onTap: eventController.isLoading 
-          ? null 
-          : () => eventController.attendanceCheckInOut('departure'),
-      child: Container(
+      onTap: loading
+          ? null
+          : () => eventController.attendanceCheckInOut(
+              checkedIn ? 'departure' : 'attendance'),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFEF4444),
-              Color(0xFFDC2626),
-            ],
+            colors: [color, dark],
           ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0xFFEF4444).withOpacity(0.4),
-              blurRadius: 20,
-              offset: Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Check Out".tr,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
-            ),
-            SizedBox(width: 16),
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.25),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: eventController.isLoading
-                  ? SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Icon(
-                      Icons.logout,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPermissionsButton() {
-    return GestureDetector(
-      onTap: () {
-        showCreateEvocationBottomSheet(
-          context: context,
-          onEvocationCreated: (evocation) =>
-              evocationsController.apply(evocation),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Color(0xFF6366F1).withOpacity(0.2),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 16,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Color(0xFF6366F1).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.assignment_outlined,
-                color: Color(0xFF6366F1),
-                size: 22,
-              ),
-            ),
-            SizedBox(width: 16),
-            Text(
-              "Request Permissions".tr,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF6366F1),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-Widget _buildModernBottomNav(String eventId) {
-  return Container(
-    margin: EdgeInsets.all(0),
-    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(25),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.08),
-          spreadRadius: 0,
-          blurRadius: 24,
-          offset: Offset(0, -8),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        InkWell(
-            onTap: () => Get.toNamed('/event_walkie_talkie', arguments: eventId),
-            child: _buildNavItem(Icons.phone_in_talk_rounded, "Walkie Talkie".tr, false)),
-        InkWell(
-            onTap: () => Get.toNamed("/attendance_screen"),
-            child: _buildNavItem(Icons.campaign_outlined, "Attendance".tr, true)),
-        _buildNavItem(Icons.notifications_outlined, "Notifications".tr, false),
-        InkWell(
-          onTap: () => Get.toNamed(AppRoutes.HOME),
-          child: _buildNavItem(Icons.chat_bubble_outline, "Chat".tr, false),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildNavItem(IconData icon, String label, bool isSelected) {
-  return Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Container(
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? Color(0xFF6366F1).withOpacity(0.15) 
-              : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.32),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        child: Icon(
-          icon,
-          color: isSelected ? Color(0xFF6366F1) : Color(0xFF64748B),
-          size: 24,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.22),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: loading
+                  ? AppLoader.inline(size: 18, color: Colors.white)
+                  : Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
         ),
       ),
-      SizedBox(height: 4),
-      Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isSelected ? Color(0xFF6366F1) : Color(0xFF64748B),
-        ),
-      ),
-    ],
-  );
-}
-
-
-class AnimatedBorderContainer extends StatefulWidget {
-  final Widget child;
-  final Duration animationDuration;
-  final Color lightColor;
-  final double borderWidth;
-  final bool enableAnimation;
-
-  const AnimatedBorderContainer({
-    Key? key,
-    required this.child,
-    this.animationDuration = const Duration(seconds: 2),
-    this.lightColor = Colors.blue,
-    this.borderWidth = 2.0,
-    this.enableAnimation = true,
-  }) : super(key: key);
-
-  @override
-  State<AnimatedBorderContainer> createState() =>
-      _AnimatedBorderContainerState();
-}
-
-class _AnimatedBorderContainerState extends State<AnimatedBorderContainer>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: widget.animationDuration,
-      vsync: this,
     );
-
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
-
-    if (widget.enableAnimation) {
-      _controller.repeat(reverse: true);
-    }
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Widget _hint() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.info_outline_rounded,
+            size: 14, color: AppTheme.textMuted),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            'Tap to record your attendance'.tr,
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  // ---- Permissions request row ----
+  Widget _permissionsCard() {
+    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: _openEvocationSheet,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(25),
-            border: widget.enableAnimation
-                ? Border.all(
-                    color: widget.lightColor.withOpacity(_animation.value),
-                    width: widget.borderWidth,
-                  )
-                : null,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.line),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                spreadRadius: 0,
-                blurRadius: 20,
-                offset: const Offset(0, -5),
+                color: AppTheme.navy.withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
-              if (widget.enableAnimation)
-                BoxShadow(
-                  color: widget.lightColor.withOpacity(_animation.value * 0.3),
-                  spreadRadius: _animation.value * 3,
-                  blurRadius: _animation.value * 15,
-                  offset: const Offset(0, 0),
-                ),
             ],
           ),
-          child: widget.child,
-        );
-      },
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.brand.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.assignment_outlined,
+                    color: AppTheme.brand, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Request Permissions'.tr,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textTitle,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Submit a leave or permission request'.tr,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                isRtl
+                    ? Icons.chevron_left_rounded
+                    : Icons.chevron_right_rounded,
+                color: AppTheme.textMuted,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---- Countdown card ----
+  Widget _countdownCard() {
+    final StartDateTimeModel? sdt = eventController.event?.startDateTime;
+    if (sdt == null) return const SizedBox.shrink();
+
+    final Color statusColor = Color(sdt.status?.colorValue ?? 0xFF2196F3);
+    final String label = sdt.isFinished
+        ? 'Event ended'.tr
+        : sdt.isActive
+            ? 'Event in progress'.tr
+            : 'Event starts in'.tr;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _statusBadge(sdt.statusText.tr, statusColor),
+              const Spacer(),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: AppTheme.textMuted,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          if (!sdt.isFinished) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _timeBox('${sdt.days}', 'days'.tr),
+                const SizedBox(width: 8),
+                _timeBox(sdt.hours.toString().padLeft(2, '0'), 'hours'.tr),
+                const SizedBox(width: 8),
+                _timeBox(sdt.minutes.toString().padLeft(2, '0'), 'minutes'.tr),
+                const SizedBox(width: 8),
+                _timeBox(sdt.seconds.toString().padLeft(2, '0'), 'seconds'.tr),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _statusBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timeBox(String value, String unit) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.field,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textTitle,
+                height: 1,
+                fontFeatures: _tabular,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              unit,
+              style: const TextStyle(
+                fontSize: 10,
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---- Quick stats row ----
+  Widget _quickStats() {
+    final e = eventController.event;
+    final int periodsCount = e?.periods?.length ?? 0;
+    final int jobsCount = e?.jobs?.length ?? 0;
+    return Row(
+      children: [
+        _stat(Icons.calendar_today_rounded, e?.date ?? '—', 'Date'.tr),
+        const SizedBox(width: 8),
+        _stat(Icons.access_time_rounded, e?.time ?? '—', 'Time'.tr),
+        const SizedBox(width: 8),
+        _stat(Icons.work_outline_rounded, '$jobsCount', 'Roles'.tr),
+        const SizedBox(width: 8),
+        _stat(Icons.event_repeat_rounded, '$periodsCount', 'Shifts'.tr),
+      ],
+    );
+  }
+
+  Widget _stat(IconData icon, String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppTheme.line),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 16, color: AppTheme.brand),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textTitle,
+                fontFeatures: _tabular,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 9.5,
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---- About card (event description) ----
+  Widget _aboutCard() {
+    final String desc = eventController.event?.description ?? '';
+    if (desc.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _sectionCard(
+        title: 'About'.tr,
+        icon: Icons.info_outline_rounded,
+        child: Text(
+          desc,
+          maxLines: 4,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 12.5,
+            color: AppTheme.textBody,
+            height: 1.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---- Roles section (event jobs) ----
+  Widget _rolesSection() {
+    final List<JobModel> jobs = eventController.event?.jobs ?? [];
+    if (jobs.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: _sectionCard(
+        title: 'Roles'.tr,
+        icon: Icons.work_outline_rounded,
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: jobs
+              .map((j) => Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brand.withOpacity(0.10),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      j.name,
+                      style: const TextStyle(
+                        color: AppTheme.brand,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ))
+              .toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionCard({
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppTheme.brand),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textTitle,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
     );
   }
 }
 
-
-
+/// Location utilities (still imported by [EventController]). Kept in this file
+/// for backwards compatibility — should eventually move to its own service file.
 class SagrLocationService {
-  // Get current position with error handling
   static Future<Position?> getCurrentLocation() async {
     try {
-      // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Location services are disabled');
       }
 
-      // Check location permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -856,75 +923,59 @@ class SagrLocationService {
           throw Exception('Location permissions are denied');
         }
       }
-
       if (permission == LocationPermission.deniedForever) {
         throw Exception('Location permissions are permanently denied');
       }
 
-      // Get current position
-      Position position = await Geolocator.getCurrentPosition(
+      return await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
-        timeLimit: Duration(seconds: 10),
+        timeLimit: const Duration(seconds: 10),
       );
-
-      return position;
     } catch (e) {
+      // ignore: avoid_print
       print('Error getting location: $e');
       return null;
     }
   }
 
-  // Get location with custom settings
   static Future<Position?> getLocationWithSettings({
     LocationAccuracy accuracy = LocationAccuracy.high,
     Duration? timeLimit,
   }) async {
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        return null;
-      }
-
+      if (!await Geolocator.isLocationServiceEnabled()) return null;
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          return null;
-        }
+        if (permission == LocationPermission.denied) return null;
       }
-
-      Position position = await Geolocator.getCurrentPosition(
+      return await Geolocator.getCurrentPosition(
         desiredAccuracy: accuracy,
         timeLimit: timeLimit,
       );
-
-      return position;
     } catch (e) {
+      // ignore: avoid_print
       print('Error: $e');
       return null;
     }
   }
 
-  // Check location permissions
   static Future<bool> hasLocationPermission() async {
-    LocationPermission permission = await Geolocator.checkPermission();
+    final permission = await Geolocator.checkPermission();
     return permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
   }
 
-  // Request location permissions
   static Future<bool> requestLocationPermission() async {
-    LocationPermission permission = await Geolocator.requestPermission();
+    final permission = await Geolocator.requestPermission();
     return permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse;
   }
 
-  // Open app settings for permission
   static Future<void> openLocationSettings() async {
     await Geolocator.openLocationSettings();
   }
 
-  // Calculate distance between two points
   static double calculateDistance(
     double startLat,
     double startLng,
@@ -932,281 +983,5 @@ class SagrLocationService {
     double endLng,
   ) {
     return Geolocator.distanceBetween(startLat, startLng, endLat, endLng);
-  }
-}
-
-// Alternative version with gradient border animation
-class GradientAnimatedBorderContainer extends StatefulWidget {
-  final Widget child;
-  final Duration animationDuration;
-  final List<Color> gradientColors;
-  final double borderWidth;
-  final bool enableAnimation;
-
-  const GradientAnimatedBorderContainer({
-    Key? key,
-    required this.child,
-    this.animationDuration = const Duration(seconds: 3),
-    this.gradientColors = const [
-      Colors.blue,
-      Colors.purple,
-      Colors.pink,
-      Colors.orange
-    ],
-    this.borderWidth = 2.0,
-    this.enableAnimation = true,
-  }) : super(key: key);
-
-  @override
-  State<GradientAnimatedBorderContainer> createState() =>
-      _GradientAnimatedBorderContainerState();
-}
-
-class _GradientAnimatedBorderContainerState
-    extends State<GradientAnimatedBorderContainer>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _rotationAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: widget.animationDuration,
-      vsync: this,
-    );
-
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 2.0,
-    ).animate(_controller);
-
-    if (widget.enableAnimation) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _rotationAnimation,
-      builder: (context, child) {
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-          child: CustomPaint(
-            painter: widget.enableAnimation
-                ? GradientBorderPainter(
-                    rotation: _rotationAnimation.value,
-                    colors: widget.gradientColors,
-                    borderWidth: widget.borderWidth,
-                  )
-                : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    spreadRadius: 0,
-                    blurRadius: 20,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
-              ),
-              child: widget.child,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class GradientBorderPainter extends CustomPainter {
-  final double rotation;
-  final List<Color> colors;
-  final double borderWidth;
-
-  GradientBorderPainter({
-    required this.rotation,
-    required this.colors,
-    required this.borderWidth,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(25));
-
-    final gradient = SweepGradient(
-      colors: colors,
-      stops:
-          List.generate(colors.length, (index) => index / (colors.length - 1)),
-      transform: GradientRotation(rotation * 3.14159),
-    );
-
-    final paint = Paint()
-      ..shader = gradient.createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth;
-
-    canvas.drawRRect(rrect, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-// Your original implementation with animated border
-class YourAnimatedBottomNav extends StatelessWidget {
-  final String eventId;
-
-  const YourAnimatedBottomNav({Key? key, required this.eventId})
-      : super(key: key);
-
-  Widget _buildNavItem(IconData icon, String label, bool isSelected) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: isSelected ? Colors.blue : Colors.grey,
-          size: 24,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.blue : Colors.grey,
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBorderContainer(
-      animationDuration: const Duration(seconds: 2),
-      lightColor: Colors.blue,
-      borderWidth: 2.0,
-      enableAnimation: true,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          InkWell(
-            onTap: () =>
-                Get.toNamed('/event_walkie_talkie', arguments: eventId),
-            child:
-                _buildNavItem(Icons.phone_in_talk_rounded, "واكي توكي", false),
-          ),
-          InkWell(
-            onTap: () => Get.toNamed("/attendance_screen"),
-            child: _buildNavItem(
-                Icons.campaign_outlined, "الحضور والإنصراف", false),
-          ),
-          _buildNavItem(Icons.notifications_outlined, "التنبيهات", false),
-          _buildNavItem(Icons.chat_bubble_outline, "الدردشة", false),
-        ],
-      ),
-    );
-  }
-}
-
-// Pulsing border animation version
-class PulsingBorderContainer extends StatefulWidget {
-  final Widget child;
-  final Duration pulseDuration;
-  final Color pulseColor;
-  final double maxPulseWidth;
-  final double minPulseWidth;
-
-  const PulsingBorderContainer({
-    Key? key,
-    required this.child,
-    this.pulseDuration = const Duration(milliseconds: 1500),
-    this.pulseColor = Colors.blue,
-    this.maxPulseWidth = 4.0,
-    this.minPulseWidth = 1.0,
-  }) : super(key: key);
-
-  @override
-  State<PulsingBorderContainer> createState() => _PulsingBorderContainerState();
-}
-
-class _PulsingBorderContainerState extends State<PulsingBorderContainer>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      duration: widget.pulseDuration,
-      vsync: this,
-    );
-
-    _pulseAnimation = Tween<double>(
-      begin: widget.minPulseWidth,
-      end: widget.maxPulseWidth,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-
-    _pulseController.repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _pulseAnimation,
-      builder: (context, child) {
-        return Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(
-              color: widget.pulseColor,
-              width: _pulseAnimation.value,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                spreadRadius: 0,
-                blurRadius: 20,
-                offset: const Offset(0, -5),
-              ),
-              BoxShadow(
-                color: widget.pulseColor.withOpacity(0.3),
-                spreadRadius: _pulseAnimation.value,
-                blurRadius: _pulseAnimation.value * 3,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          child: widget.child,
-        );
-      },
-    );
   }
 }

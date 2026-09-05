@@ -13,6 +13,7 @@ import 'package:sagr/features/products/data/models/city_model.dart';
 import 'package:sagr/features/products/data/models/state_model.dart';
 import 'package:sagr/features/products/presentation/controllers/create_ad_controller.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:video_player/video_player.dart';
 
 import '../core/utils/image_constant.dart';
@@ -1059,9 +1060,7 @@ class CreateAdScreen extends StatelessWidget {
             height: 224.v,
             width: 500.h,
             child: _createAdCntr.mapLoading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
+                ? AppLoader.box(height: 224)
                 : GoogleMap(
                     mapType: MapType.terrain,
                     // initialCameraPosition: CameraPosition(

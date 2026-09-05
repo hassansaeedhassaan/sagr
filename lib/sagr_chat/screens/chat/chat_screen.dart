@@ -1,12 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/conversation.dart';
 import '../../models/message.dart';
+import '../../theme/chat_theme.dart';
+import '../../utils/chat_time.dart';
+import '../../widgets/chat_avatar.dart';
+import '../../widgets/chat_skeletons.dart';
 import '../../widgets/message_bubble.dart';
 import '../../widgets/chat_input.dart';
+import '../../widgets/swipe_to_reply.dart';
 import '../../widgets/voice_recorder.dart';
 import 'package:flutter/services.dart';
 
@@ -26,6 +33,28 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Message? replyToMessage;
   int currentPage = 1;
   bool isLoadingMore = false;
+
+  // Typing indicator: emit typing=true on first keystroke, typing=false after
+  // a pause — debounced so we don't hit the API on every character.
+  Timer? _typingTimer;
+  bool _typingSent = false;
+
+  void _onComposerChanged(String text) {
+    if (!_typingSent && text.isNotEmpty) {
+      _typingSent = true;
+      chatController.sendTyping(conversation.id, true);
+    }
+    _typingTimer?.cancel();
+    _typingTimer = Timer(const Duration(seconds: 3), _stopTyping);
+  }
+
+  void _stopTyping() {
+    _typingTimer?.cancel();
+    if (_typingSent) {
+      _typingSent = false;
+      chatController.sendTyping(conversation.id, false);
+    }
+  }
 
   @override
   void initState() {
@@ -52,7 +81,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     print('🔴 Chat screen disposing for conversation: ${conversation.id}');
-    
+
+    _typingTimer?.cancel();
+
     // ✅ Clear active conversation
     chatController.setCurrentConversation(null);
     
@@ -121,6 +152,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final otherParticipant = conversation.getOtherParticipant(currentUserId);
 
     return Scaffold(
+      backgroundColor: ChatTheme.of(context).scaffold,
       appBar: _buildAppBar(currentUserId, otherParticipant),
       body: Column(
         children: [
@@ -143,29 +175,26 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   PreferredSizeWidget _buildAppBar(int currentUserId, dynamic otherParticipant) {
+    final palette = ChatTheme.of(context);
     return AppBar(
       titleSpacing: 0,
+      backgroundColor: palette.appBar,
+      foregroundColor: palette.title,
+      elevation: 0,
+      scrolledUnderElevation: 1,
+      iconTheme: IconThemeData(color: palette.title),
       title: InkWell(
         onTap: () => _showConversationInfo(),
         child: Row(
           children: [
             Hero(
               tag: 'avatar_${conversation.id}',
-              child: CircleAvatar(
+              child: ChatAvatar(
+                name: conversation.getDisplayName(currentUserId),
+                imageUrl: conversation.getDisplayAvatar(currentUserId),
                 radius: 20,
-                backgroundImage: conversation.getDisplayAvatar(currentUserId) != null
-                    ? CachedNetworkImageProvider(
-                        conversation.getDisplayAvatar(currentUserId)!)
-                    : null,
-                child: conversation.getDisplayAvatar(currentUserId) == null
-                    ? Text(
-                        conversation.getDisplayName(currentUserId)[0].toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )
-                    : null,
+                showOnlineDot: true,
+                isOnline: otherParticipant?.isOnline == true,
               ),
             ),
             const SizedBox(width: 12),
@@ -176,28 +205,37 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 children: [
                   Text(
                     conversation.getDisplayName(currentUserId),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      color: palette.title,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (otherParticipant != null)
-                    Text(
-                      otherParticipant.statusDisplay,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: otherParticipant.isOnline 
-                            ? Colors.green 
-                            : Colors.grey[600],
-                      ),
-                    )
+                    Obx(() {
+                      final isTyping = chatController.typingUsers
+                          .containsKey(otherParticipant.id);
+                      return Text(
+                        isTyping
+                            ? 'typing...'.tr
+                            : otherParticipant.isOnline
+                                ? 'Online'.tr
+                                : otherParticipant.statusDisplay,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isTyping || otherParticipant.isOnline
+                              ? palette.online
+                              : palette.subtitle,
+                        ),
+                      );
+                    })
                   else if (conversation.isGroupChat)
                     Text(
-                      '${conversation.participantsCount} participants',
+                      '${conversation.participantsCount} ${'participants'.tr}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: palette.subtitle,
                       ),
                     ),
                 ],
@@ -290,13 +328,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildReplyPreview() {
+    final palette = ChatTheme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[300]!),
-        ),
+        color: palette.surface,
+        border: Border(bottom: BorderSide(color: palette.divider)),
       ),
       child: Row(
         children: [
@@ -304,7 +341,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             width: 4,
             height: 40,
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+              color: palette.primary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -315,19 +352,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  replyToMessage!.senderId == authController.currentUser.value!.id
-                      ? 'You'
-                      : 'Replying to',
+                  replyToMessage!.senderId ==
+                          authController.currentUser.value!.id
+                      ? 'You'.tr
+                      : (replyToMessage!.sender?.name ?? 'Replying to'.tr),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).primaryColor,
+                    color: palette.primary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  replyToMessage!.content ?? replyToMessage!.type,
-                  style: const TextStyle(fontSize: 14),
+                  replyToMessage!.displayContent,
+                  style: TextStyle(fontSize: 14, color: palette.subtitle),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -335,7 +373,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 20),
+            icon: Icon(Icons.close, size: 20, color: palette.subtitle),
             onPressed: () => setState(() => replyToMessage = null),
           ),
         ],
@@ -345,7 +383,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   Widget _buildMessagesList(int currentUserId) {
     if (chatController.isLoadingMessages.value && currentPage == 1) {
-      return const Center(child: CircularProgressIndicator());
+      return const ChatMessagesSkeleton();
     }
 
     final messages = chatController.getMessagesForConversation(conversation.id);
@@ -362,11 +400,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       itemBuilder: (context, index) {
         // Show loading indicator at the end
         if (isLoadingMore && index == messages.length) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: CircularProgressIndicator(),
-            ),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: AppLoader.inline(),
           );
         }
 
@@ -378,14 +414,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return Column(
           children: [
             if (showTimestamp) _buildTimestampDivider(message.createdAt),
-            MessageBubble(
-              message: message,
-              isMe: isMe,
-              showAvatar: showAvatar,
-              onLongPress: () => _showMessageOptions(message),
-              // onReplyTap: replyToMessage != null 
-              //     ? () => _scrollToMessage(replyToMessage!.id)
-              //     : null,
+            SwipeToReply(
+              onReply: () => setState(() => replyToMessage = message),
+              child: MessageBubble(
+                message: message,
+                isMe: isMe,
+                showAvatar: showAvatar,
+                onLongPress: () => _showMessageOptions(message),
+              ),
             ),
           ],
         );
@@ -394,39 +430,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildTimestampDivider(DateTime timestamp) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(
-      timestamp.year,
-      timestamp.month,
-      timestamp.day,
-    );
-
-    String dateText;
-    if (messageDate == today) {
-      dateText = 'Today';
-    } else if (messageDate == today.subtract(const Duration(days: 1))) {
-      dateText = 'Yesterday';
-    } else if (now.difference(messageDate).inDays < 7) {
-      final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      dateText = weekdays[messageDate.weekday - 1];
-    } else {
-      dateText = '${messageDate.day}/${messageDate.month}/${messageDate.year}';
-    }
-
+    final palette = ChatTheme.of(context);
     return Center(
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        margin: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.grey[300],
+          color: palette.dateChipBg,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          dateText,
+          ChatTime.dateDivider(timestamp),
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[700],
+            color: palette.dateChipText,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -452,12 +469,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
 
 Widget _buildChatInput() {
-  // ✅ Wrap ChatInput with Obx to make it reactive
+  // Reactive: rebuilds the send button while a message is in flight.
   return Obx(() {
-    print('🔄 ChatInput rebuild - isSending: ${chatController.isSendingMessage.value}');
-    
     return ChatInput(
       controller: messageController,
+      onChanged: _onComposerChanged,
       onTextSubmitted: _sendTextMessage,
       onImageTap: () {
         chatController.sendImageMessage(
@@ -481,67 +497,31 @@ Widget _buildChatInput() {
         setState(() => replyToMessage = null);
       },
       onMicPressed: () => setState(() => isRecording = true),
-      isSending: chatController.isSendingMessage.value, // ✅ This will now update reactively!
+      isSending: chatController.isSendingMessage.value,
     );
   });
 }
 
-  // Widget _buildChatInput() {
-  //   return ChatInput(
-  //     controller: messageController,
-  //     onTextSubmitted: _sendTextMessage,
-  //     onImageTap: () {
-  //       chatController.sendImageMessage(
-  //         conversationId: conversation.id,
-  //         replyToId: replyToMessage?.id,
-  //       );
-  //       setState(() => replyToMessage = null);
-  //     },
-  //     onVideoTap: () {
-  //       chatController.sendVideoMessage(
-  //         conversationId: conversation.id,
-  //         replyToId: replyToMessage?.id,
-  //       );
-  //       setState(() => replyToMessage = null);
-  //     },
-  //     onDocumentTap: () {
-  //       chatController.sendDocumentMessage(
-  //         conversationId: conversation.id,
-  //         replyToId: replyToMessage?.id,
-  //       );
-  //       setState(() => replyToMessage = null);
-  //     },
-  //     onMicPressed: () => setState(() => isRecording = true),
-  //     isSending: chatController.isSendingMessage.value,
-  //   );
-  // }
-
   Widget _buildEmptyState() {
+    final palette = ChatTheme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.chat_bubble_outline, size: 72, color: palette.hint),
           const SizedBox(height: 16),
           Text(
-            'No messages yet',
+            'No messages yet'.tr,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              color: palette.subtitle,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Text(
-            'Send a message to start the conversation',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            'Send a message to start the conversation'.tr,
+            style: TextStyle(fontSize: 14, color: palette.hint),
             textAlign: TextAlign.center,
           ),
         ],
@@ -581,7 +561,9 @@ Widget _buildChatInput() {
 
   void _sendTextMessage(String text) {
     if (text.trim().isEmpty) return;
-    
+
+    _stopTyping();
+
     chatController.sendTextMessage(
       conversationId: conversation.id,
       content: text.trim(),

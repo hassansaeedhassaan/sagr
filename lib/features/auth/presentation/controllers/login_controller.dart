@@ -80,49 +80,55 @@ class LoginController extends GetxController {
   }
 
   Future<void> login() async {
-    isLoading.value = true;
-    try {
-      Map<String, dynamic> body = {"phone": phone, "password": password};
-
-
-
-      await _authRepository.login(body).then((data) {
-
-        final response = Map<String, dynamic>.from(data.data);
-
-        GetStorage().write('access_token', response['access_token']);
-        
-        GetStorage().write('accessTypeData', response['token_type']);
-
-        if (response['access_token'] != "") {
-
-
-        GetStorage().write('userData', response['user']);
-
-        // _authRepository.fetchUser().then( (value){
-
-        
-        // });
-          
-          // Get.snackbar("Success Message".tr, "");
-                    // SUCCESS_MESSAGE
-       MessageHelper.showSuccessSnackbar(
-                  title: 'تم بنجاح',
-                  message: AppStrings.SUCCESS_LOGIN.tr,
-                  onTap: () {
-                    print('تم الضغط على الرسالة');
-                  },
-                );
-
-          Future.delayed(const Duration(milliseconds: 3000)).then((value) =>  Get.offAllNamed('/home'));
-        }
-      });
-      isLoading.value = false;
-    } catch (e) {      print(e);
-      Get.snackbar("Error!", 'wrong'.tr );
-      isLoading.value = false;
+    // Guard: the phone field is not a Form field, so validate() can pass with an
+    // empty/stale phone. Block the request and surface a clear message instead.
+    if (phone.trim().isEmpty) {
+      Get.snackbar("Error!".tr, 'Required'.tr);
+      return;
     }
 
+    isLoading.value = true;
+    try {
+      // Backend (Api/V1/LoginController) reads `phone` + `password` and returns
+      // a flat { access_token: <string>, token_type, user }.
+      final body = {"phone": phone, "password": password};
+
+      final data = await _authRepository.login(body);
+
+      // Response shape varies (`{data: {...}}` vs flat) and access_token may be
+      // an object `{token: ...}` or a plain string — handle all cases.
+      final raw = Map<String, dynamic>.from(data.data);
+      final payload = raw['data'] is Map
+          ? Map<String, dynamic>.from(raw['data'])
+          : raw;
+
+      final tokenField = payload['access_token'];
+      final String? token =
+          tokenField is Map ? tokenField['token']?.toString() : tokenField?.toString();
+
+      if (token == null || token.isEmpty) {
+        throw 'missing_access_token';
+      }
+
+      GetStorage().write('access_token', token);
+      GetStorage().write('accessTypeData', payload['token_type'] ?? tokenField);
+      GetStorage().write('userData', payload['user']);
+
+      isLoading.value = false;
+
+      MessageHelper.showSuccessSnackbar(
+        title: 'تم بنجاح',
+        message: AppStrings.SUCCESS_LOGIN.tr,
+        onTap: () {},
+      );
+
+      await Future.delayed(const Duration(milliseconds: 800));
+      Get.offAllNamed('/home');
+    } catch (e) {
+      print(e);
+      isLoading.value = false;
+      Get.snackbar("Error!".tr, 'wrong'.tr);
+    }
 
     update();
   }

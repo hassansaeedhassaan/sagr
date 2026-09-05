@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sagr/data/colors.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:sagr/features/evocations/data/models/evocation_model.dart';
 import 'package:sagr/features/evocations/presentation/controllers/evocations_controller.dart';
-import 'package:sagr/features/home/presentation/screens/home_screen.dart';
+import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/widgets/Common/no_results.dart';
 import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
+
+const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
 
 class PermissionsScreen extends StatefulWidget {
   const PermissionsScreen({super.key});
@@ -13,499 +17,468 @@ class PermissionsScreen extends StatefulWidget {
   State<PermissionsScreen> createState() => _PermissionsScreenState();
 }
 
-class _PermissionsScreenState extends State<PermissionsScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+class _PermissionsScreenState extends State<PermissionsScreen> {
+  final EvocationsController evoController =
+      Get.put(EvocationsController(Get.find()));
 
-  EvocationsController evoController = Get.put(EvocationsController(Get.find()));
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
-    _animationController.forward();
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return '';
+    return DateFormat.yMMMMd(Get.locale?.toString() ?? 'ar').format(dt);
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+  String _formatDuration(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    if (h > 0 && m > 0) return '${h}h ${m}m';
+    if (h > 0) return '${h}h';
+    return '$m ${"minutes".tr}';
+  }
+
+  ({IconData icon, String label, Color color}) _typeMeta(EvocationType type) {
+    switch (type) {
+      case EvocationType.prayer:
+        return (
+          icon: Icons.self_improvement_rounded,
+          label: 'Prayer'.tr,
+          color: AppTheme.brand,
+        );
+      case EvocationType.food:
+        return (
+          icon: Icons.restaurant_rounded,
+          label: 'Food'.tr,
+          color: AppTheme.warning,
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.scaffold,
       appBar: AppBar(
-        title: Text(
-          "Permissions".tr,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 24,
-            color: Color(0xFF1E293B),
-          ),
-        ),
+        backgroundColor: AppTheme.surface,
+        surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        centerTitle: false,
         elevation: 0,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Color(0xFF64748B),
-              size: 18,
-            ),
+        centerTitle: false,
+        title: Text(
+          'My Permissions'.tr,
+          style: const TextStyle(
+            color: AppTheme.navy,
+            fontWeight: FontWeight.w700,
+            fontSize: 19,
           ),
-          onPressed: () => Get.back(),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Obx(() => evoController.isLoading ? Center(child: CircularProgressIndicator(),) : Column(
-                  children: [
-                    const SizedBox(height: 8),
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: evoController.events.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        return AnimatedContainer(
-                          duration: Duration(milliseconds: 300 + (index * 100)),
-                          curve: Curves.easeOutBack,
-                          child: _buildPermissionCard(evoController.events.elementAt(index)),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 100), // Space for bottom navigation
-                  ],
-                )),
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.95),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, -5),
+      body: SafeArea(
+        bottom: false,
+        child: Obx(() {
+          if (evoController.isLoading) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: AppLoader.list(items: 6),
+            );
+          }
+
+          final items = evoController.events;
+
+          if (items.isEmpty) {
+            return NoResults(
+              title: 'No permissions yet'.tr,
+              message: 'Submit your first permission request'.tr,
+            );
+          }
+
+          return Column(
+            children: [
+              _SummaryHeader(items: items),
+              Expanded(
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final evocation = items.elementAt(index);
+                    return _PermissionCard(
+                      evocation: evocation,
+                      meta: _typeMeta(evocation.type),
+                      formattedDate: _formatDate(evocation.createdAt),
+                      formattedDuration: _formatDuration(evocation.duration),
+                    );
+                  },
                 ),
-              ],
-            ),
-            // child:  EventBottomNavigation(),
+              ),
+            ],
+          );
+        }),
+      ),
+      bottomNavigationBar:
+          const EventBottomNavigation(active: EventNavTab.attendance),
+    );
+  }
+}
+
+class _SummaryHeader extends StatelessWidget {
+  final List<EvocationModel> items;
+  const _SummaryHeader({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final total = items.length;
+    final totalMinutes =
+        items.fold<int>(0, (sum, e) => sum + e.duration);
+    final prayers =
+        items.where((e) => e.type == EvocationType.prayer).length;
+    final foods = items.where((e) => e.type == EvocationType.food).length;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          _stat(
+            icon: Icons.fact_check_outlined,
+            label: 'Permissions'.tr,
+            value: '$total',
+            color: AppTheme.brand,
+          ),
+          _divider(),
+          _stat(
+            icon: Icons.timer_outlined,
+            label: 'Duration'.tr,
+            value: _shortDuration(totalMinutes),
+            color: AppTheme.navy,
+          ),
+          _divider(),
+          _stat(
+            icon: Icons.self_improvement_rounded,
+            label: 'Prayer'.tr,
+            value: '$prayers',
+            color: AppTheme.brand,
+          ),
+          _divider(),
+          _stat(
+            icon: Icons.restaurant_rounded,
+            label: 'Food'.tr,
+            value: '$foods',
+            color: AppTheme.warning,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPermissionCard(EvocationModel evocation) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Colors.grey.shade50,
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            spreadRadius: 0,
-            offset: const Offset(0, 4),
+  String _shortDuration(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    if (h > 0 && m > 0) return '${h}h ${m}m';
+    if (h > 0) return '${h}h';
+    return '${m}m';
+  }
+
+  Widget _divider() => Container(
+        width: 1,
+        height: 32,
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        color: AppTheme.line,
+      );
+
+  Widget _stat({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              color: AppTheme.textTitle,
+              fontFeatures: _tabular,
+              height: 1.1,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 1,
-            spreadRadius: 0,
-            offset: const Offset(0, 1),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10.5,
+              color: AppTheme.textMuted,
+              fontWeight: FontWeight.w500,
+              height: 1.1,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            // Add your onTap functionality here
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
+    );
+  }
+}
+
+class _PermissionCard extends StatelessWidget {
+  final EvocationModel evocation;
+  final ({IconData icon, String label, Color color}) meta;
+  final String formattedDate;
+  final String formattedDuration;
+
+  const _PermissionCard({
+    required this.evocation,
+    required this.meta,
+    required this.formattedDate,
+    required this.formattedDuration,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasNotes = (evocation.notes ?? '').trim().isNotEmpty;
+    final hasZone = (evocation.zone ?? '').trim().isNotEmpty;
+    final hasEvent = (evocation.event ?? '').trim().isNotEmpty;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: type icon + label + date
+            Row(
               children: [
-                // Logo/Image Section
                 Container(
-                  width: 80,
-                  height: 80,
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF3B82F6).withOpacity(0.1),
-                        const Color(0xFF1E40AF).withOpacity(0.05),
-                      ],
-                    ),
-                    border: Border.all(
-                      color: const Color(0xFF3B82F6).withOpacity(0.1),
-                      width: 1,
-                    ),
+                    color: meta.color.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Icon(evocation.type == EvocationType.prayer ? Icons.self_improvement: Icons.food_bank, size: 50, color: SAGR_PENDING,),
-                  ),
+                  alignment: Alignment.center,
+                  child: Icon(meta.icon, color: meta.color, size: 20),
                 ),
-                
-                const SizedBox(width: 16),
-                
-                // Content Section
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          evocation.type == EvocationType.prayer ? "الصلاة" : "الطعام",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: const Color(0xFF3B82F6),
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 8),
-                      
-
-                    
                       Text(
-                        evocation.zone!,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16,
-                          color: const Color(0xFF1E293B),
+                        meta.label,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textTitle,
+                          height: 1.2,
                         ),
-                      ),
-                      
-                      const SizedBox(height: 4),
-                      
-                      Text(
-                       evocation.event!,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: const Color(0xFF64748B),
-                          height: 1.4,
-                        ),
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                      if (formattedDate.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          formattedDate,
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: AppTheme.textMuted,
+                            fontWeight: FontWeight.w500,
+                            fontFeatures: _tabular,
+                            height: 1.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                
-                const SizedBox(width: 16),
-                
-                // Time and Status Section
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF10B981).withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF10B981),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            "مقبول",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF10B981),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B).withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Directionality(
-                        textDirection: TextDirection.ltr,
-                        child: Text(
-                          "${evocation.duration} ${"Minutes".tr}" ,
-                          textDirection: TextDirection.rtl,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1E293B),
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                _DurationPill(text: formattedDuration),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildEventCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1E293B).withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            // Handle card tap
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _getIconColor("Active").withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.ac_unit,
-                        color: _getIconColor("Active"),
-                        size: 20,
-                      ),
+            const SizedBox(height: 12),
+
+            // Meta chips row: zone + event
+            if (hasZone || hasEvent)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (hasZone)
+                    _MetaChip(
+                      icon: Icons.place_outlined,
+                      text: evocation.zone!,
+                      color: AppTheme.sky,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Hassan Saeed",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1E293B),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            "My Zone",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
+                  if (hasEvent)
+                    _MetaChip(
+                      icon: Icons.event_outlined,
+                      text: evocation.event!,
+                      color: AppTheme.brand,
                     ),
-                    _buildStatusChip("Active"),
-                  ],
+                ],
+              ),
+
+            // Notes
+            if (hasNotes) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppTheme.field,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 12),
-                Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildInfoChip(
-                      Icons.category_outlined,
-                      "Workshop",
-                      const Color(0xFF3B82F6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.sticky_note_2_outlined,
+                          size: 14,
+                          color: AppTheme.textMuted,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Note'.tr,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textMuted,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    _buildInfoChip(
-                      Icons.schedule,
-                      "02:00 PM",
-                      const Color(0xFF8B5CF6),
-                    ),
-                    const SizedBox(width: 8),
-                    _buildInfoChip(
-                      Icons.timer_outlined,
-                      "4 hours",
-                      const Color(0xFF06B6D4),
+                    const SizedBox(height: 6),
+                    Text(
+                      evocation.notes!.trim(),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.45,
+                        color: AppTheme.textBody,
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            ],
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildStatusChip(String status) {
-    Color color;
-    switch (status) {
-      case 'Active':
-        color = const Color(0xFF10B981);
-        break;
-      case 'Upcoming':
-        color = const Color(0xFFF59E0B);
-        break;
-      case 'Completed':
-        color = const Color(0xFF64748B);
-        break;
-      default:
-        color = const Color(0xFF64748B);
-    }
+class _DurationPill extends StatelessWidget {
+  final String text;
+  const _DurationPill({required this.text});
 
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoChip(IconData icon, String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: AppTheme.navy.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 12,
-            color: color,
-          ),
-          const SizedBox(width: 4),
+          const Icon(Icons.schedule_rounded,
+              size: 13, color: AppTheme.textTitle),
+          const SizedBox(width: 5),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.w500,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textTitle,
+              fontFeatures: _tabular,
+              height: 1,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Color _getIconColor(String status) {
-    switch (status) {
-      case 'Active':
-        return const Color(0xFF10B981);
-      case 'Upcoming':
-        return const Color(0xFFF59E0B);
-      case 'Completed':
-        return const Color(0xFF64748B);
-      default:
-        return const Color(0xFF64748B);
-    }
+class _MetaChip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color color;
+  const _MetaChip({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 180),
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: color,
+                height: 1.1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

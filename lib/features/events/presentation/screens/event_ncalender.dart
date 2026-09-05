@@ -1,504 +1,628 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sagr/data/colors.dart';
-import 'package:sagr/features/events/data/models/event_calender_model.dart';
-import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
+import 'package:sagr/data/colors.dart';
+import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
+
+import '../../data/models/event_calender_model.dart';
 import '../controllers/event_calender_controller.dart';
+import '../widgets/event_status_pill.dart';
 
+const _tabular = [FontFeature.tabularFigures()];
+
+/// Premium, compact, international events calendar.
+/// Two views: a refined month calendar with status-colored markers and a
+/// month-grouped list. Both reuse the unified [EventStatusPill] design system.
 class EventCalendarPage extends StatelessWidget {
-  const EventCalendarPage({Key? key}) : super(key: key);
+  const EventCalendarPage({super.key});
+
+  String get _locale => Get.locale?.toString() ?? 'ar';
 
   @override
   Widget build(BuildContext context) {
-    // Initialize the controller
-    final EventCalendarController controller = Get.put(EventCalendarController(Get.find()));
+    final EventCalendarController controller =
+        Get.put(EventCalendarController(Get.find()));
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Events Calendar', style: TextStyle(color: WHITE_COLOR),),
-          foregroundColor: WHITE_COLOR,
-          backgroundColor: SAGR_PRIMARY,
-
-          bottom: TabBar(
-            labelColor: SAGR_SECONDARY,
-            unselectedLabelColor: WHITE_COLOR,
-            indicatorColor: SAGR_SECONDARY,
-            onTap: (index) => controller.setTabIndex(index),
-            tabs: const [
-              Tab(text: 'Calendar', icon: Icon(Icons.calendar_month)),
-              Tab(text: 'Events List', icon: Icon(Icons.list)),
-            ],
-          ),
-          actions: [
-            // Obx(() => IconButton(
-            //   icon: Icon(controller.calendarFormat.value == CalendarFormat.month
-            //       ? Icons.view_week
-            //       : Icons.calendar_month),
-            //   onPressed: controller.toggleCalendarFormat,
-            //   tooltip: 'Toggle calendar format',
-            // )),
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: controller.loadEventsFromApi,
-              tooltip: 'Refresh events',
-            ),
-          ],
-        ),
-        body: Obx( () => controller.isLoading ? Center(child: CircularProgressIndicator(),) : TabBarView(
-          children: [
-            _buildCalendarTab(controller),
-            _buildEventsListTab(controller),
-          ],
-        )),
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: () => _showAddEventDialog(controller),
-        //   child: const Icon(Icons.add),
-        //   tooltip: 'Add new event',
-        // ),
+        backgroundColor: AppTheme.scaffold,
+        appBar: _appBar(controller),
+        body: Obx(() => controller.isLoading
+            ? const Padding(
+                padding: EdgeInsets.only(top: 16),
+                child: _CalendarSkeleton(),
+              )
+            : TabBarView(
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  _calendarTab(controller),
+                  _listTab(controller),
+                ],
+              )),
       ),
     );
   }
 
-  Widget _buildCalendarTab(EventCalendarController controller) {
+  // ---- AppBar with premium pill-style segmented tab ----
+  PreferredSizeWidget _appBar(EventCalendarController c) {
+    return AppBar(
+      backgroundColor: WHITE_COLOR,
+      foregroundColor: AppTheme.textTitle,
+      scrolledUnderElevation: 0,
+      elevation: 0,
+      centerTitle: false,
+      title: const Text(
+        'Events Calendar',
+        style: TextStyle(
+          color: AppTheme.textTitle,
+          fontWeight: FontWeight.w700,
+          fontSize: 18,
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsetsDirectional.only(end: 8),
+          child: IconButton(
+            icon: const Icon(Icons.refresh_rounded,
+                color: AppTheme.textTitle, size: 22),
+            onPressed: c.loadEventsFromApi,
+            tooltip: 'Refresh',
+          ),
+        ),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Container(
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppTheme.field,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TabBar(
+              labelColor: Colors.white,
+              unselectedLabelColor: AppTheme.textMuted,
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.w700, fontSize: 13),
+              unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: 13),
+              indicator: BoxDecoration(
+                color: AppTheme.brand,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.brand.withOpacity(0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicatorPadding: const EdgeInsets.all(4),
+              dividerColor: Colors.transparent,
+              splashFactory: NoSplash.splashFactory,
+              onTap: c.setTabIndex,
+              tabs: const [
+                Tab(text: 'Calendar'),
+                Tab(text: 'List'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---- Calendar tab ----
+  Widget _calendarTab(EventCalendarController c) {
     return Column(
       children: [
-        Obx(() => TableCalendar(
-          firstDay: DateTime.utc(2024, 1, 1),
-          lastDay: DateTime.utc(2026, 12, 31),
-          focusedDay: controller.focusedDay.value,
-          selectedDayPredicate: (day) => isSameDay(controller.selectedDay.value, day),
-          rangeStartDay: controller.rangeStart.value,
-          rangeEndDay: controller.rangeEnd.value,
-          calendarFormat: controller.calendarFormat.value,
-          rangeSelectionMode: controller.rangeSelectionMode.value,
-          eventLoader: controller.getEventsForDay,
-          startingDayOfWeek: StartingDayOfWeek.monday,
-          calendarStyle: CalendarStyle(
-            markersMaxCount: 3,
-            markerDecoration: const BoxDecoration(
-              color: Colors.blue,
-              shape: BoxShape.circle,
-            ),
-            selectedDecoration: BoxDecoration(
-              color: Get.theme.primaryColor,
-              shape: BoxShape.circle,
-            ),
-            todayDecoration: BoxDecoration(
-              color: Get.theme.primaryColor.withOpacity(0.5),
-              shape: BoxShape.circle,
-            ),
-          ),
-          headerStyle: HeaderStyle(
-            formatButtonVisible: false,
-            titleCentered: true,
-            formatButtonShowsNext: false,
-            formatButtonDecoration: BoxDecoration(
-              color: Get.theme.primaryColor,
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-          ),
-          onDaySelected: controller.onDaySelected,
-          onRangeSelected: controller.onRangeSelected,
-          onFormatChanged: (format) {
-            if (controller.calendarFormat.value != format) {
-              controller.calendarFormat.value = format;
-            }
-          },
-          onPageChanged: (focusedDay) {
-            controller.focusedDay.value = focusedDay;
-          },
-        )),
-        const SizedBox(height: 8.0),
-        Expanded(
-          child: Obx(() {
-            final selectedEvents = controller.selectedEvents;
-            return selectedEvents.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.event_busy, size: 50, color: Colors.grey),
-                        const SizedBox(height: 8),
-                        Text(
-                          controller.selectedDay.value != null
-                              ? 'No events for ${DateFormat('MMM d, yyyy').format(controller.selectedDay.value!)}'
-                              : 'No events selected',
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: selectedEvents.length,
-                    itemBuilder: (context, index) {
-                      return _buildEventCard(selectedEvents[index], controller);
-                    },
-                  );
-          }),
-        ),
+        _calendarCard(c),
+        const SizedBox(height: 4),
+        Expanded(child: _daySection(c)),
       ],
     );
   }
 
-  Widget _buildEventsListTab(EventCalendarController controller) {
-    return Obx(() {
-      final allEvents = controller.getAllEventsSorted();
-      
-      return allEvents.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.event_busy, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No events scheduled',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              itemCount: allEvents.length,
-              itemBuilder: (context, index) {
-                final event = allEvents[index];
-                final bool showHeader = index == 0 ||
-                    !isSameDay(event.startTime, allEvents[index - 1].startTime);
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (showHeader)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                        child: Text(
-                          DateFormat('EEEE, MMMM d, yyyy').format(event.startTime),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                    _buildEventCard(event, controller),
-                  ],
-                );
-              },
-            );
-    });
-  }
-
-  Widget _buildEventCard(EventCalenderModel event, EventCalendarController controller) {
-    final timeFormat = DateFormat('h:mm a');
-    final timeString =  'All Day';
-
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.amber!.withOpacity(0.5), width: 1),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 12,
-          decoration: BoxDecoration(
-            color: PURPLE_COLOR,
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        title: Text(
-          event.name!,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(timeString),
-            if (event.description!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(
-                event.description!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+  Widget _calendarCard(EventCalendarController c) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.line),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.navy.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
-        // trailing: IconButton(
-        //   icon: const Icon(Icons.delete_outline),
-        //   onPressed: () => controller.deleteEvent(event),
-        //   tooltip: 'Delete event',
-        // ),
-        // onTap: () => _showEventDetails(event, controller),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Obx(() => TableCalendar<EventCalenderModel>(
+                locale: _locale,
+                firstDay: DateTime.utc(2024, 1, 1),
+                lastDay: DateTime.utc(2027, 12, 31),
+                focusedDay: c.focusedDay.value,
+                selectedDayPredicate: (day) =>
+                    isSameDay(c.selectedDay.value, day),
+                rangeStartDay: c.rangeStart.value,
+                rangeEndDay: c.rangeEnd.value,
+                calendarFormat: c.calendarFormat.value,
+                rangeSelectionMode: c.rangeSelectionMode.value,
+                eventLoader: c.getEventsForDay,
+                startingDayOfWeek: StartingDayOfWeek.sunday,
+                availableGestures: AvailableGestures.horizontalSwipe,
+                daysOfWeekHeight: 28,
+                rowHeight: 44,
+                calendarStyle: CalendarStyle(
+                  outsideDaysVisible: false,
+                  cellMargin: const EdgeInsets.all(4),
+                  defaultTextStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textTitle,
+                    fontFeatures: _tabular,
+                  ),
+                  weekendTextStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textTitle,
+                    fontFeatures: _tabular,
+                  ),
+                  selectedDecoration: const BoxDecoration(
+                    color: AppTheme.brand,
+                    shape: BoxShape.circle,
+                  ),
+                  selectedTextStyle: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    fontFeatures: _tabular,
+                  ),
+                  todayDecoration: BoxDecoration(
+                    color: AppTheme.brand.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.brand, width: 1.2),
+                  ),
+                  todayTextStyle: const TextStyle(
+                    color: AppTheme.brand,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    fontFeatures: _tabular,
+                  ),
+                  rangeHighlightColor: AppTheme.brand.withOpacity(0.10),
+                  rangeStartDecoration: const BoxDecoration(
+                      color: AppTheme.brand, shape: BoxShape.circle),
+                  rangeEndDecoration: const BoxDecoration(
+                      color: AppTheme.brand, shape: BoxShape.circle),
+                  withinRangeTextStyle: const TextStyle(
+                    color: AppTheme.textTitle,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    fontFeatures: _tabular,
+                  ),
+                  markersMaxCount: 0, // overridden by markerBuilder
+                ),
+                headerStyle: const HeaderStyle(
+                  titleCentered: true,
+                  formatButtonVisible: false,
+                  titleTextStyle: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textTitle,
+                  ),
+                  leftChevronIcon: Icon(Icons.chevron_left_rounded,
+                      color: AppTheme.textTitle, size: 24),
+                  rightChevronIcon: Icon(Icons.chevron_right_rounded,
+                      color: AppTheme.textTitle, size: 24),
+                  headerPadding: EdgeInsets.symmetric(vertical: 8),
+                ),
+                daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    letterSpacing: 0.4,
+                  ),
+                  weekendStyle: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                calendarBuilders: CalendarBuilders<EventCalenderModel>(
+                  markerBuilder: (ctx, day, events) {
+                    if (events.isEmpty) return const SizedBox.shrink();
+                    final colors = events
+                        .take(3)
+                        .map((e) => eventStatusStyle(e.appliedStatus).color)
+                        .toList();
+                    return Positioned(
+                      bottom: 4,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (var i = 0; i < colors.length; i++) ...[
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: colors[i],
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            if (i != colors.length - 1)
+                              const SizedBox(width: 2),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                onDaySelected: c.onDaySelected,
+                onRangeSelected: c.onRangeSelected,
+                onFormatChanged: (f) {
+                  if (c.calendarFormat.value != f) {
+                    c.calendarFormat.value = f;
+                  }
+                },
+                onPageChanged: (d) => c.focusedDay.value = d,
+              )),
+        ),
       ),
     );
   }
 
-  void _showEventDetails(EventCalenderModel event, EventCalendarController controller) {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _daySection(EventCalendarController c) {
+    return Obx(() {
+      final selected = c.selectedDay.value;
+      final list = c.selectedEvents;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 6),
+            child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    event.name!,
+                    selected != null
+                        ? DateFormat.yMMMMEEEEd(_locale).format(selected)
+                        : 'Select a date',
                     style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textTitle,
                     ),
                   ),
                 ),
-                CircleAvatar(
-                  radius: 12,
-                  backgroundColor: PURPLE_COLOR,
-                ),
+                if (list.isNotEmpty) _countChip(list.length),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Icon(Icons.schedule, size: 18),
-                const SizedBox(width: 8),
-                Text('All Day'
+          ),
+          Expanded(
+            child: list.isEmpty
+                ? _emptyDay()
+                : ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 2, bottom: 16),
+                    itemCount: list.length,
+                    itemBuilder: (ctx, i) => _eventTile(list[i]),
+                  ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _countChip(int n) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppTheme.brand.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        '$n',
+        style: const TextStyle(
+          color: AppTheme.brand,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          fontFeatures: _tabular,
+        ),
+      ),
+    );
+  }
+
+  // ---- List tab — grouped by year-month ----
+  Widget _listTab(EventCalendarController c) {
+    return Obx(() {
+      final all = c.getAllEventsSorted();
+      if (all.isEmpty) return _emptyAll();
+
+      final groups = <String, List<EventCalenderModel>>{};
+      for (final e in all) {
+        final key = DateFormat.yMMMM(_locale).format(e.startTime);
+        groups.putIfAbsent(key, () => []).add(e);
+      }
+      final entries = groups.entries.toList();
+
+      return ListView.builder(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.only(top: 4, bottom: 16),
+        itemCount: entries.length,
+        itemBuilder: (ctx, i) {
+          final g = entries[i];
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: AppTheme.brand,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      g.key,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textTitle,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _countChip(g.value.length),
+                  ],
                 ),
-              ],
-            ),
-            if (event.description!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Text(
-                'Description',
-                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8),
-              Text(event.description!),
+              for (final e in g.value) _eventTile(e),
             ],
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          );
+        },
+      );
+    });
+  }
+
+  // ---- Event tile — premium compact, status-aware navigation ----
+  Widget _eventTile(EventCalenderModel event) {
+    final statusColor = eventStatusStyle(event.appliedStatus).color;
+    final desc = event.description ?? '';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 5, 16, 5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.line),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => openEventByStatus(event.id, event.appliedStatus),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Get.back();
-                    controller.deleteEvent(event);
-                  },
-                  icon: const Icon(Icons.delete),
-                  label: const Text('Delete'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+                _dateBadge(event.startTime, statusColor),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        event.name ?? '',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.5,
+                          color: AppTheme.textTitle,
+                          height: 1.25,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.schedule_rounded,
+                              size: 13, color: AppTheme.textMuted),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              _rangeText(event),
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                color: AppTheme.textMuted,
+                                fontFeatures: _tabular,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (desc.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          desc,
+                          style: const TextStyle(
+                              fontSize: 11.5, color: AppTheme.textMuted),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close),
-                  label: const Text('Close'),
-                ),
+                const SizedBox(width: 8),
+                EventStatusPill(status: event.appliedStatus, compact: true),
               ],
             ),
-            const SizedBox(height: 8),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dateBadge(DateTime dt, Color accent) {
+    return Container(
+      width: 48,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.field,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: accent.withOpacity(0.25)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            DateFormat.MMM(_locale).format(dt).toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: accent,
+              letterSpacing: 0.6,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            DateFormat.d(_locale).format(dt),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textTitle,
+              height: 1,
+              fontFeatures: _tabular,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Locale-aware start → end range.
+  String _rangeText(EventCalenderModel e) {
+    final loc = _locale;
+    final dfShort = DateFormat.MMMd(loc);
+    final dfFull = DateFormat.yMMMMd(loc);
+    final tf = DateFormat.jm(loc);
+    final sameDay = e.startTime.year == e.endTime.year &&
+        e.startTime.month == e.endTime.month &&
+        e.startTime.day == e.endTime.day;
+    if (sameDay) {
+      return '${dfFull.format(e.startTime)} · ${tf.format(e.startTime)} – ${tf.format(e.endTime)}';
+    }
+    return '${dfShort.format(e.startTime)} ${tf.format(e.startTime)} → ${dfShort.format(e.endTime)} ${tf.format(e.endTime)}';
+  }
+
+  // ---- Empty states ----
+  Widget _emptyDay() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+                color: AppTheme.field, shape: BoxShape.circle),
+            child: const Icon(Icons.event_busy_rounded,
+                size: 26, color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'No events on this day',
+            style: TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyAll() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+                color: AppTheme.field, shape: BoxShape.circle),
+            child: const Icon(Icons.calendar_today_rounded,
+                size: 30, color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'No events scheduled',
+            style: TextStyle(
+              color: AppTheme.textTitle,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Your events will appear here',
+            style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Subtle skeleton for the calendar card while events load.
+class _CalendarSkeleton extends StatelessWidget {
+  const _CalendarSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: AppShimmer(
+        child: Column(
+          children: [
+            Bone(width: double.infinity, height: 320, radius: 16),
+            const SizedBox(height: 16),
+            Bone(width: double.infinity, height: 70, radius: 14),
+            const SizedBox(height: 10),
+            Bone(width: double.infinity, height: 70, radius: 14),
           ],
         ),
       ),
-      isScrollControlled: true,
     );
-  }
-
-  void _showAddEventDialog(EventCalendarController controller) {
-    controller.initializeNewEventForm();
-
-    Get.bottomSheet(
-      Obx(() => Container(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(Get.context!).viewInsets.bottom + 20,
-        ),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Add New Event',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller.titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Event Title',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.event),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller.descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (Optional)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description),
-                ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('All Day'),
-                value: controller.isAllDay.value,
-                onChanged: controller.setAllDay,
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                title: const Text('Start Date & Time'),
-                subtitle: Text(
-                  DateFormat(controller.isAllDay.value ? 'EEE, MMM d, yyyy' : 'EEE, MMM d, yyyy • h:mm a')
-                      .format(controller.newEventStartDate.value),
-                ),
-                leading: const Icon(Icons.access_time),
-                onTap: () => _selectStartDateTime(controller),
-              ),
-              if (!controller.isAllDay.value)
-                ListTile(
-                  title: const Text('End Time'),
-                  subtitle: Text(DateFormat('EEE, MMM d, yyyy • h:mm a').format(controller.newEventEndDate.value)),
-                  leading: const Icon(Icons.access_time_filled),
-                  onTap: () => _selectEndDateTime(controller),
-                ),
-              const SizedBox(height: 16),
-              const Text(
-                'Event Color',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: controller.colorOptions.map((color) {
-                  return GestureDetector(
-                    onTap: () => controller.setEventColor(color),
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: color,
-                      child: controller.selectedColor.value == color
-                          ? const Icon(Icons.check, color: Colors.white, size: 16)
-                          : null,
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Get.back(),
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      controller.addEvent();
-                      Get.back();
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Event'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Get.theme.primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      )),
-      isScrollControlled: true,
-    );
-  }
-
-  Future<void> _selectStartDateTime(EventCalendarController controller) async {
-    final DateTime? date = await Get.to(() => CalendarDatePicker(
-      initialDate: controller.newEventStartDate.value,
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2030),
-      onDateChanged: (date) => Get.back(result: date),
-    ));
-
-    if (date != null) {
-      DateTime dateTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        controller.newEventStartDate.value.hour,
-        controller.newEventStartDate.value.minute,
-      );
-
-      if (!controller.isAllDay.value) {
-        final TimeOfDay? time = await showTimePicker(
-          context: Get.context!,
-          initialTime: TimeOfDay.fromDateTime(controller.newEventStartDate.value),
-        );
-        if (time != null) {
-          dateTime = DateTime(
-            date.year,
-            date.month,
-            date.day,
-            time.hour,
-            time.minute,
-          );
-        }
-      }
-
-      controller.setStartDateTime(dateTime);
-    }
-  }
-
-  Future<void> _selectEndDateTime(EventCalendarController controller) async {
-    final DateTime? date = await Get.to(() => CalendarDatePicker(
-      initialDate: controller.newEventEndDate.value,
-      firstDate: DateTime(2024),
-      lastDate: DateTime(2030),
-      onDateChanged: (date) => Get.back(result: date),
-    ));
-
-    if (date != null) {
-      final TimeOfDay? time = await showTimePicker(
-        context: Get.context!,
-        initialTime: TimeOfDay.fromDateTime(controller.newEventEndDate.value),
-      );
-      if (time != null) {
-        final dateTime = DateTime(
-          date.year,
-          date.month,
-          date.day,
-          time.hour,
-          time.minute,
-        );
-        controller.setEndDateTime(dateTime);
-      }
-    }
   }
 }

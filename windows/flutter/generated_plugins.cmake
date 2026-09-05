@@ -8,8 +8,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   file_selector_windows
   firebase_core
+  flutter_webrtc
   geolocator_windows
   iris_method_channel
+  livekit_client
   permission_handler_windows
   record_windows
   syncfusion_pdfviewer_windows

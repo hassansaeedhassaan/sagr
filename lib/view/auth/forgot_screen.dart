@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sagr/view/auth/widgets/Forms/label_text_form_field.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/data/colors.dart';
@@ -472,7 +473,7 @@ class ForgotScreen extends StatelessWidget {
                     ))),
                 Obx(() => Visibility(
                     visible: _controller.isLoading.value,
-                    child: const CircularProgressIndicator())),
+                    child: AppLoader.inline())),
 
                 // const SizedBox(height: 25.0),
                 //    const AppLocaleSwitcher()

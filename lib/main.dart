@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -7,14 +8,17 @@ import 'package:sagr/firebase_options.dart';
 import 'package:sagr/smart_task_manager_service.dart';
 import 'bindings/application_binding.dart';
 import 'core/services/unified-notification-service.dart';
-import 'data/colors.dart';
 import 'routes/routes.dart';
+import 'theme/app_theme.dart';
 import 'theme/theme_helper.dart';
 import 'utilities/localizations/translation.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Transparent, brightness-aware status bar that matches the app surfaces.
+  // SystemChrome.setSystemUIOverlayStyle(AppTheme.statusBarLight);
 
   SmartTaskManager().initialize();
 
@@ -24,13 +28,17 @@ void main() async {
  await GetStorage.init();
 
   
-  // await Firebase.initializeApp();
+  // Android's FirebaseInitProvider auto-inits the [DEFAULT] app natively from
+  // google-services.json before main() runs, so initializeApp may throw
+  // 'duplicate-app'. That existing app is the same project — treat as benign.
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-  } catch (e) {
-    print('Firebase initialization error: $e');
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') {
+      print('Firebase initialization error: $e');
+    }
   }
  
 
@@ -66,15 +74,7 @@ class MyApp extends StatelessWidget {
       // navigatorKey: Get.nestedKey(1),
       debugShowCheckedModeBanner: false,
 
-      theme: ThemeData(
-        scaffoldBackgroundColor: Color(0xfff6f6f6),
-        fontFamily: "URW",
-        // primaryColor: Color(0xfff8f8f8),
-        iconTheme: const IconThemeData(color: Colors.black),
-        textSelectionTheme: TextSelectionThemeData(
-            selectionColor: ZAHRA_ORANGE.withOpacity(0.3),
-            selectionHandleColor: ZAHRA_RED),
-      ),
+      theme: AppTheme.light,
 
       locale: Locale(GetStorage().read('lang') ?? "ar"),
       fallbackLocale: const Locale('en'),

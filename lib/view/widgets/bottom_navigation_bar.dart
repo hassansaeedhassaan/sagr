@@ -1,155 +1,125 @@
 import 'package:flutter/material.dart';
-import 'package:sagr/app/view_model/auth/account_controller.dart';
-import 'package:sagr/data/colors.dart';
 import 'package:get/get.dart';
-import 'package:sagr/widgets/custom_image_view.dart';
-import '../../app/view_model/settings/setting_controller.dart';
-import '../../core/utils/image_constant.dart';
+import 'package:sagr/app/view_model/auth/account_controller.dart';
+import 'package:sagr/theme/app_theme.dart';
 
+/// Premium, compact bottom navigation shell shown on every primary screen.
+/// Active tab expands into a teal pill (icon + label); inactive tabs are
+/// icon-only for a clean, modern look. Routing/index logic preserved.
 class CustomBottomNavigationBar extends StatelessWidget {
   CustomBottomNavigationBar({Key? key}) : super(key: key);
 
   final _controller = Get.put(AccountController(Get.find()));
 
+  static const _routes = ['/home', '/ads', '/sagr_chat', '/more'];
+
+  int get _currentIndex {
+    final i = _routes.indexOf(Get.currentRoute);
+    return i < 0 ? 0 : i;
+  }
+
+  void _onTap(BuildContext context, int i) {
+    if (Get.currentRoute == _routes[i]) return;
+    if (i == 3) _controller.userInfo();
+    Navigator.pushNamedAndRemoveUntil(context, _routes[i], (_) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
-    var ourIndex = 0;
-    if (Get.currentRoute == '/ads') {
-      ourIndex = 1;
-    } else if (Get.currentRoute == '/home') {
-      ourIndex = 0;
-    } else if (Get.currentRoute == '/sagr_chat') {
-      ourIndex = 2;
-    } else if (Get.currentRoute == '/more') {
-      ourIndex = 3;
-    }
+    final items = [
+      (Icons.home_rounded, 'Home'.tr),
+      (Icons.storefront_rounded, 'Advertisements'.tr),
+      (Icons.chat_rounded, 'Chat'.tr),
+      (Icons.menu_rounded, 'More'.tr),
+    ];
+    final current = _currentIndex;
 
     return Container(
-    
-        padding: EdgeInsets.only(right: 5.0, left: 5.0, top: 5, bottom: 4),
-        margin: EdgeInsets.only(right: 10.0, left: 10, top: 0, bottom: 15),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all( Radius.circular(18) ),
-          color: Color(0xff0f172a),
-          border: Border.all(width: 1),
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: Colors.grey,
-          //     offset: Offset(0.0, 1.0), //(x,y)
-          //     blurRadius: 2.0,
-          //   ),
-          // ],
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.navy,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.navy.withOpacity(0.28),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          for (int i = 0; i < items.length; i++)
+            _NavItem(
+              icon: items[i].$1,
+              label: items[i].$2,
+              selected: i == current,
+              onTap: () => _onTap(context, i),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.symmetric(
+          horizontal: selected ? 16 : 14,
+          vertical: 10,
         ),
-        child: BottomNavigationBar(
-  
-
-          onTap: (i) {
-            // Get.nestedKey(1).currentState.popUntil((route) => route.isFirst);
-            // DefaultTabController.of(context).index = i;
-            // controller.changeCurrentIndex(i);
-
-            switch (i) {
-              case 0:
-                if (Get.currentRoute == "/home") return;
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/home', (_) => false);
-
-                break;
-              case 1:
-
-              print(Get.currentRoute);
-                if (Get.currentRoute == "/ads") return;
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/ads', (_) => false);
-                break;
-              case 2:
-
-              print(Get.currentRoute);
-                // conversations_list
-                if (Get.currentRoute == "/sagr_chat") return;
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/sagr_chat', (_) => false);
-                // Navigator.pushReplacement(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (context) => MessgeTwoScreen()));
-
-                break;
-              case 3:
-                _controller.userInfo();
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/more', (_) => false);
-
-                // Navigator.pushReplacement(context,
-                // MaterialPageRoute(builder: (context) => MoreOneScreen()));
-
-                break;
-            }
-          },
-
-          backgroundColor: Color(0xff0f172a),
-          
-          elevation: 0,
-          type: BottomNavigationBarType.fixed,
-          selectedFontSize: 12,
-          selectedItemColor: Color(0xff06987d),
-          selectedIconTheme:
-              IconThemeData(color: Color(0xff06987d),),
-          unselectedFontSize: 12,
-          selectedLabelStyle:
-              TextStyle(fontWeight: FontWeight.w600, color: PURPLE_COLOR),
-          unselectedItemColor: Color.fromARGB(255, 146, 146, 146),
-
-          items: [
-            new BottomNavigationBarItem(
-                // icon: CustomImageView(
-                //   color: PURPLE_COLOR,
-                //   imagePath: Get.currentRoute == '/home'
-                //       ? ImageConstant.imgVuesaxTwotoneHome2
-                //       : ImageConstant.imgSettings,
-                // ),
-                icon: Icon(Icons.home),
-                label: "Home".tr),
-            new BottomNavigationBarItem(
-                // backgroundColor: AMBER_COLOR,
-                // icon: CustomImageView(
-                //   color: WHITE_COLOR,
-                //   imagePath: ImageConstant.imgNavCategory,
-                // ),
-
-                icon: Icon(Icons.ads_click_outlined),
-                label: "Advertisements".tr),
-            // new BottomNavigationBarItem(
-            //     icon: Container(
-            //       margin: EdgeInsets.only(top: 10),
-            //       padding: EdgeInsets.all(0),
-            //       decoration: BoxDecoration(
-            //           color: RED_COLOR,
-            //           borderRadius: BorderRadius.circular(20)),
-            //       child: Icon(
-            //         Icons.celebration_outlined,
-            //         size: 30,
-            //       ),
-            //     ),
-            //     label: ""),
-            new BottomNavigationBarItem(
-                // icon: CustomImageView(
-                //   imagePath: ImageConstant.imgNavMessage,
-                // ),
-
-                icon: Icon(Icons.chat),
-                label: "Chat".tr),
-            new BottomNavigationBarItem(
-                // icon: CustomImageView(
-                //   imagePath: ImageConstant.imgSettingsGray60001,
-                // ),
-
-                icon: Icon(Icons.more_horiz),
-                label: "More".tr),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.brand : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: selected ? Colors.white : const Color(0xff8b97a8),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              child: selected
+                  ? Padding(
+                      padding: const EdgeInsetsDirectional.only(start: 8),
+                      child: Text(
+                        label,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
-
-          // currentIndex: controller.currentIndex.value,
-          currentIndex: ourIndex,
-        ));
+        ),
+      ),
+    );
   }
 }

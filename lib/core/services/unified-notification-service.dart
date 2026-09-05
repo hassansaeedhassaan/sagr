@@ -7,12 +7,18 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/helper/base_url.dart';
+import 'package:sagr/firebase_options.dart';
 import 'dart:io';
 
 // Top-level background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  // Runs in a separate isolate; init only if this isolate has no Firebase app.
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   print('🔔 Background message: ${message.messageId}');
 }
 
@@ -45,8 +51,13 @@ class UnifiedNotificationService extends GetxService {
     if (_isInitialized) return this;
 
     try {
-      // Initialize Firebase
-      await Firebase.initializeApp();
+      // Firebase is already initialized in main(); only init if missing
+      // (e.g. service started before main's init).
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
 
       // Set background message handler
       FirebaseMessaging.onBackgroundMessage(

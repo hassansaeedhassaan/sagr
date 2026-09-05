@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../../app/view_model/auth/forgot/reset_password_controller.dart';
 import '../../widgets/Forms/custom_button.dart';
@@ -105,7 +106,7 @@ class ResetPasswordScreen extends StatelessWidget {
                       ))),
                   Obx(() => Visibility(
                       visible: _controller.isLoading.value,
-                      child: CircularProgressIndicator())),
+                      child: AppLoader.inline())),
                   CustomLinkButton(
                     text: 'don\'t have account?',
                     onPress: () {},

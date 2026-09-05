@@ -1,50 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sagr/features/events/presentation/widgets/card_info.dart';
 
-import '../../../../data/colors.dart';
-import '../controllers/events_controller.dart';
+import '../controllers/all_events_controller.dart';
+import '../widgets/event_list_view.dart';
 
+/// "My Events" — events the current user applied to. Reuses the shared list
+/// scaffold with the type preset to `my-events`.
 class EventsScreen extends StatelessWidget {
-  const EventsScreen({super.key});
+  static const _tag = 'myEvents';
+
+  EventsScreen({super.key}) {
+    Get.put(
+      AllEventsController(Get.find(), initialType: 'my-events'),
+      tag: _tag,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("My Events".tr),
-        scrolledUnderElevation: 0,
-        backgroundColor: WHITE_COLOR,
-        centerTitle: false,
-      ),
-    body: GetBuilder<EventsController>(builder: (EventsController eventController){
-        return ListView.builder(
-          itemCount: eventController.events.length,
-          itemBuilder: (cntx, index) {
-
-
-            return GestureDetector(
-               onTap: () {
-
-                if(eventController.events.elementAt(index).appliedStatus == 'accepted'){
-                  Get.toNamed('/event_accept_screen', arguments: eventController.events.elementAt(index).id);
-                }
-                //  Get.toNamed('/event_processing_screen', arguments: eventController.events.elementAt(index).id);
-               },
-              child: InfoCard(
-                imageUrl: 'https://img.freepik.com/premium-photo/waves-pastel-colors-waves-background_476363-7444.jpg',
-                title: eventController.events.elementAt(index).name!,
-                address: eventController.events.elementAt(index).description!,
-                status: eventController.events.elementAt(index).appliedStatus!,
-                date: "${eventController.events.elementAt(index).date} ${eventController.events.elementAt(index).time}" ,
-                eventStatus: eventController.events.elementAt(index).startDateTime!.status.toString(),
-              ),
-            );
-    });
-    })
-
-
-   
+    return const EventListView(
+      tag: _tag,
+      title: 'فعالياتي',
+      showDurationFilter: true,
+      showJobFilter: true,
+      emptyTitle: 'No events found',
     );
   }
 }

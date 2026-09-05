@@ -25,8 +25,12 @@ class FirebaseService {
   );
 
   Future<void> initialize() async {
-    // Initialize Firebase
-    await Firebase.initializeApp();
+    // Initialize Firebase only if not already initialized
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
 
     // Request notification permissions
     NotificationSettings settings = await _messaging.requestPermission(
@@ -352,6 +356,10 @@ Future<void> _updateFcmToken(String token) async {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Need to initialize Firebase if it's not already
-  await Firebase.initializeApp();
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   print('Handling a background message: ${message.messageId}');
 }

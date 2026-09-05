@@ -4,6 +4,7 @@ import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:sagr/data/colors.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/features/auth/presentation/controllers/create_account_controller.dart';
 import 'package:sagr/features/auth/presentation/widgets/animated_field.dart';
 import 'package:sagr/features/auth/presentation/widgets/complete_account_fields.dart';
@@ -624,7 +625,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                             ),
                             SizedBox(height: 20),
                             Obx(() => nationalitiesController.isLoading
-                                ? CircularProgressIndicator()
+                                ? AppLoader.inline()
                                 : ProDropdown<NationalityModel>(
                                     selectedValue:
                                         accountController.selectedNationality,
@@ -637,7 +638,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
 
                             SizedBox(height: 20),
                             Obx(() => regionsController.isLoading
-                                ? CircularProgressIndicator()
+                                ? AppLoader.inline()
                                 : ProDropdown<RegionModel>(
                                     selectedValue:
                                         accountController.selectedRegion,
@@ -1131,12 +1132,9 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                             SizedBox(
                                               width: 20,
                                               height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                        Color>(Colors.white),
-                                              ),
+                                              child: AppLoader.inline(
+                                                  size: 20,
+                                                  color: Colors.white),
                                             ),
                                           Text(
                                             accountController.isLoading

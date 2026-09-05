@@ -7,28 +7,28 @@ import 'package:sagr/features/events/presentation/controllers/events_controller.
 import 'package:sagr/features/jobs/data/models/job_model.dart';
 import 'package:sagr/features/jobs/presentation/controllers/marital_status_controller.dart';
 import 'package:sagr/sagr_chat/routes/app_routes.dart';
+import 'package:sagr/theme/app_theme.dart';
 import 'package:sagr/utilities/map.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../../../data/colors.dart';
-import '../../../../sagr_chat/screens/home/home_screen.dart';
-import '../../../../widgets/Common/elegant_exit_dialog.dart';
 import '../../../../widgets/Common/no_results.dart';
-import '../../../events/presentation/screens/attendance_report.dart';
 
-// Modern Color Palette
+// Unified palette — maps to the app-wide [AppTheme] brand tokens (teal/navy)
+// so this screen stays consistent with the rest of the app.
 class AppColors {
-  static const primary = Color(0xff0f172a);
-  static const primaryLight = Color(0xFF818CF8);
-  static const primaryDark = Color(0xFF4F46E5);
-  static const secondary = Color(0xFF06B6D4);
-  static const success = Color(0xFF10B981);
-  static const warning = Color(0xFFF59E0B);
-  static const error = Color(0xFFEF4444);
-  static const surface = Color(0xFFFAFAFA);
-  static const surfaceVariant = Color(0xFFF3F4F6);
-  static const onSurface = Color(0xFF111827);
-  static const onSurfaceVariant = Color(0xFF6B7280);
+  static const primary = AppTheme.brand; // teal accent
+  static const primaryLight = Color(0xFF34d3b5);
+  static const primaryDark = AppTheme.brandDark;
+  static const secondary = AppTheme.sky;
+  static const success = AppTheme.success;
+  static const warning = AppTheme.warning;
+  static const error = AppTheme.danger;
+  static const surface = AppTheme.scaffold;
+  static const surfaceVariant = AppTheme.field;
+  static const onSurface = AppTheme.textTitle;
+  static const onSurfaceVariant = AppTheme.textMuted;
 }
 
 class HomeScreen extends StatelessWidget {
@@ -38,46 +38,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Future<bool?> _showExitDialog() {
-      return showGeneralDialog<bool>(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: 'Exit Dialog',
-    barrierColor: Colors.black54,
-    transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return const SizedBox.shrink();
-    },
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
-      return ScaleTransition(
-        scale: CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutBack,
-        ),
-        child: FadeTransition(
-          opacity: animation,
-          child: const ElegantExitDialog(),
-        ),
-      );
-    },
-  );
-    }
-
-    return 
-    // PopScope(
-    //   canPop: false, // Prevent default back navigation
-    //   onPopInvoked: (bool didPop) async {
-    //     if (didPop) return;
-
-    //     // Show exit confirmation dialog
-    //     final shouldExit = await _showExitDialog();
-    //     if (shouldExit == true) {
-    //       // Exit the app
-    //       SystemNavigator.pop();
-    //     }
-    //   },
-    //   child:
-       MasterWrapper(
+    return MasterWrapper(
         body: Scaffold(
           backgroundColor: AppColors.surface,
           appBar: _buildAppBar(),
@@ -146,7 +107,7 @@ class HomeScreen extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.notifications_outlined,
               color: AppColors.onSurface),
-          onPressed: () {}, // Add notification functionality
+          onPressed: () => Get.toNamed('/notifications'),
         ),
         const SizedBox(width: 8),
       ],
@@ -211,7 +172,7 @@ class HomeScreen extends StatelessWidget {
             init: JobsController(Get.find()),
             builder: (JobsController jobController) {
               if (jobController.isLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return _jobsSkeleton();
               }
               return ListView.builder(
                 padding:
@@ -303,7 +264,7 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {}, // Navigate to all jobs
+                onPressed: () => Get.toNamed('/all_jobs'),
                 child: Text(
                   "عرض الكل",
                   style: TextStyle(color: AppColors.primary),
@@ -319,7 +280,7 @@ class HomeScreen extends StatelessWidget {
             init: JobsController(Get.find()),
             builder: (JobsController jobController) {
               if (jobController.isLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return _jobsSkeleton();
               }
               return ListView.builder(
                 padding:
@@ -538,6 +499,20 @@ class HomeScreen extends StatelessWidget {
         });
   }
 
+  Widget _jobsSkeleton() {
+    return AppShimmer(
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        itemCount: 5,
+        itemBuilder: (_, __) => const Padding(
+          padding: EdgeInsets.only(right: 12),
+          child: Bone(width: 112, height: 56, radius: 16),
+        ),
+      ),
+    );
+  }
+
   Widget _buildEventsHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
@@ -553,7 +528,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {}, // Navigate to all events
+            onPressed: () => Get.toNamed('/all_events'),
             child: Text(
               "عرض الكل",
               style: TextStyle(color: AppColors.primary),
@@ -581,13 +556,7 @@ class HomeScreen extends StatelessWidget {
         }
 
         if (eventController.isLoading && eventController.events.isEmpty) {
-          return Center(
-            child: LoadingAnimationWidget.twistingDots(
-              leftDotColor: AppColors.primary,
-              rightDotColor: AppColors.secondary,
-              size: 50,
-            ),
-          );
+          return AppLoader.list(items: 6);
         }
 
         return SmartRefresher(
@@ -617,22 +586,23 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildEventCard(dynamic event, context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: AppTheme.navy.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           onTap: () {
             Get.toNamed(
               '/event_processing_screen',
@@ -672,14 +642,14 @@ class HomeScreen extends StatelessWidget {
             // }
           },
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     _buildEventLogo(context),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

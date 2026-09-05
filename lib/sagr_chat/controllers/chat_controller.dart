@@ -7,13 +7,16 @@ import 'package:sagr/helper/base_url.dart';
 import '../../core/services/unified-notification-service.dart';
 import '../models/conversation.dart';
 import '../models/message.dart';
+import '../models/message_status.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import '../services/reverb_service.dart';
 import 'auth_controller.dart';
 
 class ChatController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
-  final UnifiedNotificationService _notificationService = 
+  final ReverbService _reverb = Get.find<ReverbService>();
+  final UnifiedNotificationService _notificationService =
       UnifiedNotificationService.instance;
 
   final RxList<Conversation> conversations = <Conversation>[].obs;
@@ -24,7 +27,10 @@ class ChatController extends GetxController {
 
   // ✅ Track current conversation
   final RxnInt currentConversationId = RxnInt(null);
-  
+
+  // userId -> userName currently typing in the active conversation.
+  final RxMap<int, String> typingUsers = <int, String>{}.obs;
+
   // ✅ Track processing message IDs to prevent duplicates
   final RxSet<int> processingMessageIds = <int>{}.obs;
 
@@ -34,16 +40,125 @@ class ChatController extends GetxController {
   void onInit() {
     super.onInit();
     loadConversations();
+
+    // FCM delivers chat pushes when the socket is down / app backgrounded.
     _notificationService.onMessageReceived = _handleNewMessage;
-    
+
+    // Reverb delivers realtime events while the app is open and connected.
+    _reverb.onMessageSent = _onRealtimeMessage;
+    _reverb.onMessageRead = _onRealtimeRead;
+    _reverb.onUserTyping = _onRealtimeTyping;
+
     print('✅ ChatController initialized');
   }
 
   // ✅ Set current conversation when entering chat screen
   void setCurrentConversation(int? conversationId) {
+    final previous = currentConversationId.value;
+    if (previous != null && previous != conversationId) {
+      _reverb.unsubscribeConversation(previous);
+    }
+
     currentConversationId.value = conversationId;
+    typingUsers.clear();
     _notificationService.setActiveConversation(conversationId);
+
+    if (conversationId != null) {
+      _reverb.subscribeConversation(conversationId);
+    }
     print('💬 Current conversation set to: $conversationId');
+  }
+
+  // ── Realtime (Reverb) handlers ───────────────────────────────────────────
+
+  /// `message.sent` — a new message from another participant. The backend
+  /// broadcasts with toOthers(), so our own messages never arrive here.
+  void _onRealtimeMessage(Map<String, dynamic> data) {
+    try {
+      final conversationId = data['conversation_id'] as int?;
+      if (conversationId == null) return;
+
+      final message = Message.fromJson(data);
+
+      final existing = conversationMessages[conversationId] ?? [];
+      if (existing.any((m) => m.id == message.id)) return;
+
+      _addMessageToConversation(conversationId, message);
+      _updateConversationLastMessage(conversationId, message);
+
+      if (conversationId == currentConversationId.value) {
+        _markMessageAsReadAsync(message.id);
+      }
+    } catch (e) {
+      print('❌ Reverb message.sent handler error: $e');
+    }
+  }
+
+  /// `message.read` — another participant read messages; refresh their status.
+  void _onRealtimeRead(Map<String, dynamic> data) {
+    final conversationId = data['conversation_id'] as int?;
+    final readerId = data['reader_id'] as int?;
+    final ids = (data['message_ids'] as List?)?.map((e) => e as int).toSet();
+    if (conversationId == null || readerId == null || ids == null) return;
+
+    final list = conversationMessages[conversationId];
+    if (list == null) return;
+
+    for (var i = 0; i < list.length; i++) {
+      final m = list[i];
+      if (ids.contains(m.id) && !m.hasBeenReadBy(readerId)) {
+        list[i] = Message(
+          id: m.id,
+          conversationId: m.conversationId,
+          senderId: m.senderId,
+          replyToId: m.replyToId,
+          type: m.type,
+          content: m.content,
+          media: m.media,
+          media_url: m.media_url,
+          isEdited: m.isEdited,
+          editedAt: m.editedAt,
+          createdAt: m.createdAt,
+          sender: m.sender,
+          replyTo: m.replyTo,
+          statuses: [
+            ...m.statuses,
+            MessageStatus(
+              id: 0,
+              messageId: m.id,
+              userId: readerId,
+              status: 'read',
+              statusUpdatedAt: DateTime.now(),
+            ),
+          ],
+        );
+      }
+    }
+    conversationMessages.refresh();
+  }
+
+  /// `user.typing` — show/hide a typing indicator for the active conversation.
+  void _onRealtimeTyping(Map<String, dynamic> data) {
+    final conversationId = data['conversation_id'] as int?;
+    final userId = data['user_id'] as int?;
+    final userName = data['user_name']?.toString() ?? '';
+    final isTyping = data['is_typing'] == true;
+    if (conversationId == null || userId == null) return;
+    if (conversationId != currentConversationId.value) return;
+
+    final myId = Get.find<SagrAuthController>().currentUser.value?.id;
+    if (userId == myId) return;
+
+    if (isTyping) {
+      typingUsers[userId] = userName;
+    } else {
+      typingUsers.remove(userId);
+    }
+  }
+
+  /// Tell the backend the current user is typing in [conversationId].
+  void sendTyping(int conversationId, bool isTyping) {
+    _apiService.sendTyping(conversationId, isTyping);
   }
 
   Future<void> loadConversations() async {
@@ -681,8 +796,8 @@ class ChatController extends GetxController {
           String cleanPath = rawMediaUrl
               .replaceAll(RegExp(r'^/+'), '')
               .replaceAll('uploads/images/', '');
-          
-          mediaUrl = '${HOSTURL}uploads/images/$cleanPath';
+
+          mediaUrl = '$APIHOST/uploads/images/$cleanPath';
         }
       }
       

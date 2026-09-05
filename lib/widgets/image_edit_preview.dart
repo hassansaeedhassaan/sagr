@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImageEditPreview extends StatefulWidget {
@@ -136,16 +137,7 @@ class _ImageEditPreviewState extends State<ImageEditPreview> {
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
-            return Container(
-              height: 250,
-              alignment: Alignment.center,
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            );
+            return AppLoader.box(width: double.infinity, height: 250);
           },
         ),
       );

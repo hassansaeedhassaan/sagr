@@ -101,6 +101,10 @@ dependencies:
   timeago: ^3.7.1
   audioplayers: ^5.2.0
   agora_rtc_engine: ^6.5.0
+  # Realtime chat over Laravel Reverb (raw Pusher protocol via WebSocket).
+  # pusher_channels_flutter can't target a self-hosted host, so we speak the
+  # protocol directly over web_socket_channel.
+  web_socket_channel: ^3.0.0
   # marquee: ^2.3.0
   latlong2: ^0.8.1
   workmanager: ^0.5.0
@@ -114,6 +118,13 @@ dependencies:
   path_provider: ^2.1.5
   video_player: ^2.8.1
   chewie: ^1.7.5
+  livekit_client: ^2.4.3
+
+dependency_overrides:
+  # Flutter 3.27's SurfaceProducer.Callback needs onSurfaceDestroyed(), but
+  # flutter_webrtc 0.13+/0.14 target Flutter 3.29+ (onSurfaceCleanup) and don't
+  # override it → Android build fails. 0.12.12 targets the 3.27-era API.
+  flutter_webrtc: 0.12.12+hotfix.1
 
 dev_dependencies:
   flutter_test:

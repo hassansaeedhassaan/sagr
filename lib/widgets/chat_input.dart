@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 class ChatInput extends StatelessWidget {
   final TextEditingController controller;
@@ -90,14 +91,7 @@ class ChatInput extends StatelessWidget {
                     height: 48,
                     alignment: Alignment.center,
                     child: isSending
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
+                        ? AppLoader.inline(size: 20, color: Colors.white)
                         : ValueListenableBuilder<TextEditingValue>(
                             valueListenable: controller,
                             builder: (context, value, child) {

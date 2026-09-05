@@ -45,7 +45,9 @@ class Message {
       type: json['type'],
       content: json['content'],
       media: json['media'],
-      media_url: json['media'] != null ? "$HOSTURL/uploads/images/${json['media']['path']}":'',
+      // Media is served from the API server's public/uploads/images dir —
+      // NOT from HOSTURL (the marketing/production domain).
+      media_url: json['media'] != null ? "$APIHOST/uploads/images/${json['media']['path']}":'',
       isEdited: json['is_edited'] ?? false,
       editedAt: json['edited_at'] != null ? DateTime.parse(json['edited_at']) : null,
       createdAt: DateTime.parse(json['created_at']),
@@ -100,7 +102,11 @@ class Message {
   }
 
   int? get duration {
-    return int.tryParse(media?['duration'])?? 0;
+    // duration arrives as a string from multipart uploads but as an int from
+    // broadcast payloads — accept both.
+    final raw = media?['duration'];
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '') ?? 0;
   }
 
   bool hasBeenReadBy(int userId) {

@@ -22,8 +22,10 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
-      name: json['name'],
-      email: json['email'],
+      // Broadcast payloads may carry a slimmer user than REST — never let a
+      // missing field kill the realtime handler.
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
       phone: json['phone'],
       avatar: json['avatar'],
       status: json['status'] ?? 'offline',

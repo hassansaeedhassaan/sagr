@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:sagr/data/colors.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/features/auth/presentation/controllers/create_account_controller.dart';
 import 'package:sagr/features/nationalities/data/models/nationality_model.dart';
 import 'package:sagr/features/nationalities/presentation/controllers/nationalities_controller.dart';
@@ -810,12 +811,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                             SizedBox(
                                               width: 20,
                                               height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                        Color>(Colors.white),
-                                              ),
+                                              child: AppLoader.inline(
+                                                  size: 20,
+                                                  color: Colors.white),
                                             ),
                                           if (accountController.isLoading)
                                             const SizedBox(width: 15),

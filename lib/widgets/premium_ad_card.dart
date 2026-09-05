@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 // ─────────────────────────────────────────────────────────────
 //  PREMIUM AD CARD — Single-file, self-contained
@@ -272,18 +273,7 @@ class _AdImage extends StatelessWidget {
               if (progress == null) return child;
               return Container(
                 color: _T.surfaceAlt,
-                child: Center(
-                  child: SizedBox(
-                    width: 20, height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      value: progress.expectedTotalBytes != null
-                          ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-                          : null,
-                      color: _T.textTertiary,
-                    ),
-                  ),
-                ),
+                child: AppLoader.inline(size: 20, color: _T.textTertiary),
               );
             },
           ),

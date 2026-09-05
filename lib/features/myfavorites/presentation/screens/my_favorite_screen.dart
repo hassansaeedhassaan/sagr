@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/myfavorites/presentation/controllers/favorites_controller.dart';
 import 'package:sagr/features/products/data/models/product_model.dart';
@@ -42,9 +43,7 @@ class MyFavoriteScreen extends StatelessWidget {
             return RefreshIndicator(
                onRefresh: () => _favoriteController.onRefresh(),
               child: _favoriteController.isLoading
-                  ? Center(
-                      child: CircularProgressIndicator(),
-                    )
+                  ? AppLoader.list()
                   : _favoriteController.products.length == 0
                       ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,

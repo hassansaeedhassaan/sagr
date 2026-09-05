@@ -5,6 +5,7 @@ import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/events/presentation/controllers/event_apply_controller.dart';
 import 'package:sagr/features/language/presentation/controllers/languages_controller.dart';
 import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../../../view/widgets/Forms/easy_app_text_form_field.dart';
 import '../../../../widgets/Common/custom_dropdown.dart';
@@ -534,12 +535,7 @@ class _EventApplyScreenState extends State<EventApplyScreen>
                   ),
                   const SizedBox(height: 16),
                   if (controller.isLoading)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
+                    AppLoader.list(items: 3)
                   else
                     Column(
                       children: controller.event!.periods!
@@ -850,14 +846,7 @@ class _EventApplyScreenState extends State<EventApplyScreen>
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           if (applyController.isLoading)
-                                            SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                              ),
-                                            ),
+                                            AppLoader.inline(size: 20, color: Colors.white),
                                           if (applyController.isLoading)
                                             const SizedBox(width: 15),
                                           Text(

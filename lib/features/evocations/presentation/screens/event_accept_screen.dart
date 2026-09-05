@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/data/models/start_date_time_model.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 class EventAcceptScreen extends StatelessWidget {
   const EventAcceptScreen({super.key});
@@ -74,21 +75,21 @@ class EventAcceptScreen extends StatelessWidget {
                     children: [
                       // Event Header Card
                       eventController.isLoading
-                          ? CircularProgressIndicator()
+                          ? AppLoader.box(height: 180)
                           : _buildEventHeaderCard(context, eventController),
 
                       SizedBox(height: 24),
 
                       // ID and Zone Information Card
                       eventController.isLoading
-                          ? CircularProgressIndicator()
+                          ? AppLoader.box(height: 180)
                           : _buildInfoCard(context, eventController),
 
                       SizedBox(height: 32),
 
                       // Logo Section
                       eventController.isLoading
-                          ? CircularProgressIndicator()
+                          ? AppLoader.box(height: 120)
                           : _buildLogoSection(),
 
                       SizedBox(height: 32),
@@ -96,7 +97,7 @@ class EventAcceptScreen extends StatelessWidget {
                       // Text(eventController.event!.zoneCoordinates.toString()),
                       // Countdown Timer
                       eventController.isLoading
-                          ? CircularProgressIndicator()
+                          ? AppLoader.box(height: 120)
                           : !eventController.isLoading &&
                                   eventController
                                           .event!.startDateTime!.status ==
@@ -113,7 +114,7 @@ class EventAcceptScreen extends StatelessWidget {
           ),
           // Modern Bottom Navigation
           bottomNavigationBar: eventController.isLoading
-              ? Center(child: CircularProgressIndicator(),)
+              ? AppLoader.inline()
               : eventController.event!.startDateTime!.status ==
                           EventStatus.active &&
                       eventController.event!.assigned == true
@@ -230,7 +231,7 @@ class EventAcceptScreen extends StatelessWidget {
             children: [
               // Employee ID Row
               eventController.isLoading
-                  ? CircularProgressIndicator()
+                  ? AppLoader.box(height: 56)
                   : _buildInfoRow(
                       "الرقم الوظيفي",
                       eventController.event!.nationalID!.toString(),

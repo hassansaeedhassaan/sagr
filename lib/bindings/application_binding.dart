@@ -80,6 +80,7 @@ import '../features/notifications/presentation/controllers/notifications_control
 import '../sagr_chat/controllers/auth_controller.dart';
 import '../sagr_chat/controllers/chat_controller.dart';
 import '../sagr_chat/services/api_service.dart';
+import '../sagr_chat/services/reverb_service.dart';
 import '../sagr_chat/services/firebase_messaging_service.dart';
 import '../widgets/sagr_bottom_navigation/bottom_navigation_controller.dart';
 
@@ -247,6 +248,7 @@ class ApplicationBinding implements Bindings {
     Get.lazyPut(() => SagrAuthController());
 // Get.lazyPut(() => ChatController());
     Get.lazyPut(() => ApiService());
+    Get.lazyPut(() => ReverbService());
     Get.lazyPut(() => FirebaseMessagingService());
     Get.lazyPut(() => BottomNavController());
 

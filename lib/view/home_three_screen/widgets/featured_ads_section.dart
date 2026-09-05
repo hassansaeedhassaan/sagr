@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/image_constant.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/categories/domain/entities/category.dart';
@@ -379,10 +380,7 @@ class FeaturedAdsSection extends StatelessWidget {
                                     featuredController.productsLoading
                                         ? SizedBox(
                                             height: 300,
-                                            child: Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            ),
+                                            child: AppLoader.box(height: 300),
                                           )
                                         : CardStack(
                                             products: featuredController.products),

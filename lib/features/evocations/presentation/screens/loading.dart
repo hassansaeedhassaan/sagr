@@ -275,6 +275,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 class CenterCircleOverlay extends StatelessWidget {
   final Widget child;
@@ -418,7 +419,7 @@ class _AnimatedCircleIndicatorState extends State<AnimatedCircleIndicator>
           child: Opacity(
             opacity: _opacityAnimation.value,
             child: Container(
-              child: const CircularProgressIndicator(),
+              child: AppLoader.inline(size: widget.size, color: widget.color),
               width: widget.size,
               height: widget.size,
               decoration: BoxDecoration(

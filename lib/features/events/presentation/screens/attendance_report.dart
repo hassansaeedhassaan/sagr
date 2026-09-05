@@ -1,326 +1,550 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:sagr/data/colors.dart';
+import 'package:sagr/features/attendance/domain/entities/attendance.dart';
 import 'package:sagr/features/attendance/presentation/controllers/attendance_controller.dart';
+import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
-import '../../../attendance/domain/entities/attendance.dart';
+const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
 
+/// Premium, international attendance-report screen.
+///
+/// Layout: white AppBar -> compact user header -> headline grand-total card ->
+/// 2x2 stats grid -> daily ledger grouped by locale-aware date headers.
+/// Bottom nav is the unified [EventBottomNavigation] (attendance tab active).
 class AttendanceReportPage extends StatelessWidget {
   AttendanceReportPage({Key? key}) : super(key: key);
 
-
-  AttendanceController _attendanceController = Get.put(AttendanceController(
-      getCurrentUserAttendanceUseCase: Get.find(),
-      getAttendanceReportUseCase: Get.find()));
+  final AttendanceController _controller = Get.put(AttendanceController(
+    getCurrentUserAttendanceUseCase: Get.find(),
+    getAttendanceReportUseCase: Get.find(),
+  ));
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: AppTheme.scaffold,
       appBar: AppBar(
-
+        backgroundColor: WHITE_COLOR,
         elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
-          'تقرير الحضور',
-          style: TextStyle(
-            color: Color(0xFF2D3748),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        scrolledUnderElevation: 1,
+        centerTitle: true,
+        title: Text(
+          'Attendance Report'.tr,
+          style: const TextStyle(
+            color: AppTheme.navy,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
           ),
         ),
-        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF2D3748)),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded,
+              color: AppTheme.navy, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.share, color: Color(0xFF4299E1)),
-        //     onPressed: () {
-        //       // Share functionality
-        //     },
-        //   ),
-        // ],
       ),
-      body: Obx( () => SingleChildScrollView(
-        child: _attendanceController.isLoading ? Center(child: CircularProgressIndicator()) : Column(
-          children: [
-            _buildUserHeader(),
-            _buildGrandTotalCard(),
-            _buildEventSummarySection(),
-            _buildDailyReportsSection(),
-            const SizedBox(height: 24),
-          ],
-        ),
-      )),
+      bottomNavigationBar:
+          const EventBottomNavigation(active: EventNavTab.attendance),
+      body: Obx(() {
+        if (_controller.isLoading) {
+          return _LoadingSkeleton();
+        }
+        final attendance = _controller.attendance;
+        if (attendance == null) {
+          return _EmptyState();
+        }
+        return RefreshIndicator(
+          color: AppTheme.brand,
+          onRefresh: _controller.refresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            children: [
+              _UserHeader(attendance: attendance),
+              const SizedBox(height: 16),
+              _GrandTotalCard(attendance: attendance),
+              const SizedBox(height: 16),
+              _StatsGrid(attendance: attendance),
+              const SizedBox(height: 24),
+              _DailyLedger(reports: attendance.dailyReports),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      }),
     );
   }
+}
 
-  Widget _buildUserHeader() {
-    return GetBuilder<AttendanceController>(
-        init: AttendanceController(
-          getCurrentUserAttendanceUseCase: Get.find(),
-          getAttendanceReportUseCase: Get.find(),
+// ============================================================================
+// Loading + empty states
+// ============================================================================
+
+class _LoadingSkeleton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      children: [
+        AppLoader.box(height: 84, radius: AppTheme.radiusLg),
+        const SizedBox(height: 16),
+        AppLoader.box(height: 150, radius: AppTheme.radiusLg),
+        const SizedBox(height: 16),
+        AppLoader.box(height: 130, radius: AppTheme.radiusLg),
+        const SizedBox(height: 24),
+        AppLoader.list(items: 4, showTrailing: false),
+      ],
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppTheme.brand.withOpacity(0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.event_busy_rounded,
+                color: AppTheme.brand,
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No attendance records yet'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppTheme.textTitle,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
-        builder: (AttendanceController attendanceController) {
-          return attendanceController.isLoading
-              ? CircularProgressIndicator()
-              : Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x0A000000),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [SAGR_PRIMARY, SAGR_PRIMARY],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Text(
-                            attendanceController.attendance!.userName
-                                .split(' ')
-                                .map((e) => e[0])
-                                .take(2)
-                                .join(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              attendanceController.attendance!.userName,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF2D3748),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'رقم الموظف: ${attendanceController.attendance!.userId}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF718096),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-        });
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// User header
+// ============================================================================
+
+class _UserHeader extends StatelessWidget {
+  final Attendance attendance;
+  const _UserHeader({required this.attendance});
+
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    if (parts.length == 1) return parts.first.characters.first.toUpperCase();
+    return (parts.first.characters.first + parts[1].characters.first)
+        .toUpperCase();
   }
 
-  Widget _buildGrandTotalCard() {
-    return Obx( () =>  _attendanceController.isLoading ? Center(child: CircularProgressIndicator(),) : Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(24),
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppTheme.brand, AppTheme.brandDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppTheme.radius),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              _initials(attendance.userName),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  attendance.userName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textTitle,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${'Employee ID'.tr} · ${attendance.userId}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textMuted,
+                    fontFeatures: _tabular,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Grand total card
+// ============================================================================
+
+class _GrandTotalCard extends StatelessWidget {
+  final Attendance attendance;
+  const _GrandTotalCard({required this.attendance});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-             colors: [SAGR_PRIMARY, SAGR_PRIMARY],
+          colors: [AppTheme.navy, Color(0xff1e293b)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF667EEA).withOpacity(0.3),
-            blurRadius: 20,
+            color: AppTheme.navy.withOpacity(0.18),
+            blurRadius: 18,
             offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'إجمالي ساعات الحضور',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _attendanceController.attendance!.grandTotalFormatted,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                icon: Icons.event_note,
-                label: 'عدد الفعاليات',
-                value: '${_attendanceController.attendance!.eventTotals.length}',
-              ),
               Container(
-                width: 1,
-                height: 40,
-                color: Colors.white24,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.brand.withOpacity(0.20),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.schedule_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
-              _buildStatItem(
-                icon: Icons.calendar_today,
-                label: 'أيام الحضور',
-                value: '${_attendanceController.attendance!.dailyReports.length}',
+              const SizedBox(width: 10),
+              Text(
+                'Total Hours'.tr,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.2,
+                ),
               ),
             ],
           ),
-        ],
-      ),
-    ));
-  }
-
-  Widget _buildStatItem({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white70, size: 20),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEventSummarySection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12, right: 4),
-            child: Text(
-              'ملخص الفعاليات',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D3748),
-              ),
+          const SizedBox(height: 12),
+          Text(
+            attendance.grandTotalFormatted,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 34,
+              height: 1.05,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
+              fontFeatures: _tabular,
             ),
           ),
-          ..._attendanceController.attendance!.eventTotals.map((event) => _buildEventCard(event)).toList(),
+          const SizedBox(height: 6),
+          Text(
+            '${attendance.grandTotalHours}h ${attendance.grandTotalMinutes}m',
+            style: const TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              fontFeatures: _tabular,
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildEventCard(EventTotal event) {
+// ============================================================================
+// Stats grid (2x2 mini-cards)
+// ============================================================================
+
+class _StatsGrid extends StatelessWidget {
+  final Attendance attendance;
+  const _StatsGrid({required this.attendance});
+
+  @override
+  Widget build(BuildContext context) {
+    // Compute on-time / late from session attendance times.
+    // Heuristic: an event "on-time" if its first session starts <= 08:00.
+    // Falls back gracefully when time strings are not parseable.
+    int onTime = 0;
+    int late = 0;
+    int sessionCount = 0;
+    for (final r in attendance.dailyReports) {
+      sessionCount += r.sessions.length;
+      final first = r.attendanceTime.trim();
+      final hour = _parseHour(first);
+      if (hour == null) continue;
+      if (hour <= 8) {
+        onTime++;
+      } else {
+        late++;
+      }
+    }
+
+    final cells = <_StatCell>[
+      _StatCell(
+        icon: Icons.event_available_rounded,
+        label: 'Events'.tr,
+        value: '${attendance.eventTotals.length}',
+        tint: AppTheme.brand,
+      ),
+      _StatCell(
+        icon: Icons.layers_rounded,
+        label: 'Total Sessions'.tr,
+        value: '$sessionCount',
+        tint: AppTheme.sky,
+      ),
+      _StatCell(
+        icon: Icons.verified_rounded,
+        label: 'On Time'.tr,
+        value: '$onTime',
+        tint: AppTheme.success,
+      ),
+      _StatCell(
+        icon: Icons.timer_outlined,
+        label: 'Late'.tr,
+        value: '$late',
+        tint: AppTheme.warning,
+      ),
+    ];
+
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 2.4,
+      children: cells,
+    );
+  }
+
+  int? _parseHour(String raw) {
+    if (raw.isEmpty) return null;
+    final m = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(raw);
+    if (m == null) return null;
+    return int.tryParse(m.group(1)!);
+  }
+}
+
+class _StatCell extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color tint;
+
+  const _StatCell({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.tint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
       ),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFF4299E1).withOpacity(0.1),
+              color: tint.withOpacity(0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
-              Icons.event,
-              color: Color(0xFF4299E1),
-              size: 24,
-            ),
+            child: Icon(icon, color: tint, size: 18),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  event.eventName,
+                  value,
+                  maxLines: 1,
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D3748),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textTitle,
+                    height: 1.1,
+                    fontFeatures: _tabular,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 Text(
-                  '${event.daysCount} أيام حضور',
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF718096),
+                    fontSize: 11,
+                    color: AppTheme.textMuted,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF48BB78).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Daily ledger — grouped by date
+// ============================================================================
+
+class _DailyLedger extends StatelessWidget {
+  final List<DailyReport> reports;
+  const _DailyLedger({required this.reports});
+
+  @override
+  Widget build(BuildContext context) {
+    if (reports.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(
+          child: Text(
+            'No attendance records yet'.tr,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppTheme.textMuted,
+              fontWeight: FontWeight.w500,
             ),
+          ),
+        ),
+      );
+    }
+
+    // Group by date string
+    final Map<String, List<DailyReport>> grouped = {};
+    for (final r in reports) {
+      grouped.putIfAbsent(r.date, () => []).add(r);
+    }
+    final sortedKeys = grouped.keys.toList()
+      ..sort((a, b) => b.compareTo(a)); // newest first
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
+          child: Text(
+            'Daily Log'.tr,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textTitle,
+            ),
+          ),
+        ),
+        for (final date in sortedKeys) ...[
+          _DateHeader(date: date),
+          const SizedBox(height: 8),
+          for (final report in grouped[date]!) ...[
+            _DailyRow(report: report),
+            const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 8),
+        ],
+      ],
+    );
+  }
+}
+
+class _DateHeader extends StatelessWidget {
+  final String date;
+  const _DateHeader({required this.date});
+
+  String _format(String raw) {
+    try {
+      final dt = DateTime.parse(raw);
+      final locale = Get.locale?.toString() ?? 'en';
+      return DateFormat.yMMMMEEEEd(locale).format(dt);
+    } catch (_) {
+      return raw;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today_rounded,
+              size: 14, color: AppTheme.textMuted),
+          const SizedBox(width: 6),
+          Expanded(
             child: Text(
-              event.formattedDuration,
+              _format(date),
               style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF48BB78),
+                fontSize: 12,
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
               ),
             ),
           ),
@@ -328,194 +552,158 @@ class AttendanceReportPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildDailyReportsSection() {
-    return Container(
-      margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12, right: 4),
-            child: Text(
-              'السجل اليومي',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D3748),
-              ),
-            ),
-          ),
-          ..._attendanceController.attendance!.dailyReports
-              .map((report) => _buildDailyReportCard(report))
-              .toList(),
-        ],
-      ),
-    );
+class _DailyRow extends StatelessWidget {
+  final DailyReport report;
+  const _DailyRow({required this.report});
+
+  bool get _isLate {
+    final m = RegExp(r'(\d{1,2}):(\d{2})').firstMatch(report.attendanceTime);
+    if (m == null) return false;
+    final hour = int.tryParse(m.group(1)!) ?? 0;
+    return hour > 8;
   }
 
-  Widget _buildDailyReportCard(DailyReport report) {
+  @override
+  Widget build(BuildContext context) {
+    final Color statusColor = _isLate ? AppTheme.warning : AppTheme.success;
+    final String statusLabel = _isLate ? 'Late'.tr : 'On Time'.tr;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
       ),
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF7FAFC),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.calendar_today,
-                        color: Color(0xFF4299E1),
-                        size: 18,
-                      ),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    report.eventName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textTitle,
                     ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _formatDate(report.date),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D3748),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          report.eventName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF718096),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4299E1).withOpacity(0.1),
+                    color: statusColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    report.formattedDuration,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4299E1),
+                    statusLabel,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ],
             ),
           ),
+          Container(
+            height: 0.7,
+            color: AppTheme.line,
+          ),
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTimeInfo(
-                        icon: Icons.login,
-                        label: 'وقت الدخول',
-                        time: report.attendanceTime,
-                        color: const Color(0xFF48BB78),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildTimeInfo(
-                        icon: Icons.logout,
-                        label: 'وقت الخروج',
-                        time: report.departureTime,
-                        color: const Color(0xFFED8936),
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: _TimeBlock(
+                    icon: Icons.login_rounded,
+                    label: 'Check In'.tr,
+                    time: report.attendanceTime,
+                    color: AppTheme.success,
+                  ),
                 ),
-                if (report.sessions.length > 1) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Divider(height: 1, color: Color(0xFFE2E8F0)),
-                  ),
-                  _buildSessionsList(report.sessions),
-                ],
-                const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7FAFC),
-                    borderRadius: BorderRadius.circular(8),
+                  width: 0.7,
+                  height: 32,
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  color: AppTheme.line,
+                ),
+                Expanded(
+                  child: _TimeBlock(
+                    icon: Icons.logout_rounded,
+                    label: 'Check Out'.tr,
+                    time: report.departureTime,
+                    color: AppTheme.warning,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: Color(0xFF718096),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            report.zoneName,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF718096),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.analytics,
-                            size: 16,
-                            color: Color(0xFF718096),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${report.recordsCount} سجل',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF718096),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                ),
+                Container(
+                  width: 0.7,
+                  height: 32,
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  color: AppTheme.line,
+                ),
+                Expanded(
+                  child: _DurationBlock(
+                    label: 'Duration'.tr,
+                    value: report.formattedDuration,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (report.sessions.length > 1) ...[
+            Container(height: 0.7, color: AppTheme.line),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              child: _SessionsBlock(sessions: report.sessions),
+            ),
+          ],
+          Container(height: 0.7, color: AppTheme.line),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+            child: Row(
+              children: [
+                const Icon(Icons.place_outlined,
+                    size: 13, color: AppTheme.textMuted),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    report.zoneName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppTheme.textMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.bar_chart_rounded,
+                    size: 13, color: AppTheme.textMuted),
+                const SizedBox(width: 4),
+                Text(
+                  '${report.recordsCount} ${'Records'.tr}',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    color: AppTheme.textMuted,
+                    fontWeight: FontWeight.w500,
+                    fontFeatures: _tabular,
                   ),
                 ),
               ],
@@ -525,319 +713,211 @@ class AttendanceReportPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildTimeInfo({
-    required IconData icon,
-    required String label,
-    required String time,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
-              Text(
+class _TimeBlock extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String time;
+  final Color color;
+
+  const _TimeBlock({
+    required this.icon,
+    required this.label,
+    required this.time,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          time.isEmpty ? '—' : time,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textTitle,
+            fontFeatures: _tabular,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DurationBlock extends StatelessWidget {
+  final String label;
+  final String value;
+  const _DurationBlock({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.timelapse_rounded,
+                size: 12, color: AppTheme.brand),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  color: AppTheme.brand,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textTitle,
+            fontFeatures: _tabular,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SessionsBlock extends StatelessWidget {
+  final List<Session> sessions;
+  const _SessionsBlock({required this.sessions});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Sessions'.tr,
+          style: const TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.textMuted,
+            letterSpacing: 0.3,
+          ),
+        ),
+        const SizedBox(height: 6),
+        for (int i = 0; i < sessions.length; i++) ...[
+          _SessionRow(index: i + 1, session: sessions[i]),
+          if (i != sessions.length - 1) const SizedBox(height: 6),
+        ],
+      ],
+    );
+  }
+}
+
+class _SessionRow extends StatelessWidget {
+  final int index;
+  final Session session;
+  const _SessionRow({required this.index, required this.session});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool stillPresent = session.departure == 'Still present';
+    return Row(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: AppTheme.brand.withOpacity(0.12),
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '$index',
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.brand,
+              fontFeatures: _tabular,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Row(
+            children: [
+              Text(
+                session.attendance,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textTitle,
+                  fontFeatures: _tabular,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_forward_rounded,
+                  size: 12, color: AppTheme.textMuted),
+              const SizedBox(width: 4),
+              Text(
+                stillPresent ? 'Still present'.tr : session.departure,
                 style: TextStyle(
                   fontSize: 12,
-                  color: color,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  color: stillPresent
+                      ? AppTheme.success
+                      : AppTheme.textTitle,
+                  fontFeatures: _tabular,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            time,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppTheme.field,
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSessionsList(List<Session> sessions) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 8),
           child: Text(
-            'الجلسات',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
+            session.durationFormatted,
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.brand,
+              fontFeatures: _tabular,
             ),
           ),
         ),
-        ...sessions.asMap().entries.map((entry) {
-          int idx = entry.key;
-          Session session = entry.value;
-          return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7FAFC),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: const Color(0xFFE2E8F0),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4299E1).withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${idx + 1}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4299E1),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(
-                        session.attendance,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF2D3748),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Icon(
-                          Icons.arrow_back,
-                          size: 14,
-                          color: Color(0xFF718096),
-                        ),
-                      ),
-                      Text(
-                        session.departure,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: session.departure == 'Still present'
-                              ? const Color(0xFF48BB78)
-                              : const Color(0xFF2D3748),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    session.durationFormatted,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF4299E1),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
       ],
     );
   }
-
-  String _formatDate(String date) {
-    try {
-      final DateTime parsedDate = DateTime.parse(date);
-      final DateFormat formatter = DateFormat('EEEE، d MMMM yyyy', 'ar');
-      return formatter.format(parsedDate);
-    } catch (e) {
-      return date;
-    }
-  }
 }
-
-// Data Models
-// class AttendanceData {
-//   final int userId;
-//   final String userName;
-//   final List<DailyReport> dailyReports;
-//   final List<EventTotal> eventTotals;
-//   final int grandTotalHours;
-//   final int grandTotalMinutes;
-//   final String grandTotalFormatted;
-
-//   AttendanceData({
-//     required this.userId,
-//     required this.userName,
-//     required this.dailyReports,
-//     required this.eventTotals,
-//     required this.grandTotalHours,
-//     required this.grandTotalMinutes,
-//     required this.grandTotalFormatted,
-//   });
-
-//   factory AttendanceData.fromJson(Map<String, dynamic> json) {
-//     return AttendanceData(
-//       userId: json['user_id'],
-//       userName: json['user_name'],
-//       dailyReports: (json['daily_reports'] as List)
-//           .map((e) => DailyReport.fromJson(e))
-//           .toList(),
-//       eventTotals: (json['event_totals'] as List)
-//           .map((e) => EventTotal.fromJson(e))
-//           .toList(),
-//       grandTotalHours: json['grand_total_hours'],
-//       grandTotalMinutes: json['grand_total_minutes'],
-//       grandTotalFormatted: json['grand_total_formatted'],
-//     );
-//   }
-// }
-
-// class DailyReport {
-//   final String date;
-//   final String eventId;
-//   final String eventName;
-//   final String zoneName;
-//   final int totalHours;
-//   final double totalMinutes;
-//   final String formattedDuration;
-//   final String attendanceTime;
-//   final String departureTime;
-//   final List<Session> sessions;
-//   final int recordsCount;
-
-//   DailyReport({
-//     required this.date,
-//     required this.eventId,
-//     required this.eventName,
-//     required this.zoneName,
-//     required this.totalHours,
-//     required this.totalMinutes,
-//     required this.formattedDuration,
-//     required this.attendanceTime,
-//     required this.departureTime,
-//     required this.sessions,
-//     required this.recordsCount,
-//   });
-
-//   factory DailyReport.fromJson(Map<String, dynamic> json) {
-//     return DailyReport(
-//       date: json['date'],
-//       eventId: json['event_id'],
-//       eventName: json['event_name'],
-//       zoneName: json['zone_name'],
-//       totalHours: json['total_hours'],
-//       totalMinutes: json['total_minutes'].toDouble(),
-//       formattedDuration: json['formatted_duration'],
-//       attendanceTime: json['attendance_time'],
-//       departureTime: json['departure_time'],
-//       sessions:
-//           (json['sessions'] as List).map((e) => Session.fromJson(e)).toList(),
-//       recordsCount: json['records_count'],
-//     );
-//   }
-// }
-
-// class Session {
-//   final String attendance;
-//   final String departure;
-//   final double durationMinutes;
-//   final String durationFormatted;
-
-//   Session({
-//     required this.attendance,
-//     required this.departure,
-//     required this.durationMinutes,
-//     required this.durationFormatted,
-//   });
-
-//   factory Session.fromJson(Map<String, dynamic> json) {
-//     return Session(
-//       attendance: json['attendance'],
-//       departure: json['departure'],
-//       durationMinutes: json['duration_minutes'].toDouble(),
-//       durationFormatted: json['duration_formatted'],
-//     );
-//   }
-// }
-
-// class EventTotal {
-//   final String eventId;
-//   final String eventName;
-//   final double totalMinutes;
-//   final int daysCount;
-//   final int totalHours;
-//   final int remainingMinutes;
-//   final String formattedDuration;
-
-//   EventTotal({
-//     required this.eventId,
-//     required this.eventName,
-//     required this.totalMinutes,
-//     required this.daysCount,
-//     required this.totalHours,
-//     required this.remainingMinutes,
-//     required this.formattedDuration,
-//   });
-
-//   factory EventTotal.fromJson(Map<String, dynamic> json) {
-//     return EventTotal(
-//       eventId: json['event_id'],
-//       eventName: json['event_name'],
-//       totalMinutes: json['total_minutes'].toDouble(),
-//       daysCount: json['days_count'],
-//       totalHours: json['total_hours'],
-//       remainingMinutes: json['remaining_minutes'],
-//       formattedDuration: json['formatted_duration'],
-//     );
-//   }
-// }
-
-// Example usage:
-/*
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData(
-      fontFamily: 'Cairo', // Add Arabic font
-    ),
-    home: AttendanceReportPage(
-      data: AttendanceData.fromJson(yourJsonData['data']),
-    ),
-  ));
-}
-*/

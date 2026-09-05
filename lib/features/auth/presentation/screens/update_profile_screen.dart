@@ -1,6 +1,7 @@
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/auth/presentation/controllers/create_account_controller.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
@@ -129,9 +130,7 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(_primaryBlue),
-          ),
+          AppLoader.inline(color: _primaryBlue),
           const SizedBox(height: 16),
           Text(
             'جاري تحميل البيانات...',
@@ -572,13 +571,10 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (controller.isLoading) ...[
-                    const SizedBox(
+                    SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                      child: AppLoader.inline(size: 18, color: Colors.white),
                     ),
                     const SizedBox(width: 12),
                   ],

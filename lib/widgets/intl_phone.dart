@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:sagr/data/colors.dart';
+import 'package:sagr/theme/app_theme.dart';
 
 /// Professional International Phone Number Input Widget
 /// Supports RTL/LTR, country selection, and custom validation
@@ -146,16 +146,16 @@ class _IntlPhoneNumberInputState extends State<IntlPhoneNumberInput> {
             height: 50,
             decoration: BoxDecoration(
               color: widget.enabled
-                  ? (_isFocused ? theme.colorScheme.surface : Colors.grey[50])
-                  : Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
+                  ? AppTheme.field
+                  : AppTheme.field.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(AppTheme.radius),
               border: Border.all(
                 color: _validationError != null
-                    ? theme.colorScheme.error
+                    ? AppTheme.danger
                     : _isFocused
-                        ? theme.colorScheme.primary
-                        : Colors.grey[300]!,
-                width: _isFocused ? 2 : 1,
+                        ? AppTheme.brand
+                        : Colors.transparent,
+                width: (_validationError != null || _isFocused) ? 1.4 : 1,
               ),
             ),
             child: Row(
@@ -208,9 +208,9 @@ class _IntlPhoneNumberInputState extends State<IntlPhoneNumberInput> {
                 
                 // Divider
                 Container(
-                  height: 50,
+                  height: 24,
                   width: 1,
-                  color: Colors.grey[300],
+                  color: AppTheme.line,
                   margin: const EdgeInsets.symmetric(horizontal: 8),
                 ),
                 
@@ -236,19 +236,23 @@ class _IntlPhoneNumberInputState extends State<IntlPhoneNumberInput> {
                         // PhoneNumberFormatter(),
                       ],
                       decoration: InputDecoration(
-                        hintText: "Phone Number".tr,
-                        hintStyle: TextStyle(
-                          color: Colors.grey[400],
+                        hintText: _selectedCountry.placeholder,
+                        hintStyle: const TextStyle(
+                          color: AppTheme.textHint,
                           fontWeight: FontWeight.normal,
+                          letterSpacing: 1,
                         ),
-                        hintTextDirection: isRTL ? TextDirection.rtl : TextDirection.ltr,
+                        // Override the global inputDecorationTheme so the inner
+                        // field has no fill/border of its own (the parent
+                        // container provides those).
+                        filled: false,
+                        isCollapsed: true,
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.only(
-                          // left: isRTL ? 16 : 0,
-                          right: isRTL ? 16 : 16,
-                        //   top: 16,
-                        //   bottom: 16,
-                        ),
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
                         counterText: '',
                       ),
                       maxLength: _selectedCountry.maxLength,
@@ -259,8 +263,8 @@ class _IntlPhoneNumberInputState extends State<IntlPhoneNumberInput> {
                 // Clear Button
                 if (_controller.text.isNotEmpty && widget.enabled)
                   IconButton(
-                    icon: const Icon(Icons.clear, size: 20),
-                    color: Colors.grey[600],
+                    icon: const Icon(Icons.cancel, size: 18),
+                    color: AppTheme.textHint,
                     onPressed: () {
                       _controller.clear();
                       setState(() {
