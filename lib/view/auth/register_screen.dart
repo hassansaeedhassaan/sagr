@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../app/view_model/auth/register_controller.dart';
 import '../../data/colors.dart';
@@ -133,7 +134,7 @@ class RegisterScreen extends StatelessWidget {
                       ))),
                   Obx(() => Visibility(
                       visible: _controller.isLoading.value,
-                      child: const CircularProgressIndicator())),
+                      child: AppLoader.inline())),
                   CustomLinkButton(
                     text: "dnot_have_an_account".tr,
                     onPress: () {},

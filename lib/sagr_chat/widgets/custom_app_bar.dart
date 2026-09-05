@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sagr/data/colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -22,6 +23,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
+          color: BLACK_COLOR
         ),
       ),
       centerTitle: centerTitle,
@@ -29,6 +31,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
       elevation: 0,
       scrolledUnderElevation: 1,
+      backgroundColor: WHITE_COLOR,
+      // backgroundColor: Color(0xff092941),
     );
   }
 

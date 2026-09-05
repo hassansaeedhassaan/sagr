@@ -9,9 +9,23 @@ plugins {
 }
 
 
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+
+
+
 android {
-    namespace = "com.example.sagr"
-    compileSdk = flutter.compileSdkVersion
+    namespace = "com.etlaq.sagr"
+    // Pinned to 34: livekit_client 2.4.3 ships flutter_webrtc 0.13.1 whose
+    // SurfaceTextureRenderer doesn't implement SurfaceTexture.Callback's
+    // onSurfaceDestroyed() (added in API 35), so compileSdk 35 fails to build.
+    // livekit can't be bumped (path ^1.9.1 conflicts with flutter_test SDK pin).
+    compileSdk = 34
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -25,30 +39,46 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.sagr"
+        applicationId = "com.etlaq.sagr"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = 24
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+    
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             shrinkResources true
             minifyEnabled true
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-        // release {
-        //     shrinkResources true
-        //     minifyEnabled true
-        //     proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        // }
     }
+    
+
+    // buildTypes {
+    //     release {
+    //         shrinkResources true
+    //         minifyEnabled true
+    //         // TODO: Add your own signing config for the release build.
+    //         // Signing with the debug keys for now, so `flutter run --release` works.
+    //         signingConfig = signingConfigs.debug
+    //         proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    //     }
+      
+    // }
 }
 
 flutter {

@@ -25,11 +25,14 @@ class CommissionDataSourceImpl extends CommissionsDataSource {
         });
 
     if (response.statusCode == 200) {
-      final List<CommissionModel> customers = response.data['data']['wallet']
+      // Backend returns either a flat list in `data` or the legacy
+      // `data.wallet` map — support both.
+      final raw = response.data['data'];
+      final List items = raw is Map ? (raw['wallet'] ?? []) : (raw ?? []);
+      return items
           .map<CommissionModel>(
               (jsonPostModel) => CommissionModel.fromJson(jsonPostModel))
           .toList();
-      return customers;
     } else {
       throw ServerException();
     }

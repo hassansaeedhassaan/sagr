@@ -1,4 +1,6 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
@@ -148,15 +150,30 @@ class EventApplyController extends GetxController {
     if (periodId == 0) {
       // handle empty job id.
       errors['period'] = "Period Select Error".tr;
+      _isLoading.value = false;
     } else {
       errors.remove('period');
     }
 
-    if (languages.isEmpty) {
-      errors['language'] = "You Should Select Minium One Language".tr;
+if (!terms) {
+      // handle empty job id.
+      errors['terms'] = "Please read and agree terms and conditions".tr;
     } else {
-      errors.remove('language');
+      errors.remove('terms');
     }
+
+if (!promise) {
+      // handle empty job id.
+      errors['promise'] = "Please Confirm your promise".tr;
+    } else {
+      errors.remove('promise');
+    }
+
+    // if (languages.isEmpty) {
+    //   errors['language'] = "You Should Select Minium One Language".tr;
+    // } else {
+    //   errors.remove('language');
+    // }
     update();
   }
 
@@ -168,6 +185,8 @@ class EventApplyController extends GetxController {
     if (errors.isNotEmpty) {
       // print(errors);
 
+      _isLoading.value= false;
+
       return;
     }
 
@@ -175,11 +194,15 @@ class EventApplyController extends GetxController {
       'job_id': selectedJob.id,
       'event_id': Get.arguments,
       'notes': others ?? "",
-      'period': periodId,
-      'languages': languages
+      'period': periodId
     };
 
+
+    print(body);
+
     final failureOrEvent = await eventsUsecase.apply(body);
+
+    print(failureOrEvent);
 
     failureOrEvent.fold((failure) {
       _isLoading.value = false;

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/events/presentation/controllers/event_calender_controller.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 
 class EventsCalenderScreen extends StatefulWidget {
@@ -32,9 +33,7 @@ final EventCalendarController _controller = Get.put(EventCalendarController(Get.
   Widget build(BuildContext context) {
     return  Scaffold(
       appBar: AppBar(title: Text("Event Calendar")),
-      body: Obx(() => _controller.isLoading? Center(
-        child: CircularProgressIndicator(),
-      ) : Column(
+      body: Obx(() => _controller.isLoading? AppLoader.box(height: 320) : Column(
         children: [
           // Calendar Widget
           TableCalendar(

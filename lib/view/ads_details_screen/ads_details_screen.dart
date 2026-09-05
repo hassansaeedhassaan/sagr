@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 import 'package:sagr/data/colors.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:sagr/features/chat/presentation/controllers/conversations_controller.dart';
 import 'package:sagr/features/comments/data/models/comment_model.dart';
@@ -15,6 +16,7 @@ import 'package:sagr/features/products/presentation/widgets/product_item.dart';
 import 'package:sagr/view/feature_ads_page/widgets/userprofile_item_widget.dart';
 import 'package:sagr/view/widgets/Forms/easy_app_text_form_field.dart';
 
+import 'package:sagr/theme/app_theme.dart';
 import '../../theme/custom_button_style.dart';
 import '../../widgets/app_bar/appbar_leading_image.dart';
 import '../../widgets/app_bar/appbar_subtitle.dart';
@@ -62,17 +64,15 @@ class AdsDetailsScreen extends StatelessWidget {
               // title: Text("a kasjd j"),
               title: Text("Ad Details".tr),
               scrolledUnderElevation: 0,
-              backgroundColor: WHITE_COLOR,
+              backgroundColor: AppTheme.surface,
             ),
             body: controller.productsLoading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
+                ? AppLoader.list()
                 : SizedBox(
                     width: SizeUtils.width,
                     child: SingleChildScrollView(
                         child: controller.productsLoading
-                            ? CircularProgressIndicator()
+                            ? AppLoader.box(height: 180)
                             : Column(children: [
                                 // _buildComponent(context),
                                 // SizedBox(height: 22.v),
@@ -313,10 +313,14 @@ class AdsDetailsScreen extends StatelessWidget {
                                           "Related ",
                                           style: TextStyle(
                                               fontSize: 18,
-                                              fontWeight: FontWeight.w600),
+                                              fontWeight: FontWeight.w600,
+                                              color: AppTheme.textTitle),
                                         ),
                                         InkWell(
-                                          child: Text("See More"),
+                                          child: Text("See More",
+                                              style: TextStyle(
+                                                  color: AppTheme.brand,
+                                                  fontWeight: FontWeight.w600)),
                                         )
                                       ],
                                     ),
@@ -822,7 +826,7 @@ class AdsDetailsScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.0),
                       ),
-                      side: BorderSide(width: 1.0, color: Color(0XFFD20653)),
+                      side: BorderSide(width: 1.0, color: AppTheme.brand),
                     ),
                     text: "What's app",
                     margin: EdgeInsets.only(left: 0.h),
@@ -972,7 +976,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                                   width: 50,
                                                   child: Icon(
                                                     Icons.send,
-                                                    color: GREY_COLOR,
+                                                    color: AppTheme.textMuted,
                                                   ),
                                                 ),
                                               )
@@ -1154,10 +1158,10 @@ class AdsDetailsScreen extends StatelessWidget {
                 return Container(
                   padding: EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
-                      color: WHITE_COLOR,
+                      color: AppTheme.surface,
                       borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(10),
-                          topRight: Radius.circular(10))),
+                          topLeft: Radius.circular(AppTheme.radiusSm),
+                          topRight: Radius.circular(AppTheme.radiusSm))),
                   child: Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(
                         10, 10, 10, MediaQuery.of(context).viewInsets.bottom),
@@ -1227,7 +1231,7 @@ class AdsDetailsScreen extends StatelessWidget {
                         insetPadding: const EdgeInsets.all(15),
                         content: Container(
                           decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppTheme.surface,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(10.0))),
                           child: SizedBox(
@@ -1243,7 +1247,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                     child: Container(
                                       padding: EdgeInsets.all(4),
                                       decoration: BoxDecoration(
-                                          color: WHITE_COLOR,
+                                          color: AppTheme.surface,
                                           borderRadius:
                                               BorderRadius.circular(50)),
                                       child: SizedBox(
@@ -1346,8 +1350,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                                       ),
                                                       side: BorderSide(
                                                           width: 1.0,
-                                                          color: Color(
-                                                              0XFFD20653)),
+                                                          color: AppTheme.brand),
                                                     ),
                                                     onPressed: () =>
                                                         Navigator.pop(context),
@@ -1560,7 +1563,7 @@ Widget _buildSendOfferButton(Product product, BuildContext context) {
                         insetPadding: const EdgeInsets.all(15),
                         content: Container(
                           decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppTheme.surface,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(10.0))),
                           child: SizedBox(
@@ -1576,7 +1579,7 @@ Widget _buildSendOfferButton(Product product, BuildContext context) {
                                     child: Container(
                                       padding: EdgeInsets.all(4),
                                       decoration: BoxDecoration(
-                                          color: WHITE_COLOR,
+                                          color: AppTheme.surface,
                                           borderRadius:
                                               BorderRadius.circular(50)),
                                       child: SizedBox(
@@ -1632,7 +1635,7 @@ Widget _buildSendOfferButton(Product product, BuildContext context) {
                                           ),
                                           SizedBox(height: 10),
                                           Padding(
-                                            padding: const EdgeInsets.all(20.0),
+                                            padding: const EdgeInsets.all(16.0),
                                             child: EasyAppTextFormField(
                                               onChanged: (value) => _cntr.offerPrice = value!,
                                               hintText: "Offer Price",
@@ -1715,7 +1718,7 @@ class ProductPriceWidget extends StatelessWidget {
                       style: CustomTextStyles.bodySmall10))),
           Text(
             product!.price_type == "open_offer" ? "Open Offer".tr : "",
-            style: TextStyle(color: Colors.green),
+            style: TextStyle(color: AppTheme.success),
           ),
           product!.price_type == "open_offer"
               ? Row(

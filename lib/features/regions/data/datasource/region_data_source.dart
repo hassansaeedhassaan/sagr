@@ -17,14 +17,10 @@ class RegionsDataSourceImpl extends RegionsDataSource {
   @override
   Future<List<RegionModel>> getRegions(code) async{
     
-    var response = await dio.get("$BASEURL/regions", queryParameters: {
-      'code': code,
-    });
+    var response = await dio.get("$BASEURL/regions");
 
     if (response.statusCode == 200) {
-
-
-       final List<RegionModel> regions = response.data
+       final List<RegionModel> regions = response.data['data']
           .map<RegionModel>(
               (data) => RegionModel.fromJson(data))
           .toList();

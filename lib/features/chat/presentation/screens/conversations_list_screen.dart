@@ -14,6 +14,7 @@ import '../../../../widgets/custom_image_view.dart';
 import '../../../../widgets/custom_search_view.dart';
 
 import 'package:flutter/material.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 class ConversationListScreen extends StatelessWidget {
   final ConversationsController _controller;
@@ -62,7 +63,7 @@ class ConversationListScreen extends StatelessWidget {
                 textAlign: TextAlign.left,
               ),
             )),
-        body: Obx(() =>  _controller.isLoadingList == true ?  Center(child: CircularProgressIndicator(),) : _controller.conversations.length == 0
+        body: Obx(() =>  _controller.isLoadingList == true ?  AppLoader.list() : _controller.conversations.length == 0
             ? SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -118,7 +119,7 @@ class ConversationListScreen extends StatelessWidget {
                   ? Text("Pull up load")
                   : Text("");
             } else if (mode == LoadStatus.loading) {
-              body = CircularProgressIndicator();
+              body = AppLoader.inline();
             } else if (mode == LoadStatus.failed) {
               body = Text("Load Failed!Click retry!");
             } else if (mode == LoadStatus.canLoading) {

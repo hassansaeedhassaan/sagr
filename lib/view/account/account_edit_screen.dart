@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/utilities/local_storage/locale_storage.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/view/widgets/Forms/custom_text_form_field.dart';
 import 'package:sagr/view/widgets/common_app_bar.dart';
 import 'package:get/get.dart';
-import 'package:sagr/data/colors.dart';
+import 'package:sagr/theme/app_theme.dart';
 
 import '../../app/view_model/auth/account_controller.dart';
 import '../widgets/Forms/custom_button.dart';
@@ -20,17 +21,18 @@ class AccountEditScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffF8F8F8),
+      backgroundColor: AppTheme.scaffold,
       appBar: CommonAppBar(title: "Edit Account".tr),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Container(
-            margin: EdgeInsets.all(20),
-            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+            margin: EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
             decoration: BoxDecoration(
-                color: WHITE_COLOR,
-                borderRadius: BorderRadius.all(Radius.circular(6))),
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radius),
+                border: Border.all(color: AppTheme.line)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
@@ -48,8 +50,8 @@ class AccountEditScreen extends StatelessWidget {
                       // ),
                       Text(
                         "Edit Account Information".tr,
-                        style:
-                            TextStyle(fontSize: 14, color: Color(0xffBCBCBC)),
+                        style: TextStyle(
+                            fontSize: 14, color: AppTheme.textMuted),
                       )
                       // Padding(
                       //   padding:
@@ -178,11 +180,12 @@ class AccountEditScreen extends StatelessWidget {
                               height: 28,
                               width: 28,
                               decoration: BoxDecoration(
-                                  color: AMBER_COLOR.withOpacity(0.2),
+                                  color: AppTheme.brand.withOpacity(0.12),
                                   borderRadius: BorderRadius.circular(50)),
                               child: Icon(
                                 Icons.lock_outline_rounded,
                                 size: 18,
+                                color: AppTheme.brand,
                               ),
                             ),
                             Container(
@@ -194,7 +197,7 @@ class AccountEditScreen extends StatelessWidget {
                                 child: Text(
                                   " تغيير كلمة المرور ",
                                   style: TextStyle(
-                                      color: BLACK_COLOR,
+                                      color: AppTheme.textTitle,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600),
                                 ),
@@ -251,7 +254,7 @@ class AccountEditScreen extends StatelessWidget {
                     ))),
                 Obx(() => Visibility(
                     visible: _controller.isLoading,
-                    child: const CircularProgressIndicator())),
+                    child: AppLoader.inline())),
 
                 // const SizedBox(height: 25.0),
                 //    const AppLocaleSwitcher()

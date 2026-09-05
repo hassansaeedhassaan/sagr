@@ -28,7 +28,7 @@ class EasyAppPasswordFormField extends StatelessWidget {
       
             decoration: BoxDecoration(),
             child: TextFormField(
-              
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               onSaved: onSave,
               validator: onValidate,
               obscureText: obscureText,
@@ -39,11 +39,11 @@ class EasyAppPasswordFormField extends StatelessWidget {
                   filled: false,
                   fillColor: FILL_COLOR,
                   isDense: true,
-                  // suffixIcon: GestureDetector(
-                  //   child: Icon(
-                  //       obscureText ? Icons.visibility : Icons.visibility_off),
-                  //   onTap: onChangeTextSecure,
-                  // ),
+                  suffixIcon: GestureDetector(
+                    child: Icon(
+                        obscureText ? Icons.visibility : Icons.visibility_off),
+                    onTap: onChangeTextSecure,
+                  ),
                   border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12.0)),
               borderSide: BorderSide(color: Colors.transparent, width: 1)),

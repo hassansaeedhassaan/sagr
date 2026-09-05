@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sagr/helper/base_url.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -25,9 +26,8 @@ class NotificationService {
   bool _isFlutterLocalNotificationsInitialized = false;
 
   Future<void> initFCM() async {
-    String? token = await FirebaseMessaging.instance.getToken();
+    String? token = await FirebaseMessaging.instance.getAPNSToken();
     if (token != null) {
-      print("FCM Token: $token");
       await sendTokenToServer(token);
     }
 
@@ -38,8 +38,10 @@ class NotificationService {
 
   Future<void> sendTokenToServer(String token) async {
     try {
+
+     
       final response = await _dio.post(
-        'https://crowds.sa/api/v1/fcm-token',
+        '${BASEURL}/fcm-token',
         data: {'fcm_token': token},
         options: Options(
           headers: {
@@ -48,6 +50,8 @@ class NotificationService {
           },
         ),
       );
+
+   
 
       if (response.statusCode == 200) {
         print('✅ FCM token sent successfully');
@@ -60,7 +64,7 @@ class NotificationService {
   }
 
   Future<void> initialize() async {
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     // Request permission
     await _requestPermission();
@@ -173,6 +177,8 @@ class NotificationService {
   Future<void> _setupMessageHandlers() async {
     //foreground message
     FirebaseMessaging.onMessage.listen((message) {
+
+
 
       if ( message.data['type'] == 'message'){
         return;

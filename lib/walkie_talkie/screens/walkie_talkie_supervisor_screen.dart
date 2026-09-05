@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
+import 'package:sagr/walkie_talkie/services/walkie_token_service.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 
 
@@ -20,10 +22,9 @@ class _WalkieTalkieSupervisorScreenState extends State<WalkieTalkieSupervisorScr
       final EventController eventController = Get.put(EventController(Get.find()));
 
 
-  static const String appId = "3aa7d0944ad240e4acc7bff3e6a59a5f";
+  final WalkieTokenService _tokenService = WalkieTokenService();
+  WalkieTokenResult? _tokenResult;
 
-
-  
   late RtcEngine _engine;
   late RtcEngineEventHandler _eventHandler;
   bool _isJoined = false;
@@ -40,22 +41,19 @@ class _WalkieTalkieSupervisorScreenState extends State<WalkieTalkieSupervisorScr
   }
 
   Future<void> _initializeAgora() async {
-
-
-print("🔥🔥🔥🔥🔥🔥");
-print(eventController.event!.channel!.agoraToken);
-   
-
-    print("🔥🔥🔥🔥🔥🔥");
-
     // Request microphone permission
     await [Permission.microphone].request();
 
+    // Fetch a server-minted Agora token for the supervisor channel.
+    final tokenResult = await _tokenService
+        .fetchToken(eventController.event!.supervisorChannel!.channelName);
+    _tokenResult = tokenResult;
+
     // Create RTC engine
     _engine = createAgoraRtcEngine();
-    
+
     await _engine.initialize(RtcEngineContext(
-      appId: appId,
+      appId: tokenResult.appId,
       channelProfile: ChannelProfileType.channelProfileCommunication,
     ));
 
@@ -135,9 +133,9 @@ print(eventController.event!.channel!.agoraToken);
     });
 
     await _engine.joinChannel(
-      token: eventController.event!.supervisorChannel!.agoraToken, // Use token for production
+      token: _tokenResult!.token,
       channelId: eventController.event!.supervisorChannel!.channelName,
-      uid: 0,
+      uid: _tokenResult!.uid,
       options: const ChannelMediaOptions(
         channelProfile: ChannelProfileType.channelProfileCommunication,
         clientRoleType: ClientRoleType.clientRoleBroadcaster,
@@ -188,7 +186,7 @@ print(eventController.event!.channel!.agoraToken);
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Obx( () =>  eventController.isLoading? CircularProgressIndicator() : Text(
+        title: Obx( () =>  eventController.isLoading? AppLoader.inline(color: Colors.white) : Text(
            '${eventController.event!}',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         )) ,

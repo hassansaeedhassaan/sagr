@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:sagr/core/error/exceptions.dart';
+import 'package:sagr/features/education/data/models/education_model.dart';
 import 'package:sagr/helper/base_url.dart';
-import '../../../../core/error/exceptions.dart';
-import '../models/education_model.dart';
+
 
 abstract class EducationDataSource {
 

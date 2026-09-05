@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:get/get.dart';
-import 'package:sagr/features/events/presentation/controllers/event_controller%20copy.dart';
+import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
 
 class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({super.key});

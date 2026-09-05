@@ -1,8 +1,9 @@
 import 'package:get/get.dart';
+import 'package:sagr/features/education/data/datasource/education_data_source.dart';
+import 'package:sagr/features/education/data/repositories/education_repository_impl.dart';
+import 'package:sagr/features/education/domain/usecases/get_education.dart';
 
-import '../../data/datasource/education_data_source.dart';
-import '../../data/repositories/education_repository_impl.dart';
-import '../../domain/usecases/get_education.dart';
+
 
 class EducationsBindings implements Bindings {
   @override

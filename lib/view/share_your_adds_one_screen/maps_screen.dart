@@ -15,6 +15,7 @@ import 'package:sagr/features/products/domain/entities/product.dart';
 import 'dart:async';
 
 import 'package:sagr/view/share_your_adds_one_screen/widget_to_map_icon.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/utils/image_constant.dart';
@@ -332,7 +333,7 @@ class _MapsScreenState extends State<MapsScreen> {
           Expanded(
             child: !loading
                 ? Center(
-                    child: CircularProgressIndicator(),
+                    child: AppLoader.box(height: 180),
                   )
                 : GoogleMap(
                     zoomControlsEnabled: true,

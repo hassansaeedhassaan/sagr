@@ -17,7 +17,7 @@ class LanguagesDataSourceImpl extends LanguagesDataSource {
   @override
   Future<List<LanguageModel>> getLanguages() async{
     
-    var response = await dio.get('https://crowds.sa/api/v1/languages');
+    var response = await dio.get('$BASEURL/languages');
 
     if (response.statusCode == 200) {
 

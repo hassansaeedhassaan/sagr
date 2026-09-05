@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sagr/helper/top_status_bar_helper.dart';
 import 'package:sagr/view/widgets/bottom_navigation_bar.dart';
 
 class MasterWrapper extends StatelessWidget {
@@ -10,11 +11,11 @@ class MasterWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xffF8F8FA),
-      appBar: appBar,
-      body: SafeArea(child: body),
-      bottomNavigationBar: CustomBottomNavigationBar(),
+    return  Scaffold(
+        backgroundColor: Color(0xffF8F8FA),
+        appBar: appBar,
+        body: SafeArea(child: body),
+        bottomNavigationBar: CustomBottomNavigationBar(),
     );
   }
 }

@@ -25,8 +25,6 @@ class AuthRepository {
       //       "Bearer ${response.data['data']['access_token']['token']}";
       // }
 
-
-
       return response;
     } on DioException catch (e) {
       print(e);

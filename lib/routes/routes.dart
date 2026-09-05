@@ -1,11 +1,13 @@
 
 import 'package:get/get.dart';
 import 'package:sagr/features/ads/presentation/bindings/ads_bindings.dart';
-import 'package:sagr/features/ads_olllld/presentation/screens/ads_screen.dart';
+import 'package:sagr/features/attendance/presentation/bindings/attendance_bindings.dart';
 import 'package:sagr/features/auth/presentation/screens/login_screen.dart';
 import 'package:sagr/features/auth/presentation/screens/update_profile_screen.dart';
 import 'package:sagr/features/education/presentation/bindings/education_bindings.dart';
 import 'package:sagr/features/events/presentation/bindings/events_bindings.dart';
+import 'package:sagr/features/events/presentation/screens/all_events_screen.dart';
+import 'package:sagr/features/events/presentation/screens/attendance_report.dart';
 import 'package:sagr/features/events/presentation/screens/event_accept_screen.dart';
 import 'package:sagr/features/events/presentation/screens/event_apply_screen.dart';
 import 'package:sagr/features/events/presentation/screens/event_calender.dart';
@@ -18,11 +20,12 @@ import 'package:sagr/features/events/presentation/screens/prev_events_screen.dar
 import 'package:sagr/features/evocations/presentation/bindings/evocations_bindings.dart';
 import 'package:sagr/features/home/presentation/screens/home_screen.dart';
 import 'package:sagr/features/jobs/presentation/bindings/job_bindings.dart';
+import 'package:sagr/features/jobs/presentation/screens/all_jobs_screen.dart';
 import 'package:sagr/features/language/presentation/bindings/language_bindings.dart';
 import 'package:sagr/features/marital_status/presentation/bindings/marital_status_bindings.dart';
 import 'package:sagr/features/regions/presentation/bindings/region_bindings.dart';
 import 'package:sagr/sagr_chat/screens/home/home_screen.dart';
-import 'package:sagr/walkie_talkie/screens/walkie_talkie_screen_2.dart';
+import 'package:sagr/walkie_talkie/screens/livekit_walkie_screen.dart';
 import 'package:sagr/walkie_talkie/screens/walkie_talkie_supervisor_screen.dart';
 import '../bindings/application_binding.dart';
 import '../bindings/auth_bindings.dart';
@@ -152,7 +155,17 @@ final List<GetPage> routes = [
   GetPage(
       name: '/events',
       page: () => EventsScreen(),
-      bindings: [ApplicationBinding(), EventsBindings()]),
+      bindings: [ApplicationBinding(), EventsBindings(), JobBindings()]),
+
+  GetPage(
+      name: '/all_events',
+      page: () => AllEventsScreen(),
+      bindings: [ApplicationBinding(), EventsBindings(), JobBindings()]),
+
+  GetPage(
+      name: '/all_jobs',
+      page: () => const AllJobsScreen(),
+      bindings: [ApplicationBinding(), EventsBindings(), JobBindings()]),
 
 
 
@@ -166,7 +179,7 @@ final List<GetPage> routes = [
   GetPage(
       name: '/previous_events',
       page: () => PreviousEventsScreen(),
-      bindings: [ApplicationBinding(), EventsBindings()]),
+      bindings: [ApplicationBinding(), EventsBindings(), JobBindings()]),
 
   
 
@@ -188,7 +201,7 @@ final List<GetPage> routes = [
 
       GetPage(
       name: '/event_walkie_talkie',
-      page: () => WalkieTalkieScreen2(),
+      page: () => const LiveKitWalkieScreen(),
       bindings: [ApplicationBinding(), EventsBindings()]),
 
       GetPage(
@@ -314,7 +327,7 @@ final List<GetPage> routes = [
     //   binding: AuthBinding(),
     // ),
     GetPage(
-      name: AppRoutes.HOME,
+      name: '/sagr_chat',
       page: () => HomeScreenChat(),
       bindings:[ApplicationBinding(), ChatBinding()],
     ),
@@ -326,6 +339,12 @@ final List<GetPage> routes = [
     GetPage(
       name: AppRoutes.CONTACTS,
       page: () => ContactsScreen(),
+    ),
+
+    GetPage(
+      name: '/attendance/report',
+      page: () => AttendanceReportPage(),
+      bindings: [ApplicationBinding(),AttendanceBindings()]
     )
     
 

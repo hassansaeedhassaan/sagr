@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/products/presentation/controllers/product_controller.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
@@ -47,7 +48,7 @@ class ShareYourAddsTwoTabContainerScreenState
           init: ProductController(Get.find(), Get.find()),
           builder: (controller){
           return Container(
-          child: controller.productsLoading ? Center(child: CircularProgressIndicator()) : SizedBox(
+          child: controller.productsLoading ? AppLoader.list() : SizedBox(
             width: double.maxFinite,
             child: Column(
               children: [

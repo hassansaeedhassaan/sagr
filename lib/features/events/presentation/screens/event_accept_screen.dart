@@ -1,533 +1,777 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+
+import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
+import 'package:sagr/features/events/data/models/job_model.dart';
 import 'package:sagr/features/events/data/models/start_date_time_model.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
+import 'package:sagr/features/events/presentation/widgets/event_status_pill.dart';
+import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/utilities/map.dart';
+import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
-class EventAcceptScreen extends StatelessWidget {
+const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
+
+/// Accepted-application landing for an event. Premium, compact, celebratory.
+///
+/// Wires through [EventController] for event data and reuses the shared
+/// [EventBottomNavigation] + [EventStatusPill] design tokens. Countdown is
+/// driven by the server-provided [StartDateTimeModel] (days/hours/minutes/
+/// seconds) with a local 1-second tick so we no longer need the third-party
+/// `flutter_timer_countdown` package on this screen.
+class EventAcceptScreen extends StatefulWidget {
   const EventAcceptScreen({super.key});
+
+  @override
+  State<EventAcceptScreen> createState() => _EventAcceptScreenState();
+}
+
+class _EventAcceptScreenState extends State<EventAcceptScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _fade = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _fade.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<EventController>(
       init: EventController(Get.find()),
-      builder: (EventController eventController) {
+      builder: (eventController) {
+        final EventModel? event = eventController.event;
+        final bool loading = eventController.isLoading;
+
         return Scaffold(
-          backgroundColor: Colors.grey[50],
-          body: CustomScrollView(
-            slivers: [
-              // Modern App Bar with Cover Image
-              SliverAppBar(
-                expandedHeight: 280.0,
-                floating: false,
-                pinned: true,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                leading: Container(
-                  margin: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => Get.back(),
-                  ),
-                ),
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Cover Image with Gradient Overlay
-                      Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage("assets/images/cover.jpg"),
-                          ),
-                        ),
-                      ),
-                      // Gradient overlay for better text readability
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.4),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Main Content
-              SliverToBoxAdapter(
-                child: Container(
-                  margin: EdgeInsets.only(top: 20),
-                  child: Column(
-                    children: [
-                      // Event Header Card
-                      eventController.isLoading
-                          ? CircularProgressIndicator()
-                          : _buildEventHeaderCard(context, eventController),
-
-                      SizedBox(height: 24),
-
-                      // ID and Zone Information Card
-                      eventController.isLoading
-                          ? CircularProgressIndicator()
-                          : _buildInfoCard(context, eventController),
-
-                      SizedBox(height: 32),
-
-                      // Logo Section
-                      eventController.isLoading
-                          ? CircularProgressIndicator()
-                          : _buildLogoSection(),
-
-                      SizedBox(height: 32),
-
-                      // Text(eventController.event!.zoneCoordinates.toString()),
-                      // Countdown Timer
-                      eventController.isLoading
-                          ? CircularProgressIndicator()
-                          : !eventController.isLoading &&
-                                  eventController
-                                          .event!.startDateTime!.status ==
-                                      EventStatus.upcoming
-                              ? _buildCountdownTimer(eventController.event!)
-                              : Container(),
-
-                      SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
-             
-            ],
+          backgroundColor: AppTheme.scaffold,
+          appBar: AppBar(
+            title: Text('Welcome aboard'.tr),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              onPressed: () => Get.back<void>(),
+            ),
           ),
-
-        
-          // Modern Bottom Navigation
-          bottomNavigationBar: eventController.isLoading
-              ? Center(child: CircularProgressIndicator(),)
-              : eventController.event!.startDateTime!.status ==
-                          EventStatus.active &&
-                      eventController.event!.assigned == true
-                  ? _buildModernBottomNav(eventController.event!.id!)
-                  : null,
+          body: FadeTransition(
+            opacity: CurvedAnimation(parent: _fade, curve: Curves.easeOut),
+            child: loading || event == null
+                ? _buildLoading()
+                : _buildContent(context, event),
+          ),
+          bottomNavigationBar: loading || event == null
+              ? null
+              : EventBottomNavigation(
+                  active: EventNavTab.attendance,
+                  eventId: event.id?.toString(),
+                ),
         );
       },
     );
   }
 
-  Widget _buildEventHeaderCard(
-      BuildContext context, EventController eventController) {
+  // ---------------------------------------------------------------------------
+  // Loading state
+  // ---------------------------------------------------------------------------
+
+  Widget _buildLoading() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      children: [
+        AppLoader.box(height: 140, radius: AppTheme.radius),
+        const SizedBox(height: 16),
+        AppLoader.box(height: 110, radius: AppTheme.radius),
+        const SizedBox(height: 16),
+        AppLoader.box(height: 80, radius: AppTheme.radius),
+        const SizedBox(height: 16),
+        AppLoader.box(height: 120, radius: AppTheme.radius),
+        const SizedBox(height: 16),
+        AppLoader.box(height: 110, radius: AppTheme.radius),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Content
+  // ---------------------------------------------------------------------------
+
+  Widget _buildContent(BuildContext context, EventModel event) {
+    final List<JobModel> jobs = event.jobs ?? const <JobModel>[];
+    final int rolesCount = jobs.length;
+    final int shiftsCount = event.periods?.length ?? 0;
+    final String? description = (event.description ?? '').trim().isEmpty
+        ? null
+        : event.description!.trim();
+    final String? location = (event.location ?? '').trim().isEmpty
+        ? null
+        : event.location!.trim();
+    final StartDateTimeModel? sdt = event.startDateTime;
+    final bool showCountdown = sdt != null && sdt.status == EventStatus.upcoming;
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      children: [
+        _HeroCard(eventName: event.name ?? ''),
+        const SizedBox(height: 16),
+
+        _StatusRow(),
+        const SizedBox(height: 16),
+
+        if (showCountdown) ...[
+          _CountdownCard(startDateTime: sdt),
+          const SizedBox(height: 16),
+        ],
+
+        _QuickStats(
+          date: event.date,
+          time: event.time,
+          roles: rolesCount,
+          shifts: shiftsCount,
+        ),
+        const SizedBox(height: 16),
+
+        if (location != null) ...[
+          _LocationCard(location: location, address: event.address),
+          const SizedBox(height: 16),
+        ],
+
+        if (description != null) ...[
+          _AboutCard(description: description),
+          const SizedBox(height: 16),
+        ],
+
+        if (jobs.isNotEmpty) ...[
+          _RolesChips(jobs: jobs),
+          const SizedBox(height: 20),
+        ],
+
+        _PrimaryCta(),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+}
+
+// =============================================================================
+// Hero card — teal brand gradient with success accent.
+// =============================================================================
+
+class _HeroCard extends StatelessWidget {
+  final String eventName;
+  const _HeroCard({required this.eventName});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
-      padding: EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.brand, AppTheme.brandDark],
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            spreadRadius: 0,
-            blurRadius: 20,
-            offset: Offset(0, 4),
+            color: AppTheme.brand.withOpacity(0.20),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
-          // Event Icon
           Container(
-            padding: EdgeInsets.all(16),
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue[400]!, Colors.purple[400]!],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
+              color: WHITE_COLOR.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              border: Border.all(color: WHITE_COLOR.withOpacity(0.25)),
             ),
-            child: Icon(
-              Icons.celebration_outlined,
-              color: Colors.white,
+            child: const Icon(
+              Icons.verified_rounded,
+              color: WHITE_COLOR,
               size: 28,
             ),
           ),
-
-          SizedBox(width: 16),
-
-          // Event Details
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "${eventController.event?.name!}",
+                  'Application accepted'.tr,
                   style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: WHITE_COLOR.withOpacity(0.92),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  "${eventController.event?.date}",
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                  eventName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: WHITE_COLOR,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    height: 1.25,
                   ),
                 ),
               ],
             ),
           ),
-
-          // Forward Arrow
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey[600],
-              size: 16,
-            ),
-          ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildInfoCard(BuildContext context, EventController eventController) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            spreadRadius: 0,
-            blurRadius: 25,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: EdgeInsets.all(28),
-          child: Column(
-            children: [
-              // Employee ID Row
-              eventController.isLoading
-                  ? CircularProgressIndicator()
-                  : _buildInfoRow(
-                      "الرقم الوظيفي",
-                      eventController.event!.nationalID!.toString(),
-                      Icons.badge_outlined,
-                      Colors.blue,
-                    ),
+// =============================================================================
+// Status row — prominent accepted pill.
+// =============================================================================
 
-              SizedBox(height: 20),
-
-              // Divider
-              Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Colors.grey[300]!,
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              // Zone Row
-              _buildInfoRow(
-                "الزون",
-                "3",
-                Icons.location_on_outlined,
-                Colors.green,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, IconData icon, Color color) {
+class _StatusRow extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Row(
-      children: [
-        // Icon
-        Container(
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 20,
-          ),
-        ),
-
-        SizedBox(width: 16),
-
-        // Label
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
-          ),
-        ),
-
-        // Value
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color.withOpacity(0.8), color],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            value,
-            textDirection: TextDirection.rtl,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
+      children: const [
+        EventStatusPill(status: 'accepted'),
       ],
     );
   }
+}
 
-  Widget _buildLogoSection() {
-    return Container(
-      padding: EdgeInsets.all(20),
-      child: Container(
-        padding: EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              spreadRadius: 0,
-              blurRadius: 15,
-              offset: Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Image.asset(
-          'assets/images/sagr-logo.png',
-          width: 120,
-          height: 60,
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
+// =============================================================================
+// Countdown — local 1-second tick driven by StartDateTimeModel.
+// =============================================================================
+
+class _CountdownCard extends StatefulWidget {
+  final StartDateTimeModel startDateTime;
+  const _CountdownCard({required this.startDateTime});
+
+  @override
+  State<_CountdownCard> createState() => _CountdownCardState();
+}
+
+class _CountdownCardState extends State<_CountdownCard> {
+  late StartDateTimeModel _value;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.startDateTime;
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        _value = _value.copyWithDecrementedSecond();
+      });
+      if (_value.isPast) _timer?.cancel();
+    });
   }
 
-  Widget _buildCountdownTimer(EventModel event) {
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
-      padding: EdgeInsets.all(28),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.deepPurple[400]!,
-            Colors.blue[600]!,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.3),
-            spreadRadius: 0,
-            blurRadius: 20,
-            offset: Offset(0, 10),
+            color: AppTheme.navy.withOpacity(0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "الوقت المتبقي",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 16),
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child: TimerCountdown(
-              daysDescription: "Days".tr,
-              secondsDescription: "Seconds".tr,
-              minutesDescription: "Minutes".tr,
-              hoursDescription: "Hours".tr,
-              format: CountDownTimerFormat.daysHoursMinutesSeconds,
-              endTime: DateTime.now().add(
-                Duration(
-                  days: event.startDateTime!.days,
-                  hours: event.startDateTime!.hours,
-                  minutes: event.startDateTime!.minutes,
-                  seconds: event.startDateTime!.seconds,
+          Row(
+            children: [
+              const Icon(Icons.timer_outlined,
+                  size: 18, color: AppTheme.brand),
+              const SizedBox(width: 8),
+              Text(
+                'Event starts in'.tr,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textMuted,
                 ),
               ),
-              onEnd: () {
-                print("Timer finished");
-              },
+            ],
+          ),
+          const SizedBox(height: 12),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              children: [
+                Expanded(child: _TimePill(value: _value.days, label: 'days'.tr)),
+                const SizedBox(width: 8),
+                Expanded(
+                    child: _TimePill(value: _value.hours, label: 'hours'.tr)),
+                const SizedBox(width: 8),
+                Expanded(
+                    child:
+                        _TimePill(value: _value.minutes, label: 'minutes'.tr)),
+                const SizedBox(width: 8),
+                Expanded(
+                    child:
+                        _TimePill(value: _value.seconds, label: 'seconds'.tr)),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildNavItem(IconData icon, String label, bool isCenter) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.all(isCenter ? 15 : 0),
-          decoration: BoxDecoration(
-            color: isCenter ? Colors.indigo.shade600 : Colors.transparent,
-            borderRadius: BorderRadius.circular(isCenter ? 25 : 8),
-            boxShadow: isCenter
-                ? [
-                    BoxShadow(
-                      color: Colors.indigo.withOpacity(0.3),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
+class _TimePill extends StatelessWidget {
+  final int value;
+  final String label;
+  const _TimePill({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final String txt = value.toString().padLeft(2, '0');
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.brand.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(color: AppTheme.brand.withOpacity(0.18)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            txt,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.navy,
+              fontFeatures: _tabular,
+              height: 1.0,
+            ),
           ),
-          child: Icon(
-            icon,
-            color: isCenter ? Colors.white : Colors.grey.shade600,
-            size: isCenter ? 24 : 30,
-          ),
-        ),
-        if (!isCenter) ...[
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textMuted,
+              height: 1.0,
             ),
           ),
         ],
-      ],
+      ),
     );
   }
+}
 
-  Widget _buildModernBottomNav(int eventId) {
+// =============================================================================
+// Quick stats — 4 inline tiles (Date / Time / Roles / Shifts).
+// =============================================================================
+
+class _QuickStats extends StatelessWidget {
+  final String? date;
+  final String? time;
+  final int roles;
+  final int shifts;
+
+  const _QuickStats({
+    required this.date,
+    required this.time,
+    required this.roles,
+    required this.shifts,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.all(20),
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 0,
-            blurRadius: 20,
-            offset: Offset(0, -5),
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatTile(
+              icon: Icons.event_outlined,
+              label: 'Date'.tr,
+              value: _shortDate(date) ?? '—',
+            ),
+          ),
+          _divider(),
+          Expanded(
+            child: _StatTile(
+              icon: Icons.schedule_rounded,
+              label: 'Time'.tr,
+              value: time ?? '—',
+            ),
+          ),
+          _divider(),
+          Expanded(
+            child: _StatTile(
+              icon: Icons.work_outline_rounded,
+              label: 'Roles'.tr,
+              value: roles.toString(),
+            ),
+          ),
+          _divider(),
+          Expanded(
+            child: _StatTile(
+              icon: Icons.access_time_rounded,
+              label: 'Shifts'.tr,
+              value: shifts.toString(),
+            ),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+    );
+  }
+
+  Widget _divider() => Container(
+        width: 1,
+        height: 32,
+        color: AppTheme.line,
+      );
+
+  String? _shortDate(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    // Try to parse as ISO; fall back to whatever was provided.
+    try {
+      final DateTime dt = DateTime.parse(raw);
+      return DateFormat('d MMM').format(dt);
+    } catch (_) {
+      return raw;
+    }
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _StatTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          InkWell(
-              // onTap: () => Get.to(() => WalkieTalkieScreen2()),
-              onTap: () =>
-                  Get.toNamed('/event_walkie_talkie', arguments: eventId),
-              child: _buildNavItem(
-                  Icons.phone_in_talk_rounded, "واكي توكي", false)),
-          InkWell(
-              onTap: () => Get.toNamed("/attendance_screen"),
-              // onTap: ()=> Get.toNamed("/attendance_screen"),
-              child: _buildNavItem(
-                  Icons.campaign_outlined, "الحضور والإنصراف", false)),
-          // _buildNavItem(Icons.celebration_outlined, "", true), // Center highlighted item
-          _buildNavItem(Icons.notifications_outlined, "التنبيهات", false),
-          _buildNavItem(Icons.chat_bubble_outline, "الدردشة", false),
+          Icon(icon, size: 18, color: AppTheme.brand),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textTitle,
+              fontFeatures: _tabular,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textMuted,
+              height: 1.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Location card — opens external maps app.
+// =============================================================================
+
+class _LocationCard extends StatelessWidget {
+  final String location;
+  final String? address;
+
+  const _LocationCard({required this.location, this.address});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool hasAddress = (address ?? '').trim().isNotEmpty;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppTheme.radius),
+          onTap: () => MapsUtils.openMap(location),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brand.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  ),
+                  child: const Icon(Icons.place_outlined,
+                      color: AppTheme.brand, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Location'.tr,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textTitle,
+                        ),
+                      ),
+                      if (hasAddress) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          address!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.brand,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.map_outlined,
+                          size: 14, color: WHITE_COLOR),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Open'.tr,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: WHITE_COLOR,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// About card — event description.
+// =============================================================================
+
+class _AboutCard extends StatelessWidget {
+  final String description;
+  const _AboutCard({required this.description});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_outline_rounded,
+                  size: 18, color: AppTheme.brand),
+              const SizedBox(width: 8),
+              Text(
+                'About'.tr,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textTitle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            description,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: AppTheme.textBody,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Roles chips — JobModel.name list.
+// =============================================================================
+
+class _RolesChips extends StatelessWidget {
+  final List<JobModel> jobs;
+  const _RolesChips({required this.jobs});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.work_outline_rounded,
+                  size: 18, color: AppTheme.brand),
+              const SizedBox(width: 8),
+              Text(
+                'Roles'.tr,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textTitle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: jobs.map((j) => _roleChip(j)).toList(growable: false),
+          ),
         ],
       ),
     );
   }
 
-  // Widget _buildNavItem(IconData icon, String label, bool isActive) {
-  //   return Container(
-  //     padding: EdgeInsets.symmetric(vertical: 8, horizontal: isActive ? 16 : 8),
-  //     decoration: BoxDecoration(
-  //       gradient: isActive
-  //           ? LinearGradient(
-  //               colors: [Colors.blue[400]!, Colors.purple[400]!],
-  //               begin: Alignment.topLeft,
-  //               end: Alignment.bottomRight,
-  //             )
-  //           : null,
-  //       borderRadius: BorderRadius.circular(16),
-  //     ),
-  //     child: Column(
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: [
-  //         Icon(
-  //           icon,
-  //           color: isActive ? Colors.white : Colors.grey[600],
-  //           size: isActive ? 24 : 20,
-  //         ),
-  //         if (label.isNotEmpty) ...[
-  //           SizedBox(height: 4),
-  //           Text(
-  //             label,
-  //             style: TextStyle(
-  //               fontSize: 11,
-  //               fontWeight: FontWeight.w500,
-  //               color: isActive ? Colors.white : Colors.grey[600],
-  //             ),
-  //           ),
-  //         ],
-  //       ],
-  //     ),
-  //   );
-  // }
+  Widget _roleChip(JobModel job) {
+    final String label = (job.displayName?.isNotEmpty ?? false)
+        ? job.displayName!
+        : job.name;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.brand.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.brand.withOpacity(0.18)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.brandDark,
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Primary CTA — Go to attendance.
+// =============================================================================
+
+class _PrimaryCta extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton.icon(
+        onPressed: () => Get.toNamed<void>('/attendance_screen'),
+        icon: const Icon(Icons.campaign_rounded, size: 20),
+        label: Text(
+          'Go to attendance'.tr,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
 }

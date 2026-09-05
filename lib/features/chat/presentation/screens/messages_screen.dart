@@ -7,6 +7,7 @@ import 'package:sagr/features/chat/data/models/message_model.dart';
 import 'package:sagr/features/chat/presentation/controllers/messages_controller.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../../../core/utils/image_constant.dart';
 import '../../../../theme/app_decoration.dart';
@@ -141,7 +142,7 @@ class MessagesScreen extends StatelessWidget {
                               ? Text("Pull up load")
                               : Text("");
                         } else if (mode == LoadStatus.loading) {
-                          body = CircularProgressIndicator();
+                          body = AppLoader.inline();
                         } else if (mode == LoadStatus.failed) {
                           body = Text("Load Failed!Click retry!");
                         } else if (mode == LoadStatus.canLoading) {

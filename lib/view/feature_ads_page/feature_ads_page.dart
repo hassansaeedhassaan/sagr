@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/features/featured/presentation/controllers/featured_ads_controller.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -21,7 +22,7 @@ import '../feature_ads_page/widgets/userprofile_item_widget.dart';
 
 import 'package:flutter/material.dart';
 
-import '../home_three_screen/home_three_screen.dart';
+import '../home_three_screen/widgets/most_viewed_dropdown.dart';
 
 // ignore_for_file: must_be_immutable
 class FeatureAdsPage extends StatelessWidget {
@@ -619,7 +620,7 @@ class SearchResults extends StatelessWidget {
                                 bottomRight: Radius.circular(12))),
                         width: MediaQuery.of(context).size.width,
                         height: 500,
-                        child: _featuredController.searchLoading == true  ? Center(child:  CircularProgressIndicator(),) :Column(
+                        child: _featuredController.searchLoading == true  ? AppLoader.list() :Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

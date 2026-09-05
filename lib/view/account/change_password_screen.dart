@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sagr/app/view_model/auth/change_password_controller.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/view/auth/widgets/Forms/label_text_form_field.dart';
 import 'package:sagr/view/widgets/common_app_bar.dart';
 import 'package:get/get.dart';
 import 'package:sagr/data/colors.dart';
+import 'package:sagr/theme/app_theme.dart';
 import '../widgets/Forms/custom_button.dart';
 
 class ChangePassworsScreen extends StatelessWidget {
@@ -19,17 +21,18 @@ class ChangePassworsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffF8F8F8),
+      backgroundColor: AppTheme.scaffold,
       appBar: CommonAppBar(title: "Change Password".tr),
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Container(
-            margin: EdgeInsets.all(20),
-            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+            margin: EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
             decoration: BoxDecoration(
-                color: WHITE_COLOR,
-                borderRadius: BorderRadius.all(Radius.circular(6))),
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radius),
+                border: Border.all(color: AppTheme.line)),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
@@ -89,61 +92,56 @@ class ChangePassworsScreen extends StatelessWidget {
                                     !_controller.obscureText.value
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: GREY_COLOR,
+                                    color: AppTheme.textMuted,
                                     size: 20,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.only(
-                                    top: 15,
-                                    right: 10.0,
-                                    bottom: 10,
-                                    left: 20.0),
-                                border: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10.0),
-                                  ),
-                                  borderSide: BorderSide(
-                                      color:
-                                          Color.fromARGB(255, 255, 154, 147)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
+                                  borderSide:
+                                      const BorderSide(color: AppTheme.line),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color(0xffeeeeee), width: 1.0),
+                                      color: AppTheme.brand, width: 1.4),
                                 ),
-                                errorStyle: TextStyle(
+                                errorStyle: const TextStyle(
                                     overflow: TextOverflow.fade,
-                                    color: Color.fromARGB(255, 204, 11, 11),
+                                    color: AppTheme.danger,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                     height: 0.8),
                                 errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color.fromARGB(255, 255, 0, 0),
-                                      width: 1.0),
+                                      color: AppTheme.danger, width: 1.2),
                                 ),
                                 focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color.fromRGBO(255, 0, 0, 1),
-                                      width: 1.0),
+                                      color: AppTheme.danger, width: 1.2),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xffeeeeee),
-                                    width: 1.0,
-                                  ),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
+                                  borderSide:
+                                      const BorderSide(color: AppTheme.line),
                                 ),
                                 filled: true,
                                 hintStyle: const TextStyle(
                                     fontSize: 12.0,
-                                    color: Colors.grey,
+                                    color: AppTheme.textHint,
                                     letterSpacing: 1,
                                     fontWeight: FontWeight.w500),
                                 hintText: "●●●●●●●●●●●",
-                                fillColor: Colors.white70),
+                                fillColor: AppTheme.field),
                           ))
                     ],
                   ),
@@ -184,61 +182,56 @@ class ChangePassworsScreen extends StatelessWidget {
                                     !_controller.obscureTextNewPssword.value
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: GREY_COLOR,
+                                    color: AppTheme.textMuted,
                                     size: 20,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.only(
-                                    top: 15,
-                                    right: 10.0,
-                                    bottom: 10,
-                                    left: 20.0),
-                                border: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10.0),
-                                  ),
-                                  borderSide: BorderSide(
-                                      color:
-                                          Color.fromARGB(255, 255, 154, 147)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
+                                  borderSide:
+                                      const BorderSide(color: AppTheme.line),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color(0xffeeeeee), width: 1.0),
+                                      color: AppTheme.brand, width: 1.4),
                                 ),
-                                errorStyle: TextStyle(
+                                errorStyle: const TextStyle(
                                     overflow: TextOverflow.fade,
-                                    color: Color.fromARGB(255, 204, 11, 11),
+                                    color: AppTheme.danger,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                     height: 0.8),
                                 errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color.fromARGB(255, 255, 0, 0),
-                                      width: 1.0),
+                                      color: AppTheme.danger, width: 1.2),
                                 ),
                                 focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color.fromRGBO(255, 0, 0, 1),
-                                      width: 1.0),
+                                      color: AppTheme.danger, width: 1.2),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xffeeeeee),
-                                    width: 1.0,
-                                  ),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
+                                  borderSide:
+                                      const BorderSide(color: AppTheme.line),
                                 ),
                                 filled: true,
                                 hintStyle: const TextStyle(
                                     fontSize: 12.0,
-                                    color: Colors.grey,
+                                    color: AppTheme.textHint,
                                     letterSpacing: 1,
                                     fontWeight: FontWeight.w500),
                                 hintText: "●●●●●●●●●●●",
-                                fillColor: Colors.white70),
+                                fillColor: AppTheme.field),
                           ))
                     ],
                   ),
@@ -279,61 +272,56 @@ class ChangePassworsScreen extends StatelessWidget {
                                     !_controller.obscureTextConfirmPssword.value
                                         ? Icons.visibility_outlined
                                         : Icons.visibility_off_outlined,
-                                    color: GREY_COLOR,
+                                    color: AppTheme.textMuted,
                                     size: 20,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.only(
-                                    top: 15,
-                                    right: 10.0,
-                                    bottom: 10,
-                                    left: 20.0),
-                                border: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10.0),
-                                  ),
-                                  borderSide: BorderSide(
-                                      color:
-                                          Color.fromARGB(255, 255, 154, 147)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
+                                  borderSide:
+                                      const BorderSide(color: AppTheme.line),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color(0xffeeeeee), width: 1.0),
+                                      color: AppTheme.brand, width: 1.4),
                                 ),
-                                errorStyle: TextStyle(
+                                errorStyle: const TextStyle(
                                     overflow: TextOverflow.fade,
-                                    color: Color.fromARGB(255, 204, 11, 11),
+                                    color: AppTheme.danger,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                     height: 0.8),
                                 errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color.fromARGB(255, 255, 0, 0),
-                                      width: 1.0),
+                                      color: AppTheme.danger, width: 1.2),
                                 ),
                                 focusedErrorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
                                   borderSide: const BorderSide(
-                                      color: Color.fromRGBO(255, 0, 0, 1),
-                                      width: 1.0),
+                                      color: AppTheme.danger, width: 1.2),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xffeeeeee),
-                                    width: 1.0,
-                                  ),
+                                  borderRadius:
+                                      BorderRadius.circular(AppTheme.radius),
+                                  borderSide:
+                                      const BorderSide(color: AppTheme.line),
                                 ),
                                 filled: true,
                                 hintStyle: const TextStyle(
                                     fontSize: 12.0,
-                                    color: Colors.grey,
+                                    color: AppTheme.textHint,
                                     letterSpacing: 1,
                                     fontWeight: FontWeight.w500),
                                 hintText: "●●●●●●●●●●●",
-                                fillColor: Colors.white70),
+                                fillColor: AppTheme.field),
                           ))
                     ],
                   ),
@@ -386,7 +374,7 @@ class ChangePassworsScreen extends StatelessWidget {
                     ))),
                 Obx(() => Visibility(
                     visible: _controller.isLoading.value,
-                    child: const CircularProgressIndicator())),
+                    child: AppLoader.inline())),
 
                 // const SizedBox(height: 25.0),
                 //    const AppLocaleSwitcher()

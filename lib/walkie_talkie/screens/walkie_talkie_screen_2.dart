@@ -2,10 +2,9 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
-
-
+import 'package:sagr/walkie_talkie/services/walkie_token_service.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 class WalkieTalkieScreen2 extends StatefulWidget {
   @override
@@ -13,27 +12,20 @@ class WalkieTalkieScreen2 extends StatefulWidget {
 }
 
 class _WalkieTalkieScreen2State extends State<WalkieTalkieScreen2> {
-  // Replace with your Agora App ID
-
-  final AuthController _controller = Get.put(AuthController());
-
   final EventController eventController = Get.put(EventController(Get.find()));
 
+  final WalkieTokenService _tokenService = WalkieTokenService();
+  WalkieTokenResult? _tokenResult;
 
-  static const String appId = "3aa7d0944ad240e4acc7bff3e6a59a5f";
-
-  static const String channelName = "testing2025";
-  
-  late RtcEngine _engine;
-  late RtcEngineEventHandler _eventHandler;
+  RtcEngine? _engine;
+  RtcEngineEventHandler? _eventHandler;
   bool _isJoined = false;
   bool _isTalking = false;
-  bool _isMuted = true;
   bool _isInitialized = false;
+  bool _permissionDenied = false;
+  String? _initError;
   String _connectionStatus = "Disconnected";
-  List<String> _connectedUsers = [];
-
-  List<Map<String, String>> _users = [];
+  final Map<int, String> _remoteUsers = <int, String>{};
 
   @override
   void initState() {
@@ -42,170 +34,243 @@ class _WalkieTalkieScreen2State extends State<WalkieTalkieScreen2> {
   }
 
   Future<void> _initializeAgora() async {
+    var event = eventController.event;
+    // Screen is reached via `Get.toNamed('/event_walkie_talkie', arguments: eventId)`,
+    // but the freshly-put EventController has no event loaded yet. Fetch it first
+    // (getEventInfo reads the eventId from Get.arguments) before reading the channel.
+    if (event == null || event.channel == null) {
+      // Bound the fetch so a stalled/unreachable backend can't leave the screen
+      // spinning forever — fall through to the error message instead.
+      try {
+        await eventController.getEventInfo().timeout(const Duration(seconds: 15));
+      } catch (_) {}
+      event = eventController.event;
+    }
+    if (event == null || event.channel == null) {
+      if (!mounted) return;
+      setState(() {
+        _initError = 'Channel information is unavailable.';
+      });
+      return;
+    }
 
+    final micStatus = await Permission.microphone.request();
+    if (!micStatus.isGranted) {
+      if (!mounted) return;
+      setState(() {
+        _permissionDenied = true;
+        _connectionStatus = 'Microphone permission denied';
+      });
+      return;
+    }
 
-print("🔥🔥🔥🔥🔥🔥");
-print(eventController.event!.channel!.agoraToken);
-   
+    try {
+      // Fetch a server-minted Agora token (provides App ID, token and uid).
+      final tokenResult = await _tokenService.fetchToken(event.channel!.channelName);
+      _tokenResult = tokenResult;
 
-    print("🔥🔥🔥🔥🔥🔥");
+      final engine = createAgoraRtcEngine();
+      _engine = engine;
 
-    // Request microphone permission
-    await [Permission.microphone].request();
+      await engine.initialize(RtcEngineContext(
+        appId: tokenResult.appId,
+        channelProfile: ChannelProfileType.channelProfileCommunication,
+      ));
 
-    // Create RTC engine
-    _engine = createAgoraRtcEngine();
-    
-    await _engine.initialize(RtcEngineContext(
-      appId: appId,
-      channelProfile: ChannelProfileType.channelProfileCommunication,
-    ));
+      await engine.enableAudio();
+      await engine.setAudioProfile(
+        profile: AudioProfileType.audioProfileDefault,
+        scenario: AudioScenarioType.audioScenarioGameStreaming,
+      );
+      await engine.setDefaultAudioRouteToSpeakerphone(true);
+      await engine.enableAudioVolumeIndication(
+        interval: 200,
+        smooth: 3,
+        reportVad: true,
+      );
+      await engine.muteLocalAudioStream(true);
 
-    // Enable audio
-    await _engine.enableAudio();
-    
+      final handler = RtcEngineEventHandler(
+        onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
+          if (!mounted) return;
+          setState(() {
+            _isJoined = true;
+            _connectionStatus = "Connected";
+          });
+          engine.setEnableSpeakerphone(true);
+        },
+        onUserJoined:
+            (RtcConnection connection, int remoteUid, int elapsed) {
+          if (!mounted) return;
+          setState(() {
+            _remoteUsers[remoteUid] = 'User $remoteUid';
+          });
+        },
+        onUserOffline: (RtcConnection connection, int remoteUid,
+            UserOfflineReasonType reason) {
+          if (!mounted) return;
+          setState(() {
+            _remoteUsers.remove(remoteUid);
+          });
+        },
+        onLeaveChannel: (RtcConnection connection, RtcStats stats) {
+          if (!mounted) return;
+          setState(() {
+            _isJoined = false;
+            _connectionStatus = "Disconnected";
+            _remoteUsers.clear();
+          });
+        },
+        onError: (ErrorCodeType err, String msg) {
+          if (!mounted) return;
+          setState(() {
+            _connectionStatus = 'Error: $msg';
+          });
+        },
+        onAudioVolumeIndication: (RtcConnection connection,
+            List<AudioVolumeInfo> speakers,
+            int speakerNumber,
+            int totalVolume) {},
+      );
+      _eventHandler = handler;
+      engine.registerEventHandler(handler);
 
-    
-    
-    // Set audio profile for voice communication
-    await _engine.setAudioProfile(
-      profile: AudioProfileType.audioProfileDefault,
-      scenario: AudioScenarioType.audioScenarioGameStreaming,
-    );
-
-
-    await _engine.setDefaultAudioRouteToSpeakerphone(true);
-
-    // Mute by default (push-to-talk behavior)
-    await _engine.muteLocalAudioStream(true);
-
-    // Set up event handlers
-    _eventHandler = RtcEngineEventHandler(
-      onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-        setState(() {
-          _isJoined = true;
-          _connectionStatus = "Connected";
-        });
-        print("Local user joined channel: ${connection.channelId}");
-      },
-      onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-
-        setState(() {
-          _connectedUsers.add("${_controller.authenticatedUser!['name']}");
-          // _users[_controller.authenticatedUser!['id']]=  _controller.authenticatedUser!['name'];
-          // _connectedUsers.add("User $remoteUid");
-        });
-        print("Remote user $remoteUid joined");
-      },
-      onUserOffline: (RtcConnection connection, int remoteUid, UserOfflineReasonType reason) {
-        setState(() {
-          _connectedUsers.removeWhere((user) => user == "User $remoteUid");
-        });
-        print("Remote user $remoteUid left channel");
-      },
-      onLeaveChannel: (RtcConnection connection, RtcStats stats) {
-        setState(() {
-          _isJoined = false;
-          _connectionStatus = "Disconnected";
-          _connectedUsers.clear();
-        });
-        print("Local user left channel");
-      },
-      onAudioVolumeIndication: (RtcConnection connection, List<AudioVolumeInfo> speakers, int speakerNumber, int totalVolume) {
-        // Handle volume indication for visual feedback
-        for (var speaker in speakers) {
-          if (speaker.uid == 0 && speaker.volume! > 10) {
-            // Local user is speaking
-            print("Local user speaking: ${speaker.volume}");
-          }
-        }
-      },
-    );
-    
-    _engine.registerEventHandler(_eventHandler);
-
-    setState(() {
-      _isInitialized = true;
-    });
+      if (!mounted) return;
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _initError = 'Failed to initialize audio engine: $e';
+      });
+    }
   }
 
   Future<void> _joinChannel() async {
-    if (!_isInitialized) return;
-    
+    final engine = _engine;
+    final channel = eventController.event?.channel;
+    final tokenResult = _tokenResult;
+    if (!_isInitialized || engine == null || channel == null) return;
+    if (tokenResult == null || tokenResult.token.isEmpty || channel.channelName.isEmpty) {
+      Get.snackbar('Error', 'Channel token is missing');
+      return;
+    }
+
     setState(() {
       _connectionStatus = "Connecting...";
     });
 
-    await _engine.joinChannel(
-      token: eventController.event!.channel!.agoraToken, // Use token for production
-      channelId: eventController.event!.channel!.channelName,
-      uid: 0,
-      options: const ChannelMediaOptions(
-        channelProfile: ChannelProfileType.channelProfileCommunication,
-        clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        
-        // audioScenario: AudioScenarioType.audicenarioGameStreaming,
-      ),
-    );
+    try {
+      await engine.joinChannel(
+        token: tokenResult.token,
+        channelId: channel.channelName,
+        uid: tokenResult.uid,
+        options: const ChannelMediaOptions(
+          channelProfile: ChannelProfileType.channelProfileCommunication,
+          clientRoleType: ClientRoleType.clientRoleBroadcaster,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _connectionStatus = 'Connection failed';
+      });
+    }
   }
 
   Future<void> _leaveChannel() async {
-    await _engine.leaveChannel();
+    final engine = _engine;
+    if (engine == null) return;
+    try {
+      await engine.leaveChannel();
+    } catch (_) {}
   }
 
-
   Future<void> _changeChannel() async {
-    await _engine.leaveChannel();
+    await _leaveChannel();
     Get.toNamed('/event_supervisor_walkie_talkie');
   }
 
   void _startTalking() {
-    if (!_isJoined) return;
-    
+    final engine = _engine;
+    if (!_isJoined || engine == null) return;
     setState(() {
       _isTalking = true;
-      _isMuted = false;
     });
-    _engine.muteLocalAudioStream(false);
+    engine.muteLocalAudioStream(false);
   }
 
   void _stopTalking() {
+    final engine = _engine;
+    if (engine == null) return;
     setState(() {
       _isTalking = false;
-      _isMuted = true;
     });
-    _engine.muteLocalAudioStream(true);
+    engine.muteLocalAudioStream(true);
   }
 
   @override
   void dispose() {
-    _leaveChannel();
-    _engine.unregisterEventHandler(_eventHandler);
-    _engine.release();
+    final engine = _engine;
+    final handler = _eventHandler;
+    if (engine != null) {
+      if (handler != null) {
+        engine.unregisterEventHandler(handler);
+      }
+      engine.leaveChannel().whenComplete(engine.release);
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_initError != null) {
+      return _MessageScaffold(message: _initError!);
+    }
+    if (_permissionDenied) {
+      return _MessageScaffold(
+        message:
+            'Microphone permission is required to use the walkie-talkie. Please enable it in your device settings.',
+        actionLabel: 'Open Settings',
+        onAction: openAppSettings,
+      );
+    }
+
+    final event = eventController.event;
+    final channel = event?.channel;
+    if (event == null || channel == null) {
+      return Scaffold(
+        backgroundColor: Colors.grey[900],
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final titleText =
+        event.name ?? channel.displayName ?? channel.channelName;
+    final channelLabel = channel.displayName ?? channel.channelName;
+
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Obx( () =>  eventController.isLoading? CircularProgressIndicator() : Text(
-           '${eventController.event!}',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        )) ,
+        title: Obx(() => eventController.isLoading
+            ? AppLoader.inline(color: Colors.white)
+            : Text(
+                titleText,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
+              )),
         backgroundColor: Colors.grey[800],
         elevation: 0,
       ),
       body: Column(
         children: [
-          // Status Section
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.grey[800],
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(20),
                 bottomRight: Radius.circular(20),
               ),
@@ -246,8 +311,8 @@ print(eventController.event!.channel!.agoraToken);
                           ),
                         ),
                         Text(
-                          eventController.event!.channel!.displayName!,
-                          style: TextStyle(
+                          channelLabel,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -257,80 +322,76 @@ print(eventController.event!.channel!.agoraToken);
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
-
+                const SizedBox(height: 20),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Row(
-                                        children: [
-                      Icon(
-                        _isTalking ? Icons.mic : Icons.mic_off,
-                        color: _isTalking ? Colors.green : Colors.red,
-                        size: 20,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        _isTalking ? 'Transmitting...' : 'Ready to talk',
-                        style: TextStyle(
-                          color: _isTalking ? Colors.green : Colors.grey[400],
-                          fontSize: 16,
-                        ),
-                      ),
-                                        ],
-                                      ),
-                    ), 
-                
-                
-                eventController.event!.userType =='supervisor'? SizedBox(
-                  height: 32,
-                   child: ElevatedButton(
-                        // onPressed: _isInitialized ? _joinChannel : null,
-                        onPressed: _changeChannel,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 255, 139, 67),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
+                        children: [
+                          Icon(
+                            _isTalking ? Icons.mic : Icons.mic_off,
+                            color: _isTalking ? Colors.green : Colors.red,
+                            size: 20,
                           ),
-                          padding: EdgeInsets.symmetric(vertical: 4, horizontal: 12)
-                        ),
-                        child: Text(
-                          'Join Supervisors Channel',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          const SizedBox(width: 8),
+                          Text(
+                            _isTalking ? 'Transmitting...' : 'Ready to talk',
+                            style: TextStyle(
+                              color:
+                                  _isTalking ? Colors.green : Colors.grey[400],
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (event.userType == 'supervisor')
+                      SizedBox(
+                        height: 32,
+                        child: ElevatedButton(
+                          onPressed: _changeChannel,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(255, 255, 139, 67),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 4, horizontal: 12),
+                          ),
+                          child: const Text(
+                            'Join Supervisors Channel',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
-                 ): Container()
                   ],
                 ),
-                
               ],
             ),
           ),
-          
-          // Connected Users Section
           Expanded(
             child: Container(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Text(
-                    'Connected Users (${_connectedUsers.length})',
-                    style: TextStyle(
+                    'Connected Users (${_remoteUsers.length})',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Expanded(
-                    child: _connectedUsers.isEmpty
+                    child: _remoteUsers.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -340,9 +401,9 @@ print(eventController.event!.channel!.agoraToken);
                                   color: Colors.grey[600],
                                   size: 60,
                                 ),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 Text(
-                                  _isJoined 
+                                  _isJoined
                                       ? 'Waiting for other users...'
                                       : 'Join channel to see users',
                                   style: TextStyle(
@@ -354,20 +415,24 @@ print(eventController.event!.channel!.agoraToken);
                             ),
                           )
                         : ListView.builder(
-                            itemCount: _connectedUsers.length,
+                            itemCount: _remoteUsers.length,
                             itemBuilder: (context, index) {
+                              final entry =
+                                  _remoteUsers.entries.elementAt(index);
                               return Card(
                                 color: Colors.grey[800],
                                 child: ListTile(
-                                  leading: CircleAvatar(
+                                  leading: const CircleAvatar(
                                     backgroundColor: Colors.blue,
-                                    child: Icon(Icons.person, color: Colors.white),
+                                    child:
+                                        Icon(Icons.person, color: Colors.white),
                                   ),
                                   title: Text(
-                                    _connectedUsers[index],
-                                    style: TextStyle(color: Colors.white),
+                                    entry.value,
+                                    style:
+                                        const TextStyle(color: Colors.white),
                                   ),
-                                  trailing: Icon(
+                                  trailing: const Icon(
                                     Icons.volume_up,
                                     color: Colors.green,
                                   ),
@@ -380,20 +445,17 @@ print(eventController.event!.channel!.agoraToken);
               ),
             ),
           ),
-          
-          // Controls Section
           Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.grey[800],
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
               ),
             ),
             child: Column(
               children: [
-                // Join/Leave Channel Button
                 if (!_isJoined)
                   SizedBox(
                     width: double.infinity,
@@ -406,7 +468,7 @@ print(eventController.event!.channel!.agoraToken);
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Join Channel',
                         style: TextStyle(
                           fontSize: 18,
@@ -416,15 +478,13 @@ print(eventController.event!.channel!.agoraToken);
                       ),
                     ),
                   ),
-                
                 if (_isJoined) ...[
-                  // Push to Talk Button
                   GestureDetector(
                     onTapDown: (_) => _startTalking(),
                     onTapUp: (_) => _stopTalking(),
                     onTapCancel: () => _stopTalking(),
                     child: AnimatedContainer(
-                      duration: Duration(milliseconds: 100),
+                      duration: const Duration(milliseconds: 100),
                       width: 150,
                       height: 150,
                       decoration: BoxDecoration(
@@ -432,7 +492,8 @@ print(eventController.event!.channel!.agoraToken);
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: (_isTalking ? Colors.red : Colors.blue).withOpacity(0.3),
+                            color: (_isTalking ? Colors.red : Colors.blue)
+                                .withOpacity(0.3),
                             blurRadius: _isTalking ? 20 : 10,
                             spreadRadius: _isTalking ? 5 : 2,
                           ),
@@ -445,9 +506,7 @@ print(eventController.event!.channel!.agoraToken);
                       ),
                     ),
                   ),
-                  
-                  SizedBox(height: 20),
-                  
+                  const SizedBox(height: 20),
                   Text(
                     _isTalking ? 'Release to stop talking' : 'Hold to talk',
                     style: TextStyle(
@@ -455,10 +514,7 @@ print(eventController.event!.channel!.agoraToken);
                       fontSize: 16,
                     ),
                   ),
-                  
-                  SizedBox(height: 20),
-                  
-                  // Leave Channel Button
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -470,7 +526,7 @@ print(eventController.event!.channel!.agoraToken);
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Leave Channel',
                         style: TextStyle(
                           fontSize: 18,
@@ -485,6 +541,54 @@ print(eventController.event!.channel!.agoraToken);
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MessageScaffold extends StatelessWidget {
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  const _MessageScaffold({
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[900],
+      appBar: AppBar(
+        backgroundColor: Colors.grey[800],
+        elevation: 0,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline,
+                  color: Colors.redAccent, size: 60),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+              if (actionLabel != null && onAction != null) ...[
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: onAction,
+                  child: Text(actionLabel!),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

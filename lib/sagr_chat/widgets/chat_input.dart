@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-// import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:get/get.dart';
+import '../theme/chat_theme.dart';
 
-class ChatInput extends StatefulWidget {
+/// Bottom composer: attachment button, rounded pill text field, and a
+/// send/mic button that morphs based on whether there is text.
+class ChatInput extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onTextSubmitted;
+  final ValueChanged<String>? onChanged;
   final VoidCallback? onImageTap;
   final VoidCallback? onVideoTap;
   final VoidCallback? onDocumentTap;
@@ -14,6 +18,7 @@ class ChatInput extends StatefulWidget {
     Key? key,
     required this.controller,
     required this.onTextSubmitted,
+    this.onChanged,
     this.onImageTap,
     this.onVideoTap,
     this.onDocumentTap,
@@ -22,257 +27,204 @@ class ChatInput extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _ChatInputState createState() => _ChatInputState();
-}
+  Widget build(BuildContext context) {
+    final palette = ChatTheme.of(context);
 
-class _ChatInputState extends State<ChatInput> {
-  bool showEmojiPicker = false;
-  bool showAttachmentOptions = false;
-  bool hasText = false;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(() {
-      setState(() {
-        hasText = widget.controller.text.trim().isNotEmpty;
-      });
-    });
+    return Container(
+      decoration: BoxDecoration(
+        color: palette.appBar,
+        boxShadow: ChatTheme.softShadow(palette.navy),
+      ),
+      padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            IconButton(
+              icon: Icon(Icons.add_circle_outline, color: palette.primary),
+              onPressed: isSending ? null : () => _showAttachments(palette),
+            ),
+            Expanded(
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 120),
+                decoration: BoxDecoration(
+                  color: palette.searchField,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: controller,
+                  enabled: !isSending,
+                  maxLines: null,
+                  textCapitalization: TextCapitalization.sentences,
+                  style: TextStyle(fontSize: 15.5, color: palette.body),
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 11),
+                    hintText: 'Message'.tr,
+                    hintStyle: TextStyle(color: palette.hint, fontSize: 15.5),
+                  ),
+                  textInputAction: TextInputAction.send,
+                  onChanged: onChanged,
+                  onSubmitted: isSending ? null : onTextSubmitted,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            _sendButton(palette),
+          ],
+        ),
+      ),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (showAttachmentOptions) _buildAttachmentOptions(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: Row(
-            children: [
-              IconButton(
-                icon: Icon(
-                  showAttachmentOptions ? Icons.close : Icons.add,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                onPressed: () {
-                  setState(() {
-                    showAttachmentOptions = !showAttachmentOptions;
-                    if (showEmojiPicker) showEmojiPicker = false;
-                  });
-                },
-              ),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: Colors.grey.withOpacity(0.3),
+  Widget _sendButton(ChatPalette palette) {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        color: isSending ? palette.tickSent : palette.primary,
+        shape: BoxShape.circle,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: isSending ? null : _handleSendTap,
+          child: Center(
+            child: isSending
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: widget.controller,
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                showEmojiPicker 
-                                    ? Icons.keyboard 
-                                    : Icons.emoji_emotions_outlined,
-                                color: Colors.grey[600],
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  showEmojiPicker = !showEmojiPicker;
-                                  if (showAttachmentOptions) {
-                                    showAttachmentOptions = false;
-                                  }
-                                });
-                              },
-                            ),
-                          ),
-                          maxLines: 4,
-                          minLines: 1,
-                          textInputAction: TextInputAction.send,
-                          onSubmitted: widget.onTextSubmitted,
+                  )
+                : ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: controller,
+                    builder: (context, value, _) {
+                      final hasText = value.text.trim().isNotEmpty;
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 150),
+                        child: Icon(
+                          hasText ? Icons.send_rounded : Icons.mic,
+                          key: ValueKey(hasText),
+                          color: Colors.white,
+                          size: 22,
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleSendTap() {
+    final text = controller.text.trim();
+    if (text.isNotEmpty) {
+      onTextSubmitted(text);
+    } else {
+      onMicPressed?.call();
+    }
+  }
+
+  void _showAttachments(ChatPalette palette) {
+    if (isSending) return;
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: palette.divider,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(width: 8),
-              _buildSendButton(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _option(
+                    icon: Icons.photo_library_rounded,
+                    label: 'Gallery'.tr,
+                    color: const Color(0xff8b5cf6),
+                    onTap: onImageTap,
+                  ),
+                  _option(
+                    icon: Icons.videocam_rounded,
+                    label: 'Video'.tr,
+                    color: const Color(0xffef4444),
+                    onTap: onVideoTap,
+                  ),
+                  _option(
+                    icon: Icons.insert_drive_file_rounded,
+                    label: 'Document'.tr,
+                    color: const Color(0xff0ea5e9),
+                    onTap: onDocumentTap,
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        // if (showEmojiPicker) _buildEmojiPicker(),
-      ],
-    );
-  }
-
-  Widget _buildSendButton() {
-    if (widget.isSending) {
-      return Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          shape: BoxShape.circle,
-        ),
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation(Colors.white),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: hasText 
-          ? () => widget.onTextSubmitted(widget.controller.text)
-          : widget.onMicPressed,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          hasText ? Icons.send : Icons.mic,
-          color: Colors.white,
-          size: 20,
-        ),
       ),
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 
-  Widget _buildAttachmentOptions() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildAttachmentOption(
-            icon: Icons.photo_camera,
-            label: 'Camera',
-            color: Colors.pink,
-            onTap: widget.onImageTap,
-          ),
-          _buildAttachmentOption(
-            icon: Icons.photo_library,
-            label: 'Gallery',
-            color: Colors.purple,
-            onTap: widget.onImageTap,
-          ),
-          _buildAttachmentOption(
-            icon: Icons.videocam,
-            label: 'Video',
-            color: Colors.red,
-            onTap: widget.onVideoTap,
-          ),
-          _buildAttachmentOption(
-            icon: Icons.description,
-            label: 'Document',
-            color: Colors.blue,
-            onTap: widget.onDocumentTap,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttachmentOption({
+  Widget _option({
     required IconData icon,
     required String label,
     required Color color,
-    required VoidCallback? onTap,
+    VoidCallback? onTap,
   }) {
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
       onTap: () {
-        setState(() {
-          showAttachmentOptions = false;
-        });
-        onTap?.call();
+        Get.back();
+        if (onTap != null) {
+          Future.delayed(const Duration(milliseconds: 120), onTap);
+        }
       },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
-
-  // Widget _buildEmojiPicker() {
-  //   return SizedBox(
-  //     height: 250,
-  //     child: EmojiPicker(
-  //       onEmojiSelected: (category, emoji) {
-  //         widget.controller.text += emoji.emoji;
-  //       },
-  //       config: Config(
-  //         columns: 7,
-  //         emojiSizeMax: 32,
-  //         verticalSpacing: 0,
-  //         horizontalSpacing: 0,
-  //         gridPadding: EdgeInsets.zero,
-  //         initCategory: Category.RECENT,
-  //         bgColor: Theme.of(context).scaffoldBackgroundColor,
-  //         indicatorColor: Theme.of(context).colorScheme.primary,
-  //         iconColor: Colors.grey,
-  //         iconColorSelected: Theme.of(context).colorScheme.primary,
-  //         backspaceColor: Theme.of(context).colorScheme.primary,
-  //         skinToneDialogBgColor: Colors.white,
-  //         skinToneIndicatorColor: Colors.grey,
-  //         enableSkinTones: true,
-  //         // showRecentsTab: true,
-  //         recentsLimit: 28,
-  //         replaceEmojiOnLimitExceed: false,
-  //         noRecents: const Text(
-  //           'No Recents',
-  //           style: TextStyle(fontSize: 20, color: Colors.black26),
-  //           textAlign: TextAlign.center,
-  //         ),
-  //         loadingIndicator: const SizedBox.shrink(),
-  //         tabIndicatorAnimDuration: kTabScrollDuration,
-  //         categoryIcons: const CategoryIcons(),
-  //         buttonMode: ButtonMode.MATERIAL,
-  //         checkPlatformCompatibility: true,
-  //       ),
-  //     ),
-  //   );
-  // }
 }

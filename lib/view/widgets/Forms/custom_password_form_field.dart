@@ -27,22 +27,22 @@ class CustomPasswordFormField extends StatelessWidget {
       
       
             child: TextFormField(
-
+autovalidateMode: AutovalidateMode.onUserInteraction,
               onSaved: onSave,
               validator: onValidate,
               obscureText: obscureText,
               keyboardType: TextInputType.text,
               decoration: InputDecoration(
-                
+              
                 contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                   filled: false,
                   fillColor: FILL_COLOR,
                   isDense: true,
-                  // suffixIcon: GestureDetector(
-                  //   child: Icon(
-                  //       obscureText ? Icons.visibility : Icons.visibility_off),
-                  //   onTap: onChangeTextSecure,
-                  // ),
+                  suffixIcon: GestureDetector(
+                    child: Icon(
+                        obscureText ? Icons.visibility : Icons.visibility_off),
+                    onTap: onChangeTextSecure,
+                  ),
                   border: OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(12.0)),
               borderSide: BorderSide(color: Colors.transparent, width: 1)),

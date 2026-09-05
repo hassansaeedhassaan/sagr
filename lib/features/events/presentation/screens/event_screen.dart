@@ -1,11 +1,30 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:sagr/data/colors.dart';
 import 'package:get/get.dart';
-import '../controllers/event_controller.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
+import 'package:sagr/data/colors.dart';
+import 'package:sagr/features/events/data/models/job_model.dart';
+import 'package:sagr/features/events/data/models/period_model.dart';
+import 'package:sagr/features/events/data/models/start_date_time_model.dart';
+import 'package:sagr/features/events/presentation/widgets/event_status_pill.dart';
+import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/utilities/map.dart';
+import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
+
+import '../controllers/event_controller.dart';
+
+/// Tabular-figure feature used for countdown / numeric stats so digits never
+/// jitter when the value changes.
+const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
+
+/// Premium event details screen. Also rendered for the `initAccept` status —
+/// in that case the bottom of the page exposes an accept/reject action row
+/// that delegates back to [EventController.contractDecisions].
 class EventDetailsScreen extends StatefulWidget {
   const EventDetailsScreen({super.key});
 
@@ -14,942 +33,1091 @@ class EventDetailsScreen extends StatefulWidget {
 }
 
 class _EventDetailsScreenState extends State<EventDetailsScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _mainController;
-  late AnimationController _cardController;
-  late AnimationController _buttonController;
-  
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-  late Animation<double> _cardScaleAnimation;
-  late Animation<double> _buttonBounceAnimation;
-  
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _fadeCtrl;
+  late final EventController _eventController =
+      Get.put(EventController(Get.find()));
+
+  bool _descExpanded = false;
   bool _isAccepted = false;
   bool _isRejected = false;
 
   @override
   void initState() {
     super.initState();
-    
-    _mainController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+    _fadeCtrl = AnimationController(
       vsync: this,
-    );
-    
-    _cardController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    
-    _buttonController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _mainController,
-      curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
-    ));
-    
-    _slideAnimation = Tween<double>(
-      begin: 50.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _mainController,
-      curve: const Interval(0.2, 0.8, curve: Curves.elasticOut),
-    ));
-    
-    _cardScaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _cardController,
-      curve: Curves.elasticOut,
-    ));
-    
-    _buttonBounceAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _buttonController,
-      curve: Curves.elasticOut,
-    ));
-    
-    _mainController.forward();
-    Future.delayed(const Duration(milliseconds: 400), () {
-      _cardController.forward();
-    });
+      duration: const Duration(milliseconds: 260),
+    )..forward();
   }
-
-    EventController _eventController = Get.put(EventController(Get.find()));
-
 
   @override
   void dispose() {
-    _mainController.dispose();
-    _cardController.dispose();
-    _buttonController.dispose();
+    _fadeCtrl.dispose();
     super.dispose();
   }
-  
-  void _handleButtonPress(bool isAccept) async {
+
+  // ---------------------------------------------------------------------------
+  // Accept / Reject (initAccept flow)
+  // ---------------------------------------------------------------------------
+
+  Future<void> _handleDecision(bool isAccept) async {
     HapticFeedback.lightImpact();
-    _buttonController.forward().then((_) {
-      _buttonController.reverse();
-    });
-    
     setState(() {
-      if (isAccept) {
-        _isAccepted = true;
-        _isRejected = false;
-      } else {
-        _isRejected = true;
-        _isAccepted = false;
-      }
+      _isAccepted = isAccept;
+      _isRejected = !isAccept;
     });
-    
-    // Show success animation
-    await Future.delayed(const Duration(milliseconds: 500));
+
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    _eventController.contractDecisions(isAccept ? 'accepted' : 'rejected');
     _showStatusDialog(isAccept);
   }
-  
+
   void _showStatusDialog(bool isAccept) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  spreadRadius: 5,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            border: Border.all(color: AppTheme.line),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: (isAccept ? AppTheme.success : AppTheme.danger)
+                      .withOpacity(0.12),
+                  shape: BoxShape.circle,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 600),
-                  builder: (context, value, child) {
-                    return Transform.scale(
-                      scale: value,
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: isAccept ? Colors.green : Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          isAccept ? Icons.check : Icons.close,
-                          color: Colors.white,
-                          size: 40,
-                        ),
-                      ),
-                    );
-                  },
+                child: Icon(
+                  isAccept ? Icons.check_rounded : Icons.close_rounded,
+                  color: isAccept ? AppTheme.success : AppTheme.danger,
+                  size: 32,
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  isAccept ? "تم القبول بنجاح!" : "تم الرفض",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                isAccept ? 'accepted'.tr : 'rejected'.tr,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textTitle,
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  isAccept 
-                    ? "سيتم التواصل معك قريباً"
-                    : "يمكنك البحث عن فرص أخرى",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     Get.back();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isAccept ? Colors.green : Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 30,
-                      vertical: 15,
-                    ),
+                    backgroundColor:
+                        isAccept ? AppTheme.success : AppTheme.danger,
                   ),
-                  child: const Text(
-                    "موافق",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: Text('OK'.tr),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // PDF attachment viewer
+  // ---------------------------------------------------------------------------
+
+  bool get _hasAttachment {
+    final a = _eventController.event?.attachment;
+    return a != null && a.isNotEmpty && a != 'undefined';
+  }
+
+  void _openAttachment() {
+    final attachment = _eventController.event?.attachment;
+    if (attachment == null || attachment.isEmpty) return;
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _AttachmentViewer(
+          url: 'https://sagr.net/$attachment',
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Animated Background Gradient
-          AnimatedBuilder(
-            animation: _mainController,
-            builder: (context, child) {
-              return Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.blue.shade50.withOpacity(_fadeAnimation.value),
-                      Colors.white,
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          
-          // Main Content
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                // Hero Header Section
-                _buildHeroHeader(),
-                
-                // Content Card
-                AnimatedBuilder(
-                  animation: _fadeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, _slideAnimation.value),
-                      child: Opacity(
-                        opacity: _fadeAnimation.value,
-                        child: _buildContentCard(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          
-          // Floating Action Elements
-          _buildFloatingElements(),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildHeroHeader() {
-    return SizedBox(
-      height: 300,
-      child: Stack(
-        children: [
-          // Background Image with Parallax Effect
-          Container(
-            height: 260,
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 20,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-              child: Stack(
-                fit: StackFit.expand,
+      backgroundColor: AppTheme.scaffold,
+      appBar: _buildAppBar(),
+      body: GetBuilder<EventController>(
+        init: _eventController,
+        builder: (c) {
+          if (c.isLoading || c.event == null) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
                 children: [
-                  Image.asset(
-                    "assets/images/cover.jpg",
-                    fit: BoxFit.cover,
-                  ),
-                  // Gradient Overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.3),
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
-                      ),
-                    ),
-                  ),
+                  AppLoader.box(height: 160),
+                  const SizedBox(height: 16),
+                  AppLoader.box(height: 120),
+                  const SizedBox(height: 16),
+                  Expanded(child: AppLoader.list(items: 3, showTrailing: false)),
                 ],
               ),
-            ),
-          ),
-          
-          // Back Button with Glass Effect
-          Positioned(
-            top: 50,
-            left: 20,
-            child: GestureDetector(
-              onTap: () => Get.back(),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-          ),
-          
-          // Floating Title Card
-          Positioned(
-            bottom: 0,
-            left: 20,
-            right: 20,
-            child: AnimatedBuilder(
-              animation: _cardScaleAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _cardScaleAnimation.value,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 15,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "القبول المبدئي",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(
-                            Icons.work_outline,
-                            color: Colors.blue.shade700,
-                            size: 20,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildContentCard() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Details Section
-          _buildDetailsSection(),
-          
-          const SizedBox(height: 30),
-          
-          // Contract Terms Button
-          _buildContractButton(),
-          
-          const SizedBox(height: 30),
-          
-          // Action Buttons
-          _buildActionButtons(),
-          
-          const SizedBox(height: 30),
-          
-          // Bottom Navigation
-          _buildBottomNavigation(),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildDetailsSection() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.blue.shade50,
-            Colors.indigo.shade50,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.blue.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
+            );
+          }
 
-
-// Text("https://crowds.sa/${_eventController.event!.attachment!}"),
-
-
-
-
-
-
-          _buildDetailRow(
-            Icons.calendar_today,
-            "تاريخ مباشرة العمل",
-            "22/03/2025",
-            Colors.blue,
-          ),
-          const SizedBox(height: 25),
-          _buildDetailRow(
-            Icons.access_time,
-            "ساعات العمل",
-            "08:00 AM - 05:00 PM",
-            Colors.orange,
-          ),
-          const SizedBox(height: 25),
-          _buildDetailRow(
-            Icons.account_balance_wallet,
-            "المبلغ المقدم",
-            "500 ريال",
-            Colors.green,
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildDetailRow(IconData icon, String title, String value, Color color) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 800),
-      builder: (context, animationValue, child) {
-        return Transform.translate(
-          offset: Offset(50 * (1 - animationValue), 0),
-          child: Opacity(
-            opacity: animationValue,
-            child: Row(
+          return FadeTransition(
+            opacity: _fadeCtrl,
+            child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 20,
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _HeroCard(event: c.event!),
+                        const SizedBox(height: 16),
+                        _CountdownCard(start: c.event!.startDateTime),
+                        const SizedBox(height: 16),
+                        _QuickStatsRow(
+                          date: c.event!.date,
+                          time: c.event!.time,
+                          rolesCount: _validJobs(c.event!.jobs).length,
+                          shiftsCount: _validPeriods(c.event!.periods).length,
+                        ),
+                        const SizedBox(height: 16),
+                        _LocationCard(
+                          address: c.event!.address,
+                          location: c.event!.location,
+                        ),
+                        const SizedBox(height: 16),
+                        _AboutCard(
+                          description: c.event!.description,
+                          expanded: _descExpanded,
+                          onToggle: () =>
+                              setState(() => _descExpanded = !_descExpanded),
+                        ),
+                        if (_validJobs(c.event!.jobs).isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _RolesCard(jobs: _validJobs(c.event!.jobs)),
+                        ],
+                        if (_validPeriods(c.event!.periods).isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          _PeriodsCard(
+                              periods: _validPeriods(c.event!.periods)),
+                        ],
+                        if (_hasAttachment) ...[
+                          const SizedBox(height: 16),
+                          _AttachmentRow(onTap: _openAttachment),
+                        ],
+                        if (c.event!.appliedStatus == 'initAccept') ...[
+                          const SizedBox(height: 16),
+                          _DecisionRow(
+                            isAccepted: _isAccepted,
+                            isRejected: _isRejected,
+                            onAccept: () => _handleDecision(true),
+                            onReject: () => _handleDecision(false),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        value,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                EventBottomNavigation(
+                  active: EventNavTab.attendance,
+                  eventId: c.event!.id?.toString(),
                 ),
               ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-  
-  Widget _buildContractButton() {
-    return GestureDetector(
-      onTap: () => _showContractTerms(),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.indigo.shade600, Colors.blue.shade700],
-          ),
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.indigo.withOpacity(0.3),
-              blurRadius: 15,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.description_outlined,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              "شروط العقد",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  
-  Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: AnimatedBuilder(
-              animation: _buttonBounceAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _isAccepted ? _buttonBounceAnimation.value : 1.0,
-                  child: GestureDetector(
-                    onTap: () => _handleButtonPress(true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      decoration: BoxDecoration(
-                        gradient: _isAccepted
-                            ? LinearGradient(
-                                colors: [Colors.green.shade400, Colors.green.shade600],
-                              )
-                            : null,
-                        color: _isAccepted ? null : Colors.white,
-                        border: Border.all(
-                          color: Colors.green,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: _isAccepted
-                            ? [
-                                BoxShadow(
-                                  color: Colors.green.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  spreadRadius: 2,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (_isAccepted)
-                            const Icon(
-                              Icons.check_circle,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          if (_isAccepted) const SizedBox(width: 8),
-                          Text(
-                            _isAccepted ? "تم القبول" : "أوافق",
-                            style: TextStyle(
-                              color: _isAccepted ? Colors.white : Colors.green,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: AnimatedBuilder(
-              animation: _buttonBounceAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _isRejected ? _buttonBounceAnimation.value : 1.0,
-                  child: GestureDetector(
-                    onTap: () => _handleButtonPress(false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      decoration: BoxDecoration(
-                        gradient: _isRejected
-                            ? LinearGradient(
-                                colors: [Colors.red.shade400, Colors.red.shade600],
-                              )
-                            : null,
-                        color: _isRejected ? null : Colors.white,
-                        border: Border.all(
-                          color: Colors.red,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: _isRejected
-                            ? [
-                                BoxShadow(
-                                  color: Colors.red.withOpacity(0.3),
-                                  blurRadius: 15,
-                                  spreadRadius: 2,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (_isRejected)
-                            const Icon(
-                              Icons.cancel,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          if (_isRejected) const SizedBox(width: 8),
-                          Text(
-                            _isRejected ? "تم الرفض" : "أرفض",
-                            style: TextStyle(
-                              color: _isRejected ? Colors.white : Colors.red,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildBottomNavigation() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.list, "القائمة", false),
-          _buildNavItem(Icons.campaign, "الإعلانات", false),
-          _buildNavItem(Icons.celebration_outlined, "", true),
-          _buildNavItem(Icons.notifications, "التنبيهات", false),
-          _buildNavItem(Icons.chat, "الدردشة", false),
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildNavItem(IconData icon, String label, bool isCenter) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.all(isCenter ? 15 : 8),
-          decoration: BoxDecoration(
-            color: isCenter ? Colors.indigo.shade600 : Colors.transparent,
-            borderRadius: BorderRadius.circular(isCenter ? 25 : 12),
-            boxShadow: isCenter
-                ? [
-                    BoxShadow(
-                      color: Colors.indigo.withOpacity(0.3),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Icon(
-            icon,
-            color: isCenter ? Colors.white : Colors.grey.shade600,
-            size: isCenter ? 24 : 20,
-          ),
-        ),
-        if (!isCenter) ...[
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-  
-  Widget _buildFloatingElements() {
-    return Positioned(
-      top: 120,
-      right: 20,
-      child: AnimatedBuilder(
-        animation: _mainController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(30 * (1 - _fadeAnimation.value), 0),
-            child: Opacity(
-              opacity: _fadeAnimation.value,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.bookmark_outline,
-                  color: Colors.indigo.shade600,
-                  size: 20,
-                ),
-              ),
             ),
           );
         },
       ),
     );
   }
-  
-  void _showContractTerms() {
-    showModalBottomSheet(
-      context: context,
-      enableDrag: false,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(25),
-            topRight: Radius.circular(25),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Handle Bar
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(top: 10),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.description,
-                      color: Colors.blue.shade700,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  const Text(
-                    "شروط العقد",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Content
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
 
-              SizedBox(
-                height: 600,
-                child: SfPdfViewer.network(
-                  "https://crowds.sa/${_eventController.event!.attachment!}"
-                ),
-              ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+  PreferredSizeWidget _buildAppBar() {
+    final name = _eventController.event?.name;
+    return AppBar(
+      backgroundColor: WHITE_COLOR,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      systemOverlayStyle: AppTheme.statusBarLight,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded, color: AppTheme.textTitle),
+        onPressed: () => Get.back(),
+      ),
+      title: Text(
+        (name != null && name.isNotEmpty) ? name : 'Event Details'.tr,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: AppTheme.textTitle,
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
         ),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.share_outlined, color: AppTheme.textTitle),
+          tooltip: 'Share'.tr,
+          onPressed: () => HapticFeedback.lightImpact(),
+        ),
+      ],
     );
   }
-  
-  Widget _buildContractSection(String title, List<String> items) {
+
+  // ---------------------------------------------------------------------------
+  // Safe accessors — the API contract is loose, defend against nulls/types.
+  // ---------------------------------------------------------------------------
+
+  List<JobModel> _validJobs(List<JobModel>? jobs) {
+    if (jobs == null) return const [];
+    return jobs.where((j) => j.name.trim().isNotEmpty).toList(growable: false);
+  }
+
+  List<String> _validPeriods(List? periods) {
+    if (periods == null) return const [];
+    final out = <String>[];
+    for (final p in periods) {
+      if (p is PeriodModel) {
+        final s = p.period.trim();
+        if (s.isNotEmpty) out.add(s);
+      } else if (p is Map && p['period'] is String) {
+        final s = (p['period'] as String).trim();
+        if (s.isNotEmpty) out.add(s);
+      }
+    }
+    return out;
+  }
+}
+
+// =============================================================================
+// Hero card
+// =============================================================================
+
+class _HeroCard extends StatelessWidget {
+  final dynamic event;
+  const _HeroCard({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (event.name as String?) ?? 'Event Details'.tr;
+    final ago = event.ago as String?;
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.grey.shade200,
-          width: 1,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppTheme.brand, AppTheme.brandDark],
         ),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brand.withOpacity(0.22),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 10),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  margin: const EdgeInsets.only(top: 6, left: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade600,
-                    shape: BoxShape.circle,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: const Icon(
+                  Icons.event_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Event Details'.tr,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
                   ),
                 ),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade700,
-                    ),
+              ),
+              if (event.appliedStatus != null)
+                _InvertedPill(status: event.appliedStatus as String?),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
+          ),
+          if (ago != null && ago.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.schedule_rounded,
+                    size: 13, color: Colors.white.withOpacity(0.8)),
+                const SizedBox(width: 4),
+                Text(
+                  ago,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
-          )),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// Status pill rendered on the teal hero. Reuses [EventStatusPill] but on a
+/// translucent white chip so it stays legible on a saturated background.
+class _InvertedPill extends StatelessWidget {
+  final String? status;
+  const _InvertedPill({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = eventStatusStyle(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(s.icon, size: 13, color: s.color),
+          const SizedBox(width: 5),
+          Text(
+            s.label,
+            style: TextStyle(
+              color: s.color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Countdown card
+// =============================================================================
+
+class _CountdownCard extends StatelessWidget {
+  final StartDateTimeModel? start;
+  const _CountdownCard({required this.start});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = start;
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            icon: Icons.timer_outlined,
+            title: 'Event starts in'.tr,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _CountUnit(value: s?.days ?? 0, label: 'days'.tr)),
+              const SizedBox(width: 8),
+              Expanded(child: _CountUnit(value: s?.hours ?? 0, label: 'hours'.tr)),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: _CountUnit(value: s?.minutes ?? 0, label: 'minutes'.tr)),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: _CountUnit(value: s?.seconds ?? 0, label: 'seconds'.tr)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CountUnit extends StatelessWidget {
+  final int value;
+  final String label;
+  const _CountUnit({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.field,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value.toString().padLeft(2, '0'),
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textTitle,
+              fontFeatures: _tabular,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.textMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Quick stats row
+// =============================================================================
+
+class _QuickStatsRow extends StatelessWidget {
+  final String? date;
+  final String? time;
+  final int rolesCount;
+  final int shiftsCount;
+
+  const _QuickStatsRow({
+    required this.date,
+    required this.time,
+    required this.rolesCount,
+    required this.shiftsCount,
+  });
+
+  String _fmtDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '—';
+    try {
+      final dt = DateTime.tryParse(raw);
+      if (dt != null) return DateFormat('d MMM yyyy').format(dt);
+    } catch (_) {}
+    return raw;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _StatTile(
+            icon: Icons.calendar_today_rounded,
+            label: 'Date'.tr,
+            value: _fmtDate(date),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.access_time_rounded,
+            label: 'Time'.tr,
+            value: (time == null || time!.isEmpty) ? '—' : time!,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.work_outline_rounded,
+            label: 'Roles'.tr,
+            value: rolesCount.toString(),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.event_note_rounded,
+            label: 'Shifts'.tr,
+            value: shiftsCount.toString(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _StatTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 18, color: AppTheme.brand),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textTitle,
+              fontFeatures: _tabular,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10.5,
+              color: AppTheme.textMuted,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Location card
+// =============================================================================
+
+class _LocationCard extends StatelessWidget {
+  final String? address;
+  final String? location;
+  const _LocationCard({required this.address, required this.location});
+
+  bool get _hasMapUrl => location != null && location!.trim().isNotEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            icon: Icons.location_on_outlined,
+            title: 'Event Location'.tr,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            (address != null && address!.isNotEmpty) ? address! : '—',
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppTheme.textBody,
+              height: 1.4,
+            ),
+          ),
+          if (_hasMapUrl) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => MapsUtils.openMap(location ?? ''),
+                icon: const Icon(Icons.map_outlined, size: 18),
+                label: Text('Open in Maps'.tr),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// About card
+// =============================================================================
+
+class _AboutCard extends StatelessWidget {
+  final String? description;
+  final bool expanded;
+  final VoidCallback onToggle;
+
+  const _AboutCard({
+    required this.description,
+    required this.expanded,
+    required this.onToggle,
+  });
+
+  static const int _collapsedMax = 4;
+  static const int _longThreshold = 180;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = (description ?? '').trim();
+    final isLong = text.length > _longThreshold;
+
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            icon: Icons.description_outlined,
+            title: 'About'.tr,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            text.isEmpty ? '—' : text,
+            maxLines: (isLong && !expanded) ? _collapsedMax : null,
+            overflow: (isLong && !expanded) ? TextOverflow.ellipsis : null,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppTheme.textBody,
+              height: 1.5,
+            ),
+          ),
+          if (isLong) ...[
+            const SizedBox(height: 6),
+            GestureDetector(
+              onTap: onToggle,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  expanded ? 'Show less'.tr : 'Show more'.tr,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.brand,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Roles card
+// =============================================================================
+
+class _RolesCard extends StatelessWidget {
+  final List<JobModel> jobs;
+  const _RolesCard({required this.jobs});
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            icon: Icons.work_outline_rounded,
+            title: 'Roles'.tr,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: jobs.map((j) {
+              final qty = (j.quantity ?? 0) > 1 ? '  ×${j.quantity}' : '';
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: AppTheme.brand.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppTheme.brand.withOpacity(0.18),
+                  ),
+                ),
+                child: Text(
+                  '${j.name}$qty',
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.brandDark,
+                    fontFeatures: _tabular,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Periods card
+// =============================================================================
+
+class _PeriodsCard extends StatelessWidget {
+  final List<String> periods;
+  const _PeriodsCard({required this.periods});
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            icon: Icons.event_note_rounded,
+            title: 'Shifts'.tr,
+          ),
+          const SizedBox(height: 8),
+          ...List.generate(periods.length, (i) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Container(
+                    width: 26,
+                    height: 26,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppTheme.field,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      '${i + 1}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textTitle,
+                        fontFeatures: _tabular,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      periods[i],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.textBody,
+                        fontFeatures: _tabular,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Attachment row
+// =============================================================================
+
+class _AttachmentRow extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AttachmentRow({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+            border: Border.all(color: AppTheme.line),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.brand.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                ),
+                child: const Icon(Icons.picture_as_pdf_outlined,
+                    color: AppTheme.brand, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Attachment'.tr,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textTitle,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'View attachment'.tr,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  size: 14, color: AppTheme.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Decision row (initAccept only)
+// =============================================================================
+
+class _DecisionRow extends StatelessWidget {
+  final bool isAccepted;
+  final bool isRejected;
+  final VoidCallback onAccept;
+  final VoidCallback onReject;
+
+  const _DecisionRow({
+    required this.isAccepted,
+    required this.isRejected,
+    required this.onAccept,
+    required this.onReject,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _DecisionButton(
+            color: AppTheme.success,
+            label: isAccepted ? 'accepted'.tr : 'Accept'.tr,
+            icon: Icons.check_rounded,
+            filled: isAccepted,
+            onTap: onAccept,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _DecisionButton(
+            color: AppTheme.danger,
+            label: isRejected ? 'rejected'.tr : 'Reject'.tr,
+            icon: Icons.close_rounded,
+            filled: isRejected,
+            onTap: onReject,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DecisionButton extends StatelessWidget {
+  final Color color;
+  final String label;
+  final IconData icon;
+  final bool filled;
+  final VoidCallback onTap;
+
+  const _DecisionButton({
+    required this.color,
+    required this.label,
+    required this.icon,
+    required this.filled,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = filled ? color : AppTheme.surface;
+    final fg = filled ? Colors.white : color;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(AppTheme.radius),
+            border: Border.all(color: color, width: 1.4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: fg, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: fg,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Shared section primitives
+// =============================================================================
+
+class _SectionCard extends StatelessWidget {
+  final Widget child;
+  const _SectionCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: child,
+    );
+  }
+}
+
+// =============================================================================
+// Attachment viewer (PDF) — opened as a separate route to keep the details
+// page light. Mirrors the prior SfPdfViewer.network usage.
+// =============================================================================
+
+class _AttachmentViewer extends StatelessWidget {
+  final String url;
+  const _AttachmentViewer({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.scaffold,
+      appBar: AppBar(
+        backgroundColor: WHITE_COLOR,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        systemOverlayStyle: AppTheme.statusBarLight,
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded, color: AppTheme.textTitle),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Attachment'.tr,
+          style: const TextStyle(
+            color: AppTheme.textTitle,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      body: SfPdfViewer.network(url),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  const _SectionTitle({required this.icon, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: AppTheme.brand.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: AppTheme.brand),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textTitle,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

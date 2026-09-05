@@ -38,6 +38,13 @@ class EventsUsecase {
   }
 
 
+
+   Future<Either<Failure, Response>> applicationStatus(
+      Map<String, dynamic> body) async {
+    return await eventRepository.applicationStatus(body);
+  }
+
+
   
 
   

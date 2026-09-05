@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.2+2
 
 environment:
   sdk: ^3.6.0
@@ -35,7 +35,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   get: ^4.6.6
-  path_provider: ^2.1.5
   internet_connection_checker_plus: ^2.6.0
   dio: ^5.7.0
   equatable: ^2.0.7
@@ -102,6 +101,10 @@ dependencies:
   timeago: ^3.7.1
   audioplayers: ^5.2.0
   agora_rtc_engine: ^6.5.0
+  # Realtime chat over Laravel Reverb (raw Pusher protocol via WebSocket).
+  # pusher_channels_flutter can't target a self-hosted host, so we speak the
+  # protocol directly over web_socket_channel.
+  web_socket_channel: ^3.0.0
   # marquee: ^2.3.0
   latlong2: ^0.8.1
   workmanager: ^0.5.0
@@ -109,7 +112,19 @@ dependencies:
   # dot_navigation_bar: ^1.0.2
   # crystal_navigation_bar: ^1.0.4
   syncfusion_flutter_pdfviewer: ^29.1.38
-  
+  intl_mobile_field: ^2.1.4
+  open_file: ^3.3.2
+  path: ^1.8.3
+  path_provider: ^2.1.5
+  video_player: ^2.8.1
+  chewie: ^1.7.5
+  livekit_client: ^2.4.3
+
+dependency_overrides:
+  # Flutter 3.27's SurfaceProducer.Callback needs onSurfaceDestroyed(), but
+  # flutter_webrtc 0.13+/0.14 target Flutter 3.29+ (onSurfaceCleanup) and don't
+  # override it → Android build fails. 0.12.12 targets the 3.27-era API.
+  flutter_webrtc: 0.12.12+hotfix.1
 
 dev_dependencies:
   flutter_test:

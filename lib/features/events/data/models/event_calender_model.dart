@@ -9,12 +9,17 @@ class EventCalenderModel {
   final DateTime startTime;
   final DateTime endTime;
 
+  /// Application status used to route to the right detail screen
+  /// (accepted / initAccept / pending / rejected / null = apply).
+  final String? appliedStatus;
+
   const EventCalenderModel({
     required this.id,
     this.name,
     required this.description,
     required this.startTime,
     required this.endTime,
+    this.appliedStatus,
   });
 
   factory EventCalenderModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +30,8 @@ class EventCalenderModel {
         description: json['description'],
         startTime: DateTime.parse(json['startTime']),
         endTime: DateTime.parse(json['endTime']),
+        appliedStatus:
+            json['appliedStatus'] ?? json['applied_status'] ?? json['status'],
       );
     } catch (e) {
       print('Error in EventCalenderModel.fromJson: $e');
@@ -40,6 +47,7 @@ class EventCalenderModel {
       'description': description,
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
+      'appliedStatus': appliedStatus,
     };
   }
 

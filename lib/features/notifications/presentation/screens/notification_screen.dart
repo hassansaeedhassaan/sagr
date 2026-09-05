@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/features/notifications/presentation/controllers/notifications_controller.dart';
+import 'package:sagr/widgets/Common/no_results.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/view/notification_one_screen/notification_one_screen.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 
@@ -53,7 +55,17 @@ class NotificationsScreen extends StatelessWidget {
 
   /// Section Widget
   Widget _buildUserProfile(BuildContext context) {
-    return Obx(() => ListView.separated(
+    return Obx(() {
+      if (_controller.isLoadingList && _controller.notifications.isEmpty) {
+        return AppLoader.list();
+      }
+      if (_controller.notifications.isEmpty) {
+        return NoResults(
+          title: 'No notifications found'.tr,
+          message: '',
+        );
+      }
+      return ListView.separated(
       physics: AlwaysScrollableScrollPhysics(),
       shrinkWrap: true,
       separatorBuilder: (
@@ -73,7 +85,8 @@ class NotificationsScreen extends StatelessWidget {
                       builder: (context) => NotificationOneScreen())),);
         // return Userprofile2ItemWidget();
       },
-    ));
+      );
+    });
   }
 
   

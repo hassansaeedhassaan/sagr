@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/app/view_model/profile/profile_controller.dart';
 import 'package:sagr/core/utils/size_utils.dart';
-import 'package:sagr/data/colors.dart';
+import 'package:sagr/theme/app_theme.dart';
 import 'package:sagr/view/auth/login_screen.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
 import 'package:shimmer/shimmer.dart';
@@ -264,7 +264,7 @@ class ProfileScreen extends StatelessWidget {
       body: Container(
         width: double.maxFinite,
         margin: EdgeInsets.only(top: 0),
-        padding: EdgeInsets.all(16.h),
+        padding: EdgeInsets.all(14.h),
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -275,14 +275,10 @@ class ProfileScreen extends StatelessWidget {
 
               Container(
                 padding: EdgeInsets.all(12.h),
-
-                // decoration: AppDecoration.linear.copyWith(
-                //   borderRadius: BorderRadiusStyle.roundedBorder12,
-                // ),
-
                 decoration: BoxDecoration(
-                    border: Border.all(width: 1),
-                    borderRadius: BorderRadius.circular(12)),
+                    color: AppTheme.surface,
+                    border: Border.all(color: AppTheme.line),
+                    borderRadius: BorderRadius.circular(AppTheme.radius)),
                 child: Row(
                   children: [
                     Container(
@@ -307,7 +303,7 @@ class ProfileScreen extends StatelessWidget {
                               "Ahmed Alayshy",
                               style: CustomTextStyles
                                   .titleMediumOnPrimarySemiBold
-                                  .copyWith(color: BLACK_COLOR),
+                                  .copyWith(color: AppTheme.textTitle),
                             ),
                             Container(
                               child: Row(
@@ -317,15 +313,15 @@ class ProfileScreen extends StatelessWidget {
                                   Text(
                                     '+9665746663478',
                                     style: CustomTextStyles.titleSmallOnPrimary
-                                        .copyWith(color: BLACK_COLOR),
+                                        .copyWith(color: AppTheme.textMuted),
                                   ),
                                   Container(
                                     padding: EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 3),
                                     decoration: BoxDecoration(
-                                        color: BLACK_COLOR,
+                                        color: AppTheme.brand,
                                         borderRadius:
-                                            BorderRadius.circular(12)),
+                                            BorderRadius.circular(AppTheme.radiusSm)),
                                     child: Text(
                                       '78236478',
                                       style:
@@ -373,7 +369,8 @@ class ProfileScreen extends StatelessWidget {
                     vertical: 8.v,
                   ),
                   decoration: AppDecoration.fillOnPrimary.copyWith(
-                    borderRadius: BorderRadiusStyle.roundedBorder12,
+                    borderRadius: BorderRadius.circular(AppTheme.radius),
+                    border: Border.all(color: AppTheme.line),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -382,7 +379,8 @@ class ProfileScreen extends StatelessWidget {
                         height: 48.adaptSize,
                         width: 48.adaptSize,
                         padding: EdgeInsets.all(12.h),
-                        decoration: AppDecoration.fillGray50.copyWith(
+                        decoration: BoxDecoration(
+                          color: AppTheme.field,
                           borderRadius: BorderRadiusStyle.circleBorder24,
                         ),
                         child: CustomImageView(
@@ -429,7 +427,8 @@ class ProfileScreen extends StatelessWidget {
                     vertical: 8.v,
                   ),
                   decoration: AppDecoration.fillOnPrimary.copyWith(
-                    borderRadius: BorderRadiusStyle.roundedBorder12,
+                    borderRadius: BorderRadius.circular(AppTheme.radius),
+                    border: Border.all(color: AppTheme.line),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -438,7 +437,8 @@ class ProfileScreen extends StatelessWidget {
                         height: 48.adaptSize,
                         width: 48.adaptSize,
                         padding: EdgeInsets.all(12.h),
-                        decoration: AppDecoration.fillGray50.copyWith(
+                        decoration: BoxDecoration(
+                          color: AppTheme.field,
                           borderRadius: BorderRadiusStyle.circleBorder24,
                         ),
                         child: CustomImageView(
@@ -509,7 +509,8 @@ class ProfileScreen extends StatelessWidget {
                     vertical: 8.v,
                   ),
                   decoration: AppDecoration.fillOnPrimary.copyWith(
-                    borderRadius: BorderRadiusStyle.roundedBorder12,
+                    borderRadius: BorderRadius.circular(AppTheme.radius),
+                    border: Border.all(color: AppTheme.line),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -519,7 +520,8 @@ class ProfileScreen extends StatelessWidget {
                         height: 48.adaptSize,
                         width: 48.adaptSize,
                         padding: EdgeInsets.all(12.h),
-                        decoration: AppDecoration.fillGray50.copyWith(
+                        decoration: BoxDecoration(
+                          color: AppTheme.field,
                           borderRadius: BorderRadiusStyle.circleBorder24,
                         ),
                         child: CustomImageView(
@@ -623,7 +625,8 @@ class ProfileScreen extends StatelessWidget {
         vertical: 8.v,
       ),
       decoration: AppDecoration.fillOnPrimary.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder12,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -632,7 +635,8 @@ class ProfileScreen extends StatelessWidget {
             height: 48.adaptSize,
             width: 48.adaptSize,
             padding: EdgeInsets.all(12.h),
-            decoration: AppDecoration.fillGray50.copyWith(
+            decoration: BoxDecoration(
+              color: AppTheme.field,
               borderRadius: BorderRadiusStyle.circleBorder24,
             ),
             child: CustomImageView(
@@ -683,7 +687,8 @@ class ProfileScreen extends StatelessWidget {
         vertical: 8.v,
       ),
       decoration: AppDecoration.fillOnPrimary.copyWith(
-        borderRadius: BorderRadiusStyle.roundedBorder12,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+        border: Border.all(color: AppTheme.line),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -692,7 +697,8 @@ class ProfileScreen extends StatelessWidget {
             height: 48.adaptSize,
             width: 48.adaptSize,
             padding: EdgeInsets.all(12.h),
-            decoration: AppDecoration.fillGray50.copyWith(
+            decoration: BoxDecoration(
+              color: AppTheme.field,
               borderRadius: BorderRadiusStyle.circleBorder24,
             ),
             child: CustomImageView(

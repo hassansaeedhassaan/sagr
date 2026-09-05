@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:http/http.dart' as http;
+import 'package:sagr/helper/base_url.dart';
 import 'dart:convert';
 
 import 'package:workmanager/workmanager.dart';
@@ -12,7 +13,7 @@ class SmartTaskManager {
   Timer? _foregroundTimer;
   bool _isAppActive = true;
   // Your server endpoint
-  static const String serverEndpoint = 'https://crowds.sa/api/v1';
+  static const String serverEndpoint = BASEURL;
 
   static const String send_current_location = '/receive/current_location';
   static const String get_current_users = '/current/users/live/events';
@@ -26,7 +27,7 @@ class SmartTaskManager {
   }
 
   void _startForegroundTasks() {
-    _foregroundTimer = Timer.periodic(Duration(seconds: 50), (timer) {
+    _foregroundTimer = Timer.periodic(Duration(seconds: 30), (timer) {
       if (_isAppActive) {
         performFrequentTask();
       }
@@ -60,17 +61,20 @@ class SmartTaskManager {
 
     print("🔥🔥🔥🔥🔥🔥");
 
-    print("تنفيذ مهمة كل 20 ثانية" + DateTime.now().toString());
+    print("تنفيذ مهمة كل 30 ثانية" + DateTime.now().toString());
     // منطق المهمة هنا
     print("🔥🔥🔥🔥🔥🔥");
   }
 
   static Future<void> _sendToServer(Map<String, dynamic> locationData) async {
-    try {
+   
+  
+   try {
       final response = await http.post(
         Uri.parse(serverEndpoint + send_current_location),
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           // Add authentication headers if needed
           // 'Authorization': 'Bearer your_token_here',
         },
@@ -78,10 +82,11 @@ class SmartTaskManager {
       );
       // ).timeout(const Duration(seconds: 30));
 
+
       if (response.statusCode == 200) {
         print('Location sent successfully');
       } else {
-        print('Failed to send location: ${response.statusCode}');
+        print('Failed to send location _sendToServer: ${response.body}');
       }
     } catch (e) {
       print('Error sending location to server: $e');
@@ -100,7 +105,6 @@ class SmartTaskManager {
           // 'Authorization': 'Bearer your_token_here',
         },
       );
-
 
 
       if (response.statusCode == 200) {
@@ -122,11 +126,11 @@ class SmartTaskManager {
               'accuracy': position.accuracy,
               'timestamp': DateTime.now().toIso8601String(),
               'altitude': position.altitude,
-              'heading': position.heading,
+              // 'heading': position.heading,
+              'heading': 1,
               'speed': position.speed,
               'user_id': authController.authenticatedUser!['id']
             };
-
             await _sendToServer(locationData);
           }
         }

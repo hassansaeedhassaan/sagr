@@ -1,3 +1,5 @@
+import 'package:sagr/helper/base_url.dart';
+
 import 'message_status.dart';
 import 'user.dart';
 
@@ -9,6 +11,7 @@ class Message {
   final String type;
   final String? content;
   final Map<String, dynamic>? media;
+  final String? media_url;
   final bool isEdited;
   final DateTime? editedAt;
   final DateTime createdAt;
@@ -29,6 +32,7 @@ class Message {
     required this.createdAt,
     this.sender,
     this.replyTo,
+    this.media_url,
     required this.statuses,
   });
 
@@ -41,6 +45,9 @@ class Message {
       type: json['type'],
       content: json['content'],
       media: json['media'],
+      // Media is served from the API server's public/uploads/images dir —
+      // NOT from HOSTURL (the marketing/production domain).
+      media_url: json['media'] != null ? "$APIHOST/uploads/images/${json['media']['path']}":'',
       isEdited: json['is_edited'] ?? false,
       editedAt: json['edited_at'] != null ? DateTime.parse(json['edited_at']) : null,
       createdAt: DateTime.parse(json['created_at']),
@@ -95,7 +102,11 @@ class Message {
   }
 
   int? get duration {
-    return int.tryParse(media?['duration']);
+    // duration arrives as a string from multipart uploads but as an int from
+    // broadcast payloads — accept both.
+    final raw = media?['duration'];
+    if (raw is int) return raw;
+    return int.tryParse(raw?.toString() ?? '') ?? 0;
   }
 
   bool hasBeenReadBy(int userId) {
@@ -131,6 +142,21 @@ class Message {
   }
 
 
+
+ @override
+  String toString() {
+    return '''
+Message {
+  id: $id,
+  conversationId: $conversationId,
+  senderId: $senderId,
+  type: $type,
+  content: $content,
+  mediaUrl: $mediaUrl,
+  createdAt: $createdAt,
+  // Add other fields you want to see
+}''';
+  }
   
 
 }

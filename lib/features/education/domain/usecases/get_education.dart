@@ -1,7 +1,8 @@
 import 'package:dartz/dartz.dart';
+import 'package:sagr/core/error/failures.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
-import '../../../../core/error/failures.dart';
-import '../repositories/education_repository.dart';
+import 'package:sagr/features/education/domain/repositories/education_repository.dart';
+
 
 class EducationUsecase {
   

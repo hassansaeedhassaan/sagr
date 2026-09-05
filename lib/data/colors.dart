@@ -21,10 +21,14 @@ const Color RED_COLOR = Color.fromARGB(255, 253, 105, 68);
 const Color ZAHRA_ORANGE = Color(0xffff951c);
 const Color ZAHRA_RED = Color(0xffd20654);
 
-const Color SAGR_PRIMARY = Color(0xff1b73e8);
+const Color SAGR_PRIMARY = Color(0xff0f172a);
+const Color SAGR_SECONDARY = Color(0xff06987d);
+const Color SAGR_THIRD = Color(0xff0ea5e9);
+
 const Color SAGR_INIT_ACCEPTED = Color(0xff8fc261);
 const Color SAGR_PENDING = Color(0xffff951c);
 const Color SAGR_ACCEPTED = Color(0xff32b711);
+
 
 
 BoxShadow boxShadow = BoxShadow(

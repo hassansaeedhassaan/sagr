@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/chat_controller.dart';
 import '../../models/user.dart';
 import '../../services/api_service.dart';
+import 'package:sagr/widgets/skeletons/app_skeleton.dart';
+import '../../theme/chat_theme.dart';
+import '../../widgets/chat_avatar.dart';
 import '../../widgets/create_group_dialog.dart';
 
 class ContactsScreen extends StatefulWidget {
@@ -68,12 +70,25 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = ChatTheme.of(context);
     return Scaffold(
+      backgroundColor: palette.scaffold,
       appBar: AppBar(
-        title: const Text('Contacts'),
+        title: Text(
+          'Contacts'.tr,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: palette.title,
+          ),
+        ),
+        backgroundColor: palette.appBar,
+        foregroundColor: palette.title,
+        elevation: 0,
+        scrolledUnderElevation: 1,
         actions: [
           IconButton(
-            icon: const Icon(Icons.group_add),
+            icon: Icon(Icons.group_add_outlined, color: palette.primary),
+            tooltip: 'New Group'.tr,
             onPressed: () => _showCreateGroupDialog(),
           ),
         ],
@@ -96,45 +111,64 @@ class _ContactsScreenState extends State<ContactsScreen> {
   }
 
   Widget _buildSearchBar() {
+    final palette = ChatTheme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Search users by name, email, or phone',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    searchResults.clear();
-                    setState(() {});
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+      color: palette.appBar,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      child: Container(
+        height: 44,
+        decoration: BoxDecoration(
+          color: palette.searchField,
+          borderRadius: BorderRadius.circular(22),
         ),
-        onChanged: (value) {
-          setState(() {});
-          _searchUsers(value);
-        },
+        child: Row(
+          children: [
+            const SizedBox(width: 12),
+            Icon(Icons.search, size: 20, color: palette.hint),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                style: TextStyle(fontSize: 15, color: palette.body),
+                decoration: InputDecoration(
+                  isCollapsed: true,
+                  border: InputBorder.none,
+                  hintText: 'Search users'.tr,
+                  hintStyle: TextStyle(fontSize: 15, color: palette.hint),
+                ),
+                onChanged: (value) {
+                  setState(() {});
+                  _searchUsers(value);
+                },
+              ),
+            ),
+            if (_searchController.text.isNotEmpty)
+              IconButton(
+                icon: Icon(Icons.close, size: 18, color: palette.hint),
+                onPressed: () {
+                  _searchController.clear();
+                  searchResults.clear();
+                  setState(() {});
+                },
+              )
+            else
+              const SizedBox(width: 12),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSearchResults() {
     if (isSearching.value) {
-      return const Center(child: CircularProgressIndicator());
+      return AppLoader.list(items: 8, showTrailing: false);
     }
 
     if (searchResults.isEmpty) {
       return _buildEmptyState(
         icon: Icons.search_off,
-        title: 'No users found',
-        subtitle: 'Try searching with a different term',
+        title: 'No users found'.tr,
+        subtitle: 'Try a different search'.tr,
       );
     }
 
@@ -152,18 +186,19 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   Widget _buildContactsList() {
     if (isLoadingContacts.value) {
-      return const Center(child: CircularProgressIndicator());
+      return AppLoader.list(items: 8, showTrailing: false);
     }
 
     if (contacts.isEmpty) {
       return _buildEmptyState(
         icon: Icons.contacts_outlined,
-        title: 'No contacts yet',
-        subtitle: 'Search for users to start chatting',
+        title: 'No contacts yet'.tr,
+        subtitle: 'Search for users to start chatting'.tr,
       );
     }
 
     return RefreshIndicator(
+      color: ChatTheme.of(context).primary,
       onRefresh: _loadContacts,
       child: ListView.builder(
         itemCount: contacts.length,
@@ -182,68 +217,32 @@ class _ContactsScreenState extends State<ContactsScreen> {
     required User user,
     required VoidCallback onTap,
   }) {
+    final palette = ChatTheme.of(context);
     return ListTile(
+      tileColor: palette.surface,
       onTap: onTap,
-      leading: Stack(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundImage: user.avatar != null
-                ? CachedNetworkImageProvider(user.avatar!)
-                : null,
-            child: user.avatar == null
-                ? Text(
-                    user.name[0].toUpperCase(),
-                    style: const TextStyle(fontSize: 18),
-                  )
-                : null,
-          ),
-          if (user.isOnline)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    width: 2,
-                  ),
-                ),
-              ),
-            ),
-        ],
+      leading: ChatAvatar(
+        name: user.name,
+        imageUrl: user.avatar,
+        radius: 24,
+        showOnlineDot: true,
+        isOnline: user.isOnline,
       ),
       title: Text(
         user.name,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 16,
+          color: palette.title,
         ),
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            user.email,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            user.statusDisplay,
-            style: TextStyle(
-              color: user.isOnline ? Colors.green : Colors.grey[500],
-              fontSize: 12,
-            ),
-          ),
-        ],
+      subtitle: Text(
+        user.email,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: palette.subtitle, fontSize: 13),
       ),
-      trailing: const Icon(Icons.chat_bubble_outline),
+      trailing: Icon(Icons.chat_bubble_outline, color: palette.primary),
     );
   }
 
@@ -252,33 +251,31 @@ class _ContactsScreenState extends State<ContactsScreen> {
     required String title,
     required String subtitle,
   }) {
+    final palette = ChatTheme.of(context);
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 72, color: palette.hint),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: palette.subtitle,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: TextStyle(fontSize: 14, color: palette.hint),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
