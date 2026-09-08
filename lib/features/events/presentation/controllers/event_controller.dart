@@ -276,7 +276,10 @@ class EventController extends GetxController {
           final distance = locationResult?.distanceToZone ?? 0;
           MessageHelper.showErrorDialog(
             title: 'Location Restricted'.tr,
-            message: 'You are outside the event zone. You need to be ${distance.toStringAsFixed(0)}m closer to check in.'.tr,
+            // Interpolating before .tr built a key that can never exist in
+            // the translation maps, so this always fell through to English.
+            message: 'You are outside the event zone. You need to be @distance m closer to check in.'
+                .trParams({'distance': distance.toStringAsFixed(0)}),
           );
           return;
         }

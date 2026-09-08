@@ -324,6 +324,9 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = (event.name as String?) ?? 'Event Details'.tr;
     final ago = event.ago as String?;
+    // The app bar already says "Event Details"; naming the organiser here is
+    // information the screen didn't show anywhere.
+    final eyebrow = (event.companyName as String?)?.trim();
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
       decoration: BoxDecoration(
@@ -361,7 +364,11 @@ class _HeroCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Event Details'.tr,
+                  (eyebrow != null && eyebrow.isNotEmpty)
+                      ? eyebrow
+                      : 'Event Details'.tr,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.85),
                     fontSize: 12,
@@ -539,13 +546,39 @@ class _QuickStatsRow extends StatelessWidget {
     required this.shiftsCount,
   });
 
+  /// The API sends dd/MM/yyyy, which DateTime.tryParse rejects — the raw
+  /// slashes were being rendered instead of a localised date.
   String _fmtDate(String? raw) {
     if (raw == null || raw.isEmpty) return '—';
+    final dt = DateTime.tryParse(raw) ?? _parseSlashDate(raw);
+    if (dt == null) return raw;
     try {
-      final dt = DateTime.tryParse(raw);
-      if (dt != null) return DateFormat('d MMM yyyy').format(dt);
-    } catch (_) {}
-    return raw;
+      return DateFormat('d MMM', Get.locale?.languageCode).format(dt);
+    } catch (_) {
+      return DateFormat('d MMM').format(dt);
+    }
+  }
+
+  static DateTime? _parseSlashDate(String raw) {
+    final m = RegExp(r'^(\d{1,2})/(\d{1,2})/(\d{4})$').firstMatch(raw.trim());
+    if (m == null) return null;
+    return DateTime(
+      int.parse(m.group(3)!),
+      int.parse(m.group(2)!),
+      int.parse(m.group(1)!),
+    );
+  }
+
+  /// "00:00:00 AM" doesn't fit a quarter-width tile and was ellipsised to
+  /// "00:00:00 ...". Seconds carry no meaning for a start time.
+  String _fmtTime(String? raw) {
+    if (raw == null || raw.isEmpty) return '—';
+    final m = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?')
+        .firstMatch(raw.trim());
+    if (m == null) return raw;
+    final hhmm = '${m.group(1)}:${m.group(2)}';
+    final suffix = m.group(3);
+    return suffix == null ? hhmm : '$hhmm ${suffix.toUpperCase()}';
   }
 
   @override
@@ -564,7 +597,7 @@ class _QuickStatsRow extends StatelessWidget {
           child: _StatTile(
             icon: Icons.access_time_rounded,
             label: 'Time'.tr,
-            value: (time == null || time!.isEmpty) ? '—' : time!,
+            value: _fmtTime(time),
           ),
         ),
         const SizedBox(width: 8),
@@ -611,16 +644,21 @@ class _StatTile extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: AppTheme.brand),
           const SizedBox(height: 6),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textTitle,
-              fontFeatures: _tabular,
+          // "00:00 AM" and slash dates are LTR strings; the RTL layout was
+          // rendering them as "AM 00:00".
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textTitle,
+                fontFeatures: _tabular,
+              ),
             ),
           ),
           const SizedBox(height: 2),
@@ -703,9 +741,34 @@ class _AboutCard extends StatelessWidget {
   static const int _collapsedMax = 4;
   static const int _longThreshold = 180;
 
+  /// The backend stores descriptions as HTML, so the raw value leaked markup
+  /// and entities into the UI ("... hkjh&nbsp;"). Strip tags and decode the
+  /// entities that actually show up rather than rendering a whole HTML tree
+  /// for what is a paragraph of text.
+  static String _plainText(String html) {
+    var out = html
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n')
+        .replaceAll(RegExp(r'<[^>]+>'), '');
+    const entities = {
+      '&nbsp;': ' ',
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&apos;': "'",
+    };
+    entities.forEach((k, v) => out = out.replaceAll(k, v));
+    // Collapse the whitespace the stripped markup leaves behind.
+    return out.replaceAll(RegExp(r'[ \t]+'), ' ')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final text = (description ?? '').trim();
+    final text = _plainText((description ?? '').trim());
     final isLong = text.length > _longThreshold;
 
     return _SectionCard(
