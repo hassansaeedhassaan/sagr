@@ -1,6 +1,7 @@
 
 import 'package:get/get.dart';
 import 'package:sagr/features/ads/presentation/bindings/ads_bindings.dart';
+import 'package:sagr/features/ads/presentation/screens/ad_details_screen.dart';
 import 'package:sagr/features/attendance/presentation/bindings/attendance_bindings.dart';
 import 'package:sagr/features/auth/presentation/screens/login_screen.dart';
 import 'package:sagr/features/auth/presentation/screens/update_profile_screen.dart';
@@ -269,6 +270,10 @@ final List<GetPage> routes = [
       name: '/product_info',
       page: () => ProductInfoScreen(),
       bindings: [ApplicationBinding(), ProductBindings()]),
+  GetPage(
+      name: '/ad_details',
+      page: () => const AdDetailsScreen(),
+      bindings: [ApplicationBinding()]),
   GetPage(
       name: '/product_detail_screen',
       page: () => AdsDetailsScreen(),

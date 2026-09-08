@@ -360,6 +360,8 @@ const Map<String, String> ar = {
   "Could not load this event. Please try again.": "تعذّر تحميل الفعالية. من فضلك حاول مرة أخرى.",
   "Retry": "إعادة المحاولة",
   "Read more": "اقرأ المزيد",
+  "Ad Details": "تفاصيل الإعلان",
+  "Could not load this ad": "تعذّر تحميل هذا الإعلان",
   "Could not load advertisements": "تعذّر تحميل الإعلانات",
   "New advertisements will appear here": "ستظهر الإعلانات الجديدة هنا",
   "Server error occurred. Please try again later.": "حدث خطأ في الخادم. من فضلك حاول مرة أخرى لاحقاً.",

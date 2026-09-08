@@ -66,9 +66,15 @@ class AdsDetailsScreen extends StatelessWidget {
               scrolledUnderElevation: 0,
               backgroundColor: AppTheme.surface,
             ),
+            // Everything below dereferences `controller.product!`. When the
+            // fetch fails the product is null, and the screen used to throw
+            // "Null check operator used on a null value" straight into a red
+            // screen — bail to a retry state before that can happen.
             body: controller.productsLoading
                 ? AppLoader.list()
-                : SizedBox(
+                : controller.product == null
+                    ? _AdDetailsUnavailable(controller: controller)
+                    : SizedBox(
                     width: SizeUtils.width,
                     child: SingleChildScrollView(
                         child: controller.productsLoading
@@ -1730,5 +1736,67 @@ class ProductPriceWidget extends StatelessWidget {
               : Text("${product!.price} ${product!.currency}",
                   style: theme.textTheme.titleMedium)
         ]));
+  }
+}
+
+
+/// Shown when the ad behind this screen could not be loaded.
+class _AdDetailsUnavailable extends StatelessWidget {
+  const _AdDetailsUnavailable({required this.controller});
+
+  final ProductController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final error = controller.loadError;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 76,
+              height: 76,
+              decoration: BoxDecoration(
+                color: AppTheme.danger.withOpacity(0.10),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.error_outline_rounded,
+                  size: 34, color: AppTheme.danger),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Could not load this ad'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textTitle,
+              ),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                error.tr,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: AppTheme.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: controller.getProductInfo,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text('Retry'.tr),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

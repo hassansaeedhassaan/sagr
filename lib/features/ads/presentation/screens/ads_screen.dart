@@ -74,10 +74,9 @@ class AdScreen extends StatelessWidget {
                   final ad = controller.ads[index];
                   return AdCard(
                     ad: ad,
-                    onTap: () => Get.toNamed(
-                      '/product_detail_screen',
-                      arguments: ad.id,
-                    ),
+                    // Hand over the model: there is no ad-detail endpoint to
+                    // re-fetch from, and the list response already has it all.
+                    onTap: () => Get.toNamed('/ad_details', arguments: ad),
                   );
                 },
               ),

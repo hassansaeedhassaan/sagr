@@ -29,14 +29,14 @@ class AdCard extends StatelessWidget {
   String get _meta {
     final parts = <String>[
       if (ad.date?.isNotEmpty == true) ad.date!,
-      if (ad.time?.isNotEmpty == true) _shortTime(ad.time!),
+      if (ad.time?.isNotEmpty == true) shortTime(ad.time!),
     ];
     if (parts.isNotEmpty) return parts.join('  ·  ');
     return ad.datetime ?? '';
   }
 
-  /// "07:20:00 AM" -> "07:20 AM". Seconds are noise on a listing card.
-  static String _shortTime(String time) {
+  /// "07:20:00 AM" -> "07:20 AM". Seconds are noise on an ad.
+  static String shortTime(String time) {
     final match = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?')
         .firstMatch(time.trim());
     if (match == null) return time;

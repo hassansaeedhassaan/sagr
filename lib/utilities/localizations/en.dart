@@ -172,6 +172,8 @@ const Map<String, String> en = {
   "Could not load this event. Please try again.": "Could not load this event. Please try again.",
   "Retry": "Retry",
   "Read more": "Read more",
+  "Ad Details": "Ad Details",
+  "Could not load this ad": "Could not load this ad",
   "Could not load advertisements": "Could not load advertisements",
   "New advertisements will appear here": "New advertisements will appear here",
   "Advertisements": "Advertisements",
