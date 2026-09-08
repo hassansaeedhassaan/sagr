@@ -321,6 +321,9 @@ const Map<String, String> ar = {
   // Application status (pending) screen
   "Application Status": "حالة الطلب",
   "Application under review": "جارٍ مراجعة طلبك",
+  "Application rejected": "تم رفض طلبك",
+  "You can now check in when the event starts": "يمكنك تسجيل الحضور عند بدء الفعالية",
+  "This application was not approved": "لم تتم الموافقة على هذا الطلب",
   "We'll notify you once a decision is made": "سنعلمك حال صدور القرار",
   "Submitted": "تم الإرسال",
   "Under Review": "قيد المراجعة",

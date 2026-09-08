@@ -132,6 +132,9 @@ const Map<String, String> en = {
   // Application status (pending) screen
   "Application Status": "Application Status",
   "Application under review": "Application under review",
+  "Application rejected": "Application rejected",
+  "You can now check in when the event starts": "You can now check in when the event starts",
+  "This application was not approved": "This application was not approved",
   "We'll notify you once a decision is made":
       "We'll notify you once a decision is made",
   "Submitted": "Submitted",

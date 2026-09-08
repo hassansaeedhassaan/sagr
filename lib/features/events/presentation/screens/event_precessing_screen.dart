@@ -65,7 +65,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.scaffold,
-      appBar: _appBar(),
+      appBar: _appBar(),  // pill rebuilds via its own GetBuilder
       body: GetBuilder<EventController>(
         init: eventController,
         builder: (c) {
@@ -127,11 +127,22 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
           color: AppTheme.textTitle,
         ),
       ),
-      actions: const [
+      actions: [
         Padding(
-          padding: EdgeInsets.only(right: 12, left: 12),
+          padding: const EdgeInsets.only(right: 12, left: 12),
           child: Center(
-            child: EventStatusPill(status: 'pending', compact: true),
+            // Read the event's real status. Hardcoding 'pending' meant this
+            // pill kept claiming the application was under review after the
+            // decision landed, contradicting the same event's pill on home.
+            // The app bar is built outside the body's GetBuilder, so without
+            // its own listener this pill kept the pre-load fallback value.
+            child: GetBuilder<EventController>(
+              init: eventController,
+              builder: (c) => EventStatusPill(
+                status: c.event?.appliedStatus ?? 'pending',
+                compact: true,
+              ),
+            ),
           ),
         ),
       ],
@@ -147,12 +158,12 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.warning.withOpacity(0.16),
-            AppTheme.warning.withOpacity(0.08),
+            _bannerColor.withOpacity(0.16),
+            _bannerColor.withOpacity(0.08),
           ],
         ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.warning.withOpacity(0.45)),
+        border: Border.all(color: _bannerColor.withOpacity(0.45)),
       ),
       child: Row(
         children: [
@@ -160,14 +171,10 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: AppTheme.warning.withOpacity(0.18),
+              color: _bannerColor.withOpacity(0.18),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.hourglass_top_rounded,
-              color: AppTheme.warning,
-              size: 22,
-            ),
+            child: Icon(_bannerIcon, color: _bannerColor, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -175,7 +182,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Application under review'.tr,
+                  _bannerTitle.tr,
                   style: const TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800,
@@ -185,7 +192,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  "We'll notify you once a decision is made".tr,
+                  _bannerSubtitle.tr,
                   style: const TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w500,
@@ -199,6 +206,64 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
         ],
       ),
     );
+  }
+
+  // ---- Status-driven banner copy ----
+  String? get _status => eventController.event?.appliedStatus;
+
+  Color get _bannerColor {
+    switch (_status) {
+      case 'accepted':
+        return AppTheme.success;
+      case 'rejected':
+        return AppTheme.danger;
+      default:
+        return AppTheme.warning;
+    }
+  }
+
+  IconData get _bannerIcon {
+    switch (_status) {
+      case 'accepted':
+        return Icons.check_circle_rounded;
+      case 'rejected':
+        return Icons.cancel_rounded;
+      default:
+        return Icons.hourglass_top_rounded;
+    }
+  }
+
+  String get _bannerTitle {
+    switch (_status) {
+      case 'accepted':
+        return 'Application accepted';
+      case 'rejected':
+        return 'Application rejected';
+      default:
+        return 'Application under review';
+    }
+  }
+
+  String get _bannerSubtitle {
+    switch (_status) {
+      case 'accepted':
+        return 'You can now check in when the event starts';
+      case 'rejected':
+        return 'This application was not approved';
+      default:
+        return "We'll notify you once a decision is made";
+    }
+  }
+
+  /// "00:00:00 AM" overflows a quarter-width tile; seconds add nothing.
+  String _fmtTime(String? raw) {
+    if (raw == null || raw.isEmpty) return '—';
+    final m = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?')
+        .firstMatch(raw.trim());
+    if (m == null) return raw;
+    final suffix = m.group(3);
+    final hhmm = '${m.group(1)}:${m.group(2)}';
+    return suffix == null ? hhmm : '$hhmm ${suffix.toUpperCase()}';
   }
 
   // ---- Three-step timeline (Submitted → Under Review → Decision) ----
@@ -217,28 +282,47 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _timelineStep(
-            icon: Icons.check_rounded,
-            label: 'Submitted'.tr,
-            state: _StepState.done,
-          ),
-          _timelineConnector(active: true),
-          _timelineStep(
-            icon: Icons.hourglass_bottom_rounded,
-            label: 'Under Review'.tr,
-            state: _StepState.current,
-          ),
-          _timelineConnector(active: false),
-          _timelineStep(
-            icon: Icons.flag_outlined,
-            label: 'Decision'.tr,
-            state: _StepState.pending,
-          ),
-        ],
-      ),
+      // Derive the timeline from the application's real status. It used to be
+      // fixed at "under review", so an accepted or rejected application still
+      // showed as pending here while every other surface said otherwise.
+      child: Builder(builder: (_) {
+        final status = eventController.event?.appliedStatus;
+        final accepted = status == 'accepted';
+        final rejected = status == 'rejected';
+        final decided = accepted || rejected;
+        final reviewed = decided || status == 'initAccept';
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _timelineStep(
+              icon: Icons.check_rounded,
+              label: 'Submitted'.tr,
+              state: _StepState.done,
+            ),
+            _timelineConnector(active: true),
+            _timelineStep(
+              // A completed step reads as done; the hourglass belongs to the
+              // step still in progress.
+              icon: reviewed
+                  ? Icons.check_rounded
+                  : Icons.hourglass_bottom_rounded,
+              label: 'Under Review'.tr,
+              state: reviewed ? _StepState.done : _StepState.current,
+            ),
+            _timelineConnector(active: reviewed),
+            _timelineStep(
+              icon: rejected
+                  ? Icons.close_rounded
+                  : (accepted ? Icons.check_rounded : Icons.flag_outlined),
+              label: 'Decision'.tr,
+              state: decided
+                  ? _StepState.done
+                  : (reviewed ? _StepState.current : _StepState.pending),
+            ),
+          ],
+        );
+      }),
     );
   }
 
@@ -546,7 +630,7 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
             ? _heroDate(c)
             : (e?.date ?? '—'), 'Date'.tr),
         const SizedBox(width: 8),
-        _stat(Icons.access_time_rounded, e?.time ?? '—', 'Time'.tr),
+        _stat(Icons.access_time_rounded, _fmtTime(e?.time), 'Time'.tr),
         const SizedBox(width: 8),
         _stat(Icons.work_outline_rounded, '$jobsCount', 'Roles'.tr),
         const SizedBox(width: 8),
@@ -568,15 +652,19 @@ class _EventProcessingScreenState extends State<EventProcessingScreen>
           children: [
             Icon(icon, size: 16, color: AppTheme.brand),
             const SizedBox(height: 4),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textTitle,
-                fontFeatures: _tabular,
+            // Dates and clock times are LTR strings even in this RTL layout.
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textTitle,
+                  fontFeatures: _tabular,
+                ),
               ),
             ),
             const SizedBox(height: 2),
