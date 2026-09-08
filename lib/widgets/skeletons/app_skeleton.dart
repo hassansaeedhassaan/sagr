@@ -144,6 +144,11 @@ class AppLoader {
   static Widget list({int items = 8, bool showTrailing = true}) {
     return AppShimmer(
       child: ListView.builder(
+        // These skeletons are dropped into Columns and SingleChildScrollViews
+        // as often as into a full-height page. Without shrinkWrap the viewport
+        // is handed unbounded height there and throws on every frame while the
+        // real content loads.
+        shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 6),
         itemCount: items,
@@ -162,6 +167,7 @@ class AppLoader {
   }) {
     return AppShimmer(
       child: GridView.builder(
+        shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         padding: padding,
         itemCount: items,

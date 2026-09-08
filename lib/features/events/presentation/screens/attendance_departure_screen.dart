@@ -20,6 +20,7 @@ import '../../data/models/job_model.dart';
 import '../../data/models/start_date_time_model.dart';
 import '../controllers/event_controller.dart';
 import 'loading.dart';
+import 'package:sagr/widgets/maps/event_location_map.dart';
 
 const _tabular = [FontFeature.tabularFigures()];
 
@@ -339,9 +340,9 @@ class _AttendanceAndDepartureScreenState
         child: Stack(
           children: [
             Positioned.fill(
-              child: Image.asset(
-                'assets/images/map.png',
-                fit: BoxFit.cover,
+              child: EventLocationMap(
+                zone: eventController.event?.zoneCoordinates ?? const [],
+                locationUrl: eventController.event?.location,
               ),
             ),
             Positioned.fill(

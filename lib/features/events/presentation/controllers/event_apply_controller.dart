@@ -1,8 +1,7 @@
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
+import 'package:sagr/core/error/failures.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
 import 'package:get/get.dart';
 
@@ -54,8 +53,21 @@ class EventApplyController extends GetxController {
 
   int get periodId => _periodId.value;
   final RxMap<String, dynamic> _errors = <String, dynamic>{}.obs;
+
+  /// Set when the event failed to load; the form is unusable until it clears.
+  final RxnString _loadError = RxnString();
+
+  /// True between tapping submit and the request settling. Kept separate from
+  /// [isLoading]: that one covers fetching the event, and sharing the two made
+  /// the submit button announce "Submitting…" while the page was merely
+  /// loading.
+  final RxBool _submitting = false.obs;
   // Map get errors => _errors.toJson();
   Map<String, dynamic> get errors => _errors;
+
+  String? get loadError => _loadError.value;
+
+  bool get isSubmitting => _submitting.value;
 
   List<LanguageModel> get languages => _languages.toList();
 
@@ -81,21 +93,18 @@ class EventApplyController extends GetxController {
 
   Future<void> getEventInfo() async {
     _isLoading.value = true;
+    _loadError.value = null;
 
     final failureOrEvent = await eventsUsecase.getEventDetails(Get.arguments);
 
     failureOrEvent.fold((failure) {
+      // Surface it: a silently empty form looks like a broken screen.
+      _loadError.value = failure.message;
       _isLoading.value = false;
-    }, (receivedProduct) async {
-      // receivedProduct.images!
-      //     .add({"id": 0, "file": receivedProduct.image, "type": "image"});
-
-      eventModel = receivedProduct;
-
-      // generateVideoThumb(receivedProduct);
-
+      update();
+    }, (receivedEvent) {
+      eventModel = receivedEvent;
       _isLoading.value = false;
-
       update();
     });
   }
@@ -131,11 +140,15 @@ class EventApplyController extends GetxController {
 
   void toggleTerms() {
     _terms.value = !_terms.value;
+    // Clear the error as soon as the user satisfies it, like the job/period
+    // fields do — otherwise a red line sits under a ticked checkbox.
+    if (_terms.value) _errors.remove('terms');
     update();
   }
 
   void togglePromise() {
     _promise.value = !_promise.value;
+    if (_promise.value) _errors.remove('promise');
     update();
   }
 
@@ -150,7 +163,6 @@ class EventApplyController extends GetxController {
     if (periodId == 0) {
       // handle empty job id.
       errors['period'] = "Period Select Error".tr;
-      _isLoading.value = false;
     } else {
       errors.remove('period');
     }
@@ -178,44 +190,63 @@ if (!promise) {
   }
 
   Future<void> apply() async {
-    _isLoading.value = true;
+    // Tapping submit twice before the response lands would file two applications.
+    if (_submitting.value) return;
 
     __handleValidationErrors();
+    if (errors.isNotEmpty) return;
 
-    if (errors.isNotEmpty) {
-      // print(errors);
+    _submitting.value = true;
 
-      _isLoading.value= false;
-
-      return;
-    }
-
-    final Map<String, dynamic> body = {
+    final body = <String, dynamic>{
       'job_id': selectedJob.id,
       'event_id': Get.arguments,
-      'notes': others ?? "",
-      'period': periodId
+      'notes': others ?? '',
+      'period': periodId,
     };
-
-
-    print(body);
 
     final failureOrEvent = await eventsUsecase.apply(body);
 
-    print(failureOrEvent);
-
     failureOrEvent.fold((failure) {
-      _isLoading.value = false;
-    }, (receivedProduct) async {
-      _isLoading.value = false;
+      _submitting.value = false;
 
-      Future.delayed(Duration(seconds: 2));
+      // Map server-side field errors back onto the form; anything else is a
+      // one-off the user can only react to as a message.
+      if (failure is ValidationFailure && failure.errors.isNotEmpty) {
+        for (final entry in failure.errors.entries) {
+          final field = _formFieldFor(entry.key);
+          if (field != null && entry.value.isNotEmpty) {
+            errors[field] = entry.value.first;
+          }
+        }
+        update();
+        if (errors.isEmpty) {
+          Get.snackbar('Error'.tr, failure.message.tr);
+        }
+        return;
+      }
 
-      Get.to(() => JobApplicationSuccessPage());
-
-
-     
+      Get.snackbar('Error'.tr, failure.message.tr);
+    }, (_) {
+      _submitting.value = false;
+      // Replace the form rather than stacking on it — going "back" from the
+      // success screen must not land on a submitted application.
+      Get.off(() => JobApplicationSuccessPage());
     });
+  }
+
+  /// Maps an API validation key onto the form field that renders its error.
+  String? _formFieldFor(String apiKey) {
+    switch (apiKey) {
+      case 'job_id':
+        return 'job';
+      case 'period':
+        return 'period';
+      case 'notes':
+        return 'notes';
+      default:
+        return null;
+    }
   }
 }
 

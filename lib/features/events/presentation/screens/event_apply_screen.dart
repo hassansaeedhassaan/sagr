@@ -56,9 +56,9 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
                   ),
                 ),
               ),
-              const Text(
-                'Terms & Conditions',
-                style: TextStyle(
+              Text(
+                'Terms & Conditions'.tr,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppTheme.textTitle,
@@ -107,8 +107,12 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
         ),
       ),
       body: GetBuilder<EventApplyController>(
-        init: EventApplyController(Get.find()),
         builder: (controller) {
+          // A failed load leaves nothing to fill in — offer a retry instead of
+          // an empty form the user can only fail to submit.
+          if (controller.loadError != null && controller.event == null) {
+            return _LoadErrorView(onRetry: controller.getEventInfo);
+          }
           return Column(
             children: [
               Expanded(
@@ -149,7 +153,7 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
                           icon: Icons.edit_note_rounded,
                           title: 'Add a note'.tr,
                           trailing: Text(
-                            'Optional',
+                            'Optional'.tr,
                             style: TextStyle(
                               color: AppTheme.textMuted,
                               fontSize: 11,
@@ -251,7 +255,7 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
               child: Text(
                 controller.selectedJob.id != 0
                     ? controller.selectedJob.name.toString()
-                    : 'اختر الوظيفة',
+                    : 'Select the role'.tr,
                 style: TextStyle(
                   color: controller.selectedJob.id != 0
                       ? AppTheme.textTitle
@@ -279,7 +283,7 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text(
-          'No shifts available',
+          'No shifts available'.tr,
           style: TextStyle(
             color: AppTheme.textMuted,
             fontSize: 13,
@@ -350,7 +354,7 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
         multiline: 3,
         maxLength: 200,
         onSave: (value) => controller.others = value ?? '',
-        labelText: 'اكتب ملاحظاتك هنا...',
+        labelText: 'Write your notes here...'.tr,
         hintText: '',
       ),
     );
@@ -579,7 +583,7 @@ class _AgreementCard extends StatelessWidget {
         children: [
           _CheckRow(
             value: controller.terms,
-            title: 'موافق على الشروط والأحكام',
+            title: 'I agree to the Terms & Conditions'.tr,
             onToggle: controller.toggleTerms,
             onTitleTap: onShowTerms,
             underline: true,
@@ -589,7 +593,7 @@ class _AgreementCard extends StatelessWidget {
           const SizedBox(height: 10),
           _CheckRow(
             value: controller.promise,
-            title: 'أتعهد بصحة البيانات',
+            title: 'I confirm my information is accurate'.tr,
             onToggle: controller.togglePromise,
           ),
           if ((controller.errors['promise']?.toString() ?? '').isNotEmpty)
@@ -699,6 +703,45 @@ class _ErrorLine extends StatelessWidget {
   }
 }
 
+/// Shown when the event behind this form could not be loaded.
+class _LoadErrorView extends StatelessWidget {
+  final Future<void> Function() onRetry;
+
+  const _LoadErrorView({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off_rounded,
+                size: 48, color: AppTheme.textHint),
+            const SizedBox(height: 14),
+            Text(
+              'Could not load this event. Please try again.'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 18),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: Text('Retry'.tr),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _RadioDot extends StatelessWidget {
   final bool selected;
   const _RadioDot({required this.selected});
@@ -749,57 +792,70 @@ class _StickyCta extends StatelessWidget {
         12 + MediaQuery.of(context).padding.bottom,
       ),
       child: Obx(() {
-        final loading = applyController.isLoading;
-        return SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: InkWell(
-            onTap: loading ? null : onSubmit,
-            borderRadius: BorderRadius.circular(AppTheme.radius),
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.brand, AppTheme.brandDark],
-                ),
-                borderRadius: BorderRadius.circular(AppTheme.radius),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.brand.withOpacity(0.22),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+        final loading = applyController.isSubmitting;
+        // The gradient lives on a plain DecoratedBox and the ripple on a
+        // transparent Material above it. The reverse — an `Ink` nested inside
+        // an `InkWell` — never painted here, leaving an invisible button on a
+        // white bar.
+        final radius = BorderRadius.circular(AppTheme.radius);
+        return Opacity(
+          opacity: loading ? 0.72 : 1,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppTheme.brand, AppTheme.brandDark],
               ),
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (loading) ...[
-                      AppLoader.inline(size: 18, color: Colors.white),
-                      const SizedBox(width: 10),
-                    ],
-                    Text(
-                      loading
-                          ? 'Submitting...'.tr
-                          : 'Submit Application'.tr,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
+              borderRadius: radius,
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.brand.withOpacity(0.22),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: radius,
+              child: InkWell(
+                onTap: loading ? null : onSubmit,
+                borderRadius: radius,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (loading) ...[
+                        AppLoader.inline(size: 18, color: Colors.white),
+                        const SizedBox(width: 10),
+                      ],
+                      Flexible(
+                        child: Text(
+                          loading
+                              ? 'Submitting...'.tr
+                              : 'Submit Application'.tr,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
                       ),
-                    ),
-                    if (!loading) ...[
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                        size: 18,
-                      ),
+                      if (!loading) ...[
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

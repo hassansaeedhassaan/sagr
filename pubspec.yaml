@@ -100,13 +100,16 @@ dependencies:
   flutter_sound: ^9.28.0
   timeago: ^3.7.1
   audioplayers: ^5.2.0
-  agora_rtc_engine: ^6.5.0
   # Realtime chat over Laravel Reverb (raw Pusher protocol via WebSocket).
   # pusher_channels_flutter can't target a self-hosted host, so we speak the
   # protocol directly over web_socket_channel.
   web_socket_channel: ^3.0.0
   # marquee: ^2.3.0
-  latlong2: ^0.8.1
+  # Bumped from 0.8.1 for flutter_map, which needs >=0.9.1. Nothing in the app
+  # imported latlong2 directly before, so the bump carries no migration.
+  latlong2: ^0.9.1
+  # OpenStreetMap tiles for the event zone map (replaces a static map image).
+  flutter_map: ^8.2.2
   workmanager: ^0.5.0
   shared_preferences: ^2.5.3
   # dot_navigation_bar: ^1.0.2
