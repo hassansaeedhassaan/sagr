@@ -173,6 +173,7 @@ const Map<String, String> en = {
   "Retry": "Retry",
   "Read more": "Read more",
   "Ad Details": "Ad Details",
+  "No walkie-talkie channel has been assigned to this event yet.": "No walkie-talkie channel has been assigned to this event yet.",
   "Could not load this ad": "Could not load this ad",
   "Could not load advertisements": "Could not load advertisements",
   "New advertisements will appear here": "New advertisements will appear here",

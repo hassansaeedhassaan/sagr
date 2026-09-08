@@ -32,6 +32,7 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
 
   WalkieSession? _session;
   String? _loadError;
+  bool _resolving = false;
   String _channelLabel = '';
   bool _isSupervisorUser = false;
   // Event id this screen resolved against, carried across a channel swap so the
@@ -50,6 +51,11 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
   /// all three cases (getEventInfo reads the eventId from Get.arguments),
   /// bounded so a stalled backend can't hang the screen.
   Future<void> _resolveChannel() async {
+    if (_resolving) return;
+    setState(() {
+      _resolving = true;
+      _loadError = null;
+    });
     _eventId = Get.arguments;
     var event = eventController.event;
     final stale = event == null ||
@@ -65,13 +71,20 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
 
     final channel = event == null ? null : _channelOf(event);
     if (channel == null || channel.channelName.isEmpty) {
-      setState(() => _loadError = 'Channel information is unavailable.');
+      // The API returns `channel: null` until the event actually has a walkie
+      // channel assigned. Saying so beats the old bare "unavailable", which
+      // read like a failure the user could do something about.
+      setState(() {
+        _resolving = false;
+        _loadError = 'No walkie-talkie channel has been assigned to this event yet.';
+      });
       return;
     }
 
     final session = WalkieSession(channelName: channel.channelName);
     session.addListener(_onSessionChanged);
     setState(() {
+      _resolving = false;
       _isSupervisorUser = event?.userType == 'supervisor';
       _channelLabel = channel.displayName ?? channel.channelName;
       _eventId ??= event?.id;
@@ -108,7 +121,13 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loadError != null) {
-      return _MessageScaffold(message: _loadError!.tr);
+      // A channel can be assigned after the fact, so offer a re-check rather
+      // than making the user back out and navigate in again.
+      return _MessageScaffold(
+        message: _loadError!.tr,
+        actionLabel: _resolving ? null : 'Retry'.tr,
+        onAction: _resolving ? null : _resolveChannel,
+      );
     }
 
     final session = _session;
