@@ -3,6 +3,7 @@ import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/core/error/failures.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
+import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
 import 'package:get/get.dart';
 
 import '../../../jobs/data/models/job_model.dart';
@@ -95,7 +96,15 @@ class EventApplyController extends GetxController {
     _isLoading.value = true;
     _loadError.value = null;
 
-    final failureOrEvent = await eventsUsecase.getEventDetails(Get.arguments);
+    final id = eventIdFromArguments(Get.arguments);
+    if (id == null) {
+      _loadError.value = 'Could not load this event. Please try again.';
+      _isLoading.value = false;
+      update();
+      return;
+    }
+
+    final failureOrEvent = await eventsUsecase.getEventDetails(id);
 
     failureOrEvent.fold((failure) {
       // Surface it: a silently empty form looks like a broken screen.
@@ -200,7 +209,7 @@ if (!promise) {
 
     final body = <String, dynamic>{
       'job_id': selectedJob.id,
-      'event_id': Get.arguments,
+      'event_id': eventIdFromArguments(Get.arguments),
       'notes': others ?? '',
       'period': periodId,
     };

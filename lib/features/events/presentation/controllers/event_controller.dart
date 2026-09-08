@@ -186,7 +186,14 @@ class EventController extends GetxController {
     _isLoading.value = true;
 
     try {
-      final failureOrProduct = await eventsUsecase.getEventDetails(Get.arguments);
+      final id = eventIdFromArguments(Get.arguments);
+      if (id == null) {
+        _handleError('Failed to get event info: missing event id');
+        _isLoading.value = false;
+        return;
+      }
+
+      final failureOrProduct = await eventsUsecase.getEventDetails(id);
 
       await failureOrProduct.fold(
         (failure) async {
@@ -444,4 +451,16 @@ class EventController extends GetxController {
     // Clean up resources if needed
     super.onClose();
   }
+}
+
+/// Event ids reach these controllers through `Get.arguments`, and the callers
+/// disagree on the type: the event bottom bar passes `event.id.toString()`
+/// while the lists pass the raw int. Handing a String to
+/// `getEventDetails(int)` threw "type 'String' is not a subtype of type 'int'"
+/// and the event silently never loaded.
+int? eventIdFromArguments(Object? args) {
+  if (args is int) return args;
+  if (args is String) return int.tryParse(args.trim());
+  if (args is Map && args['id'] != null) return eventIdFromArguments(args['id']);
+  return null;
 }

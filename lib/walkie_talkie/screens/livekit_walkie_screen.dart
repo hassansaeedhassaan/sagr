@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
 import 'package:sagr/walkie_talkie/services/walkie_session.dart';
+import 'package:sagr/walkie_talkie/walkie_dev_config.dart';
 import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 /// Which of an event's two walkie channels a screen is bound to.
@@ -70,6 +71,23 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
     if (!mounted) return;
 
     final channel = event == null ? null : _channelOf(event);
+
+    // Dev override: join a fixed room so the audio path can be exercised
+    // before the backend assigns channels.
+    if (WalkieDevConfig.enabled &&
+        (channel == null || channel.channelName.isEmpty)) {
+      final session =
+          WalkieSession(channelName: WalkieDevConfig.fallbackChannel);
+      session.addListener(_onSessionChanged);
+      setState(() {
+        _resolving = false;
+        _channelLabel = WalkieDevConfig.fallbackChannel;
+        _eventId ??= event?.id;
+        _session = session;
+      });
+      return;
+    }
+
     if (channel == null || channel.channelName.isEmpty) {
       // The API returns `channel: null` until the event actually has a walkie
       // channel assigned. Saying so beats the old bare "unavailable", which

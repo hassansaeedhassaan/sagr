@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/helper/base_url.dart';
+import 'package:sagr/walkie_talkie/walkie_dev_config.dart';
 
 /// Result of GET /api/v1/livekit/{channel}/token — everything the LiveKit
 /// client needs to connect to the room for a walkie channel.
@@ -50,8 +51,11 @@ class LiveKitTokenService {
   Future<LiveKitTokenResult> fetchToken(String channelName) async {
     final auth = _storage.read('access_token');
 
+    final base =
+        WalkieDevConfig.enabled ? WalkieDevConfig.tokenBaseUrl : BASEURL;
+
     final response = await _dio.get(
-      '$BASEURL/livekit/${Uri.encodeComponent(channelName)}/token',
+      '$base/livekit/${Uri.encodeComponent(channelName)}/token',
       options: Options(
         headers: {
           'Authorization': 'Bearer $auth',
