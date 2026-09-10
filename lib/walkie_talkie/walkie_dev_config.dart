@@ -14,7 +14,7 @@ class WalkieDevConfig {
   const WalkieDevConfig._();
 
   /// Master switch. Everything below is ignored while this is false.
-  static const bool enabled = true;
+  static const bool enabled = false;
 
   /// Base URL of the local token server, matching BASEURL's shape
   /// (`.../api/v1`). Use the Mac's LAN IP for a physical device;
