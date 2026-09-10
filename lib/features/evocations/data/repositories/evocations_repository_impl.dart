@@ -29,6 +29,8 @@ class EvocationsRepositoryImpl implements EvocationRepository {
      try {
       final eventData = await evocationsDataSource.apply(body);
       return Right(eventData);
+    } on ValidationException catch (e) {
+      return Left(ValidationFailure(message: e.message));
     } on ServerException {
       return Left(ServerFailure());
     }

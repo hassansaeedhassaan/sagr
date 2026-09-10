@@ -79,6 +79,9 @@ class _AttendanceAndDepartureScreenState
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => CreateEvocationBottomSheet(
+        eventId: eventController.event?.id,
+        zoneId: eventController.event?.zone_id,
+        userId: eventController.event?.user_id,
         onEvocationCreated: (EvocationModel e) => evocationsController.apply(e),
       ),
     );
@@ -122,6 +125,7 @@ class _AttendanceAndDepartureScreenState
                           eventController.event!.channel!.channelName),
                       channelName:
                           eventController.event!.channel!.channelName,
+                      eventId: eventController.event!.id,
                     ),
                   ],
                   const SizedBox(height: 8),
