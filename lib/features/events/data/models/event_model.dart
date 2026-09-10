@@ -3,6 +3,7 @@ import 'package:sagr/features/events/data/models/period_model.dart';
 import 'package:sagr/features/events/data/models/start_date_time_model.dart';
 
 import '../../domain/entities/event.dart';
+import 'application_info.dart';
 import 'zone_coordinate_model.dart';
 
 class EventModel extends Event {
@@ -53,6 +54,10 @@ class EventModel extends Event {
 
   final StartDateTimeModel? startDateTime;
 
+  /// The caller's latest application (status tracker); null on servers
+  /// that don't send the `application` block yet.
+  final ApplicationInfo? application;
+
   const EventModel(
       {this.id,
       this.name,
@@ -79,7 +84,8 @@ class EventModel extends Event {
       this.zone_id,
       this.user_id,
       this.isCheckedIn,
-      this.userType})
+      this.userType,
+      this.application})
       : super(
             id: id,
             name: name,
@@ -126,6 +132,10 @@ class EventModel extends Event {
       startDateTime: StartDateTimeModel.fromJson(json['startDateTime']),
       assigned: json['assigned'] ?? false,
       userType: json['userType'] ?? "employee",
+      application: json['application'] is Map
+          ? ApplicationInfo.fromJson(
+              Map<String, dynamic>.from(json['application'] as Map))
+          : null,
       companyName: json['company'] is Map
           ? json['company']['name']?.toString()
           : null,
