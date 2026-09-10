@@ -1,10 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:sagr/features/jobs/data/models/job_model.dart';
 import '../../../../models/pagination_filter.dart';
-import '../../../../widgets/messages.dart';
 import '../../data/models/event_model.dart';
 import '../../domain/usecases/get_events.dart';
 
@@ -37,6 +34,17 @@ class EventsController extends GetxController {
   final _paginationFilter = PaginationFilter().obs;
   final RxBool _lastPage = false.obs;
   final RxBool _hasMore = true.obs;
+
+  /// Bumped on every fetch. A response whose token no longer matches belongs to
+  /// a filter/page the user has already moved off, so it is dropped instead of
+  /// being appended on top of the newer list — that race is what made events
+  /// show up twice after switching job filters.
+  int _requestToken = 0;
+
+  /// Guards against two overlapping fetches appending the same page. [_isLoading]
+  /// can't do this on its own: it used to be set inside the response handler,
+  /// long after a second scroll had already fired.
+  bool _fetching = false;
 
   /// Rx Filters  Getter
   int get limit => _paginationFilter.value.limit;
@@ -80,6 +88,14 @@ class EventsController extends GetxController {
 
   // Get List Of Marital Status
   Future<void> _findItems() async {
+    if (_fetching) return;
+    _fetching = true;
+
+    final token = ++_requestToken;
+    final requestedPage = _paginationFilter.value.page;
+
+    _isLoading.value = true;
+
     if (Get.arguments != '') {
       final Map<String, dynamic> data = Get.arguments ?? {};
 
@@ -96,142 +112,66 @@ class EventsController extends GetxController {
       }
     }
 
-    // Call Marital Status Usecase.
-    final failureOrMaritalStatus = await eventsUsecase(_paginationFilter.value);
+    final failureOrEvents = await eventsUsecase(_paginationFilter.value);
 
-    failureOrMaritalStatus.fold((failure) {
-      // Set Loading Attr False Initially.
-      _isLoading.value = false;
-    }, (receivedEventsData) {
-      // Avoid duplicate calls
-      if (_isLoading.value && !_hasMore.value) return;
+    _fetching = false;
 
-      // Set Loading Attr True.
-      _isLoading.value = true;
+    // A newer request started while this one was in flight — its results are
+    // the ones on screen now, so this response is stale.
+    if (token != _requestToken) return;
 
-      if (receivedEventsData.isNotEmpty) {
-         
-        _items.addAll(receivedEventsData);
-
+    failureOrEvents.fold((failure) {
+      // Only shout about the first page — a failed background page-load
+      // shouldn't throw a snackbar over a list the user is reading.
+      if (requestedPage <= 1) {
+        _showErrorToUser(failure.message.tr);
       } else {
-        // No more data
         _hasMore.value = false;
       }
-      // Set Loading Attr False.
       _isLoading.value = false;
+      update();
+    }, (receivedEventsData) {
+      // Page 1 is a fresh list (first load, refresh, or a filter change), not
+      // something to append to what is already there.
+      if (requestedPage <= 1) {
+        _items.clear();
+      }
 
+      _appendUnique(receivedEventsData);
+
+      // Short page means the server has nothing left to give.
+      _hasMore.value = receivedEventsData.length >= _paginationFilter.value.limit;
+      _lastPage.value = !_hasMore.value;
+
+      _isLoading.value = false;
       update();
     });
   }
 
+  /// Appends only events not already in the list. Guards against the backend
+  /// returning an overlapping window when rows shift between page requests.
+  void _appendUnique(List<EventModel> incoming) {
+    final seen = _items.map((e) => e.id).toSet();
+    for (final event in incoming) {
+      if (event.id == null || seen.add(event.id)) {
+        _items.add(event);
+      }
+    }
+  }
 
 Future<void> filterEventsByJob(int jobId) async {
-  try {
-    // Reset state atomically
-    await _resetFilterState();
+  // Only move the filter. The `ever(_paginationFilter)` listener runs the
+  // fetch — this method used to *also* call the usecase itself, so every job
+  // switch fired two overlapping requests whose results were appended to the
+  // same list.
+  _setLoadingState(isLoading: true, hasMore: true, isLastPage: false);
 
-    // Set loading state
-    _setLoadingState(isLoading: true, hasMore: true, isLastPage: false);
-
-    // Reset pagination to page 1 and update job filter
-    _paginationFilter.update((filter) {
-      filter?.page = 1;
-      filter?.limit = 10;
-      filter?.job = jobId;
-    });
-
-    // Add artificial delay if needed (consider removing in production)
-    if (kDebugMode) {
-      await Future.delayed(const Duration(seconds: 2));
-    }
-
-    // Call the usecase directly instead of _findItems() to avoid Get.arguments dependency
-    final failureOrEventsData = await eventsUsecase(_paginationFilter.value);
-
-    failureOrEventsData.fold((failure) {
-      // Handle failure
-      _setLoadingState(isLoading: false, hasMore: false);
-      _showErrorToUser('Failed to filter events. Please try again.');
-    }, (receivedEventsData) {
-      if (receivedEventsData.isNotEmpty) {
-        // _items.addAll(receivedEventsData);
-        _hasMore.value = true;
-      } else {
-        // No data found
-        _hasMore.value = false;
-      }
-      _setLoadingState(isLoading: false);
-    });
-
-    update();
-    
-    // SUCCESS_MESSAGE - Only show if we got data
-    if (_items.isNotEmpty) {
-      // MessageHelper.showSuccessSnackbar(
-      //   title: 'تم بنجاح',
-      //   message: 'تم تصفية الأحداث بنجاح',
-      //   onTap: () {
-      //     print('تم الضغط على الرسالة');
-      //   },
-      // );
-    }
-    
-  } catch (error) {
-    _handleFilterError(error);
-  }
+  _paginationFilter.update((filter) {
+    filter?.page = 1;
+    filter?.limit = 10;
+    filter?.job = jobId;
+  });
 }
-
-//   Future<void> filterEventsByJob(int jobId) async {
-  
-
-//     try {
-//       // Reset state atomically
-//       await _resetFilterState();
-
-//       // Set loading state
-//       _setLoadingState(isLoading: true, hasMore: true, isLastPage: false);
-
-//       // Add artificial delay if needed (consider removing in production)
-//       if (kDebugMode) {
-//         await Future.delayed(const Duration(seconds: 1));
-//       }
-//       await _findItems();
-//       // Update pagination filter & Fetch filtered items
-//       _updatePaginationFilter(jobId);
-
-  
-
-
-// // update();
-//           // SUCCESS_MESSAGE
-//       //  MessageHelper.showSuccessSnackbar(
-//       //             title: 'تم بنجاح',
-//       //             message: 'تم إرسال الرسالة بنجاح',
-//       //             onTap: () {
-//       //               print('تم الضغط على الرسالة');
-//       //             },
-//       //           );
-                
-      
-//     } catch (error) {
-//       _handleFilterError(error);
-//     } finally {
-//       _setLoadingState(isLoading: false);
-//     }
-//   }
-
-  /// Resets the filter state by clearing items and updating UI
-  Future<void> _resetFilterState() async {
-    _items.clear();
-    update();
-  }
-
-  /// Updates the pagination filter with the new job ID
-  void _updatePaginationFilter(int jobId) {
-    _paginationFilter.update((filter) {
-      filter?.job = jobId;
-    });
-  }
 
   void _setLoadingState({
     bool? isLoading,
@@ -245,25 +185,9 @@ Future<void> filterEventsByJob(int jobId) async {
   }
 
 
-  /// Handles errors during the filtering process
-void _handleFilterError(dynamic error) {
-  // Log error for debugging
-  debugPrint('Error filtering events by job: $error');
-  
-  // Reset loading state
-  _setLoadingState(isLoading: false, hasMore: false);
-  
-  // Optionally show user-friendly error message
-  // You might want to show a snackbar or dialog here
-  _showErrorToUser('Failed to filter events. Please try again.');
-}
-
-
-/// Shows error message to user (implement based on your UI framework)
+  /// Shows error message to user (implement based on your UI framework)
 void _showErrorToUser(String message) {
-  // Implementation depends on your UI framework
-  // For example, using Get.snackbar() if using GetX
-  Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM);
+  Get.snackbar('Error'.tr, message, snackPosition: SnackPosition.BOTTOM);
 }
 
   Future<void> getEventDetails() async {
@@ -286,26 +210,35 @@ void _showErrorToUser(String message) {
   }
 
   nextPage() {
-    if (_hasMore.isFalse) return;
+    if (_hasMore.isFalse || _fetching) return;
     _changePaginationFilter(page + 1, limit);
-    update();
   }
 
   void onLoading() async {
-    print(_paginationFilter.value);
-    // monitor network fetch
-    await Future.delayed(Duration(milliseconds: 1000));
-    // if failed,use loadFailed(),if no data return,use LoadNodata()
+    if (!_hasMore.value) {
+      refreshController.loadNoData();
+      return;
+    }
+    // Don't queue another page on top of one already in flight — a fast scroll
+    // used to bump the page twice and append the same rows.
+    if (_fetching) {
+      refreshController.loadComplete();
+      return;
+    }
     nextPage();
     refreshController.loadComplete();
-    update();
   }
 
   void onRefresh() async {
-    // monitor network fetch
-    await Future.delayed(Duration(milliseconds: 1000));
-    // _items.clear();
-    _findItems();
+    _hasMore.value = true;
+    _lastPage.value = false;
+    // Go back to page 1 — _findItems replaces the list there. Refreshing used
+    // to re-fetch whatever page was current and append it again.
+    if (page == 1) {
+      await _findItems();
+    } else {
+      _changePaginationFilter(1, limit);
+    }
     refreshController.refreshCompleted();
   }
 

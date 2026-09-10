@@ -128,7 +128,7 @@ class _EventAcceptScreenState extends State<EventAcceptScreen>
         _HeroCard(eventName: event.name ?? ''),
         const SizedBox(height: 16),
 
-        _StatusRow(),
+        _StatusRow(status: event.appliedStatus),
         const SizedBox(height: 16),
 
         if (showCountdown) ...[
@@ -250,11 +250,18 @@ class _HeroCard extends StatelessWidget {
 // =============================================================================
 
 class _StatusRow extends StatelessWidget {
+  const _StatusRow({required this.status});
+
+  /// The event's own application status. Hardcoding 'accepted' here made the
+  /// pill disagree with the one shown for the same event elsewhere whenever
+  /// the backend moved the application on.
+  final String? status;
+
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
-        EventStatusPill(status: 'accepted'),
+      children: [
+        EventStatusPill(status: status ?? 'accepted'),
       ],
     );
   }

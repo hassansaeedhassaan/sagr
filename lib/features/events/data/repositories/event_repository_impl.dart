@@ -60,6 +60,11 @@ class EventsRepositoryImpl implements EventRepository {
      try {
       final eventData = await eventsDataSource.attendanceAndDeparture(body);
       return Right(eventData);
+    } on ValidationException catch (e) {
+      // Keep the server's reason ("The selected zone id is invalid", an
+      // out-of-window rejection, ...) — the UI used to replace all of it with
+      // a generic "please try again".
+      return Left(ValidationFailure(message: e.message));
     } on ServerException {
       return Left(ServerFailure());
     }

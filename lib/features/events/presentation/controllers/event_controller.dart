@@ -4,6 +4,7 @@ import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/data/models/zone_coordinate_model.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
 import 'package:get/get.dart';
+import 'package:sagr/core/error/failures.dart';
 import 'package:sagr/features/events/presentation/services/sagr_zone_location_service.dart';
 import 'package:sagr/features/evocations/data/models/evocation_model.dart';
 
@@ -186,7 +187,14 @@ class EventController extends GetxController {
     _isLoading.value = true;
 
     try {
-      final failureOrProduct = await eventsUsecase.getEventDetails(Get.arguments);
+      final id = eventIdFromArguments(Get.arguments);
+      if (id == null) {
+        _handleError('Failed to get event info: missing event id');
+        _isLoading.value = false;
+        return;
+      }
+
+      final failureOrProduct = await eventsUsecase.getEventDetails(id);
 
       await failureOrProduct.fold(
         (failure) async {
@@ -276,7 +284,10 @@ class EventController extends GetxController {
           final distance = locationResult?.distanceToZone ?? 0;
           MessageHelper.showErrorDialog(
             title: 'Location Restricted'.tr,
-            message: 'You are outside the event zone. You need to be ${distance.toStringAsFixed(0)}m closer to check in.'.tr,
+            // Interpolating before .tr built a key that can never exist in
+            // the translation maps, so this always fell through to English.
+            message: 'You are outside the event zone. You need to be @distance m closer to check in.'
+                .trParams({'distance': distance.toStringAsFixed(0)}),
           );
           return;
         }
@@ -306,9 +317,14 @@ class EventController extends GetxController {
   // Handle attendance failure
   void _handleAttendanceFailure(dynamic failure) {
     _attendanceStatus.value = AttendanceStatus.error;
+    // Prefer whatever the server said; the generic line hid real causes such
+    // as an unconfigured zone on the event.
+    final String message = failure is Failure
+        ? failure.message
+        : 'Unable to process your attendance request.';
     MessageHelper.showErrorDialog(
       title: 'Request Failed'.tr,
-      message: 'Unable to process your attendance request. Please try again.'.tr,
+      message: message.tr,
     );
   }
 
@@ -441,4 +457,16 @@ class EventController extends GetxController {
     // Clean up resources if needed
     super.onClose();
   }
+}
+
+/// Event ids reach these controllers through `Get.arguments`, and the callers
+/// disagree on the type: the event bottom bar passes `event.id.toString()`
+/// while the lists pass the raw int. Handing a String to
+/// `getEventDetails(int)` threw "type 'String' is not a subtype of type 'int'"
+/// and the event silently never loaded.
+int? eventIdFromArguments(Object? args) {
+  if (args is int) return args;
+  if (args is String) return int.tryParse(args.trim());
+  if (args is Map && args['id'] != null) return eventIdFromArguments(args['id']);
+  return null;
 }
