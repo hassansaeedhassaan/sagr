@@ -52,6 +52,10 @@ class StartDateTimeModel {
   final String formatted;
   final EventStatus? status; // Optional status field
 
+  /// The server's own answer to "can attendance be recorded right now".
+  /// It was being dropped on parse, so nothing in the app could act on it.
+  final bool isWorkingNow;
+
   StartDateTimeModel({
     required this.days,
     required this.hours,
@@ -61,6 +65,7 @@ class StartDateTimeModel {
     required this.totalSeconds,
     required this.formatted,
     this.status,
+    this.isWorkingNow = false,
   });
 
   // Create from JSON
@@ -90,6 +95,7 @@ class StartDateTimeModel {
       totalSeconds: (json['total_seconds'] ?? 0.0).toDouble(),
       formatted: json['formatted'] ?? '',
       status: eventStatus,
+      isWorkingNow: json['is_working_now'] == true,
     );
   }
 
@@ -103,6 +109,7 @@ class StartDateTimeModel {
       'is_past': isPast,
       'total_seconds': totalSeconds,
       'formatted': formatted,
+      'is_working_now': isWorkingNow,
       if (status != null) 'status': status!.name,
     };
   }

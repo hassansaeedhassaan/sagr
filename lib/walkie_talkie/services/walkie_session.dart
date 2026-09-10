@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -190,7 +191,10 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
       // Join muted — only transmit while the talk button is held.
       await room.localParticipant?.setMicrophoneEnabled(false);
       await Hardware.instance.setSpeakerphoneOn(true);
-    } catch (e) {
+    } catch (e, st) {
+      // The reason matters when diagnosing a room that won't join; the UI
+      // still shows the friendly line.
+      debugPrint('WalkieSession.connect failed: $e\n$st');
       await _teardown();
       _fail('Could not connect to the channel.');
       return;

@@ -133,6 +133,9 @@ const Map<String, String> en = {
   "Application Status": "Application Status",
   "Application under review": "Application under review",
   "Application rejected": "Application rejected",
+  "This event has not started yet. Attendance may be rejected.": "This event has not started yet. Attendance may be rejected.",
+  "This event has ended. Attendance may be rejected.": "This event has ended. Attendance may be rejected.",
+  "Unable to process your attendance request.": "Unable to process your attendance request.",
   "You can now check in when the event starts": "You can now check in when the event starts",
   "This application was not approved": "This application was not approved",
   "We'll notify you once a decision is made":

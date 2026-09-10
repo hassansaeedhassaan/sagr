@@ -415,43 +415,26 @@ try {
   @override
   Future<Response> attendanceAndDeparture(Map<String, dynamic> body) async {
     try {
-      final response = await dio
-          .post("$BASEURL/attendance/records", data: body);
-
-      return response;
+      return await dio.post("$BASEURL/attendance/records", data: body);
     } on DioException catch (e) {
-      // كل أخطاء Dio بتيجي هنا
-      if (e.type == DioExceptionType.connectionTimeout) {
-        print('Connection Timeout');
-      } else if (e.type == DioExceptionType.sendTimeout) {
-        print('Send Timeout');
-      } else if (e.type == DioExceptionType.receiveTimeout) {
-        print('Receive Timeout');
-      } else if (e.type == DioExceptionType.badResponse) {
-        // في حالة السيرفر رجّع استجابة بخطأ (مثلاً 400 أو 500)
-        final statusCode = e.response?.statusCode;
-        final data = e.response?.data;
-        print('Server error: $statusCode - $data');
-      } else if (e.type == DioExceptionType.cancel) {
-        print('Request was cancelled');
-      } else if (e.type == DioExceptionType.unknown) {
-        print('Unknown error: ${e.message}');
-      } else {
-        print('Other Dio error: ${e.message}');
+      // This used to only print the error and then fall through to a second,
+      // identical POST — so a failed check-in was silently retried and could
+      // file two attendance records. Surface the server's own message instead.
+      final status = e.response?.statusCode;
+      final data = e.response?.data;
+
+      String message = 'Unable to process your attendance request. Please try again.';
+      if (data is Map && data['message'] is String) {
+        message = data['message'] as String;
       }
-    } catch (e) {
-      // أي خطأ ثاني غير Dio
-      print('Unexpected error: $e');
-    }
 
-    var response = await dio.post("$BASEURL/attendance/records", data: body);
-
-    if (response.statusCode == 200) {
-      return response;
-    } else {
+      if (status == 400 || status == 422) {
+        throw ValidationException(data, message: message, statusCode: status);
+      }
       throw ServerException();
     }
   }
+
   @override
   Future<Response> applicationStatus(Map<String, dynamic> body) async {
     try {

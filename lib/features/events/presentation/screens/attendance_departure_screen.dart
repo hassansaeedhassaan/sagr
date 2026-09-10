@@ -109,6 +109,7 @@ class _AttendanceAndDepartureScreenState
                   const SizedBox(height: 12),
                   _locationCard(),
                   const SizedBox(height: 18),
+                  _windowNotice(),
                   _primaryAction(),
                   // Once checked in, the employee can talk on the event's
                   // walkie channel without leaving this screen.
@@ -462,6 +463,52 @@ class _AttendanceAndDepartureScreenState
     );
   }
 
+  /// Warns when the event isn't running yet, without blocking the action —
+  /// the server has the final say, and nothing in the app checked the window
+  /// at all before this.
+  Widget _windowNotice() {
+    final sdt = eventController.event?.startDateTime;
+    if (sdt == null || sdt.isWorkingNow) return const SizedBox.shrink();
+
+    final finished = sdt.isFinished;
+    final color = finished ? AppTheme.textMuted : AppTheme.warning;
+    final text = finished
+        ? 'This event has ended. Attendance may be rejected.'.tr
+        : 'This event has not started yet. Attendance may be rejected.'.tr;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.40)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            finished ? Icons.event_busy_rounded : Icons.schedule_rounded,
+            size: 16,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textBody,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ---- Primary check-in / check-out CTA ----
   Widget _primaryAction() {
     final bool checkedIn = eventController.isCheckedIn;
@@ -755,13 +802,24 @@ class _AttendanceAndDepartureScreenState
       children: [
         _stat(Icons.calendar_today_rounded, e?.date ?? '—', 'Date'.tr),
         const SizedBox(width: 8),
-        _stat(Icons.access_time_rounded, e?.time ?? '—', 'Time'.tr),
+        _stat(Icons.access_time_rounded, _fmtTime(e?.time), 'Time'.tr),
         const SizedBox(width: 8),
         _stat(Icons.work_outline_rounded, '$jobsCount', 'Roles'.tr),
         const SizedBox(width: 8),
         _stat(Icons.event_repeat_rounded, '$periodsCount', 'Shifts'.tr),
       ],
     );
+  }
+
+  /// "00:00:00 AM" overflows a quarter-width tile; seconds add nothing here.
+  String _fmtTime(String? raw) {
+    if (raw == null || raw.isEmpty) return '—';
+    final m = RegExp(r'^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?')
+        .firstMatch(raw.trim());
+    if (m == null) return raw;
+    final suffix = m.group(3);
+    final hhmm = '${m.group(1)}:${m.group(2)}';
+    return suffix == null ? hhmm : '$hhmm ${suffix.toUpperCase()}';
   }
 
   Widget _stat(IconData icon, String value, String label) {
@@ -777,15 +835,19 @@ class _AttendanceAndDepartureScreenState
           children: [
             Icon(icon, size: 16, color: AppTheme.brand),
             const SizedBox(height: 4),
-            Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textTitle,
-                fontFeatures: _tabular,
+            // Dates and clock times are LTR strings even in this RTL layout.
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textTitle,
+                  fontFeatures: _tabular,
+                ),
               ),
             ),
             const SizedBox(height: 2),

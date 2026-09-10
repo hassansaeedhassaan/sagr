@@ -4,6 +4,7 @@ import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/data/models/zone_coordinate_model.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
 import 'package:get/get.dart';
+import 'package:sagr/core/error/failures.dart';
 import 'package:sagr/features/events/presentation/services/sagr_zone_location_service.dart';
 import 'package:sagr/features/evocations/data/models/evocation_model.dart';
 
@@ -316,9 +317,14 @@ class EventController extends GetxController {
   // Handle attendance failure
   void _handleAttendanceFailure(dynamic failure) {
     _attendanceStatus.value = AttendanceStatus.error;
+    // Prefer whatever the server said; the generic line hid real causes such
+    // as an unconfigured zone on the event.
+    final String message = failure is Failure
+        ? failure.message
+        : 'Unable to process your attendance request.';
     MessageHelper.showErrorDialog(
       title: 'Request Failed'.tr,
-      message: 'Unable to process your attendance request. Please try again.'.tr,
+      message: message.tr,
     );
   }
 

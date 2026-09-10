@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -85,6 +86,9 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
         _eventId ??= event?.id;
         _session = session;
       });
+      // Join straight away on the dev path so the room is exercised without
+      // an extra tap.
+      unawaited(session.connect());
       return;
     }
 

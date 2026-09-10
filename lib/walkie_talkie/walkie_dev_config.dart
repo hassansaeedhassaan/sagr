@@ -14,12 +14,12 @@ class WalkieDevConfig {
   const WalkieDevConfig._();
 
   /// Master switch. Everything below is ignored while this is false.
-  static const bool enabled = false;
+  static const bool enabled = true;
 
   /// Base URL of the local token server, matching BASEURL's shape
   /// (`.../api/v1`). Use the Mac's LAN IP for a physical device;
   /// `http://127.0.0.1:8090/api/v1` also works for the iOS simulator.
-  static const String tokenBaseUrl = 'http://172.20.10.11:8090/api/v1';
+  static const String tokenBaseUrl = 'http://127.0.0.1:8090/api/v1';
 
   /// Room to join when the event has no channel assigned. Every tester must
   /// use the same value to end up in the same room.
