@@ -16,7 +16,14 @@ class PushToTalkButton extends StatefulWidget {
   /// Walkie channel name for the event → maps 1:1 to a LiveKit room.
   final String channelName;
 
-  const PushToTalkButton({super.key, required this.channelName});
+  /// Event the channel belongs to; needed to request the channel's token.
+  final int? eventId;
+
+  const PushToTalkButton({
+    super.key,
+    required this.channelName,
+    this.eventId,
+  });
 
   @override
   State<PushToTalkButton> createState() => _PushToTalkButtonState();
@@ -28,8 +35,10 @@ class _PushToTalkButtonState extends State<PushToTalkButton> {
   @override
   void initState() {
     super.initState();
-    _session = WalkieSession(channelName: widget.channelName)
-      ..addListener(_onChanged);
+    _session = WalkieSession(
+      channelName: widget.channelName,
+      eventId: widget.eventId,
+    )..addListener(_onChanged);
     _session.connect();
   }
 

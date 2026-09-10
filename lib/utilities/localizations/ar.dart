@@ -495,4 +495,7 @@ const Map<String, String> ar = {
   "save_password": "حفظ كلمة المرور",
   "الدعم": "الدعم",
   "منصة الفعاليات والوظائف": "منصة الفعاليات والوظائف",
+  "Could not save your decision. Please try again.": "تعذّر حفظ قرارك. حاول مرة أخرى.",
+  "Permission request sent": "تم إرسال طلب الإذن",
+  "Permission requests are available once you are assigned to a zone on the event day.": "طلبات الإذن متاحة بعد تعيينك في منطقة يوم الفعالية.",
 };

@@ -204,8 +204,15 @@ class StartDateTimeModel {
       totalSeconds: totalSeconds,
       formatted: formatted,
       status: newStatus,
+      isWorkingNow: isWorkingNow,
     );
   }
+
+  /// Status once this countdown to the event's *start* reaches zero: the event
+  /// has started. Only the server can say it has ended (the model has no end
+  /// time), so a status it already reported as finished is kept.
+  EventStatus get _statusAtZero =>
+      status == EventStatus.finished ? EventStatus.finished : EventStatus.active;
 
   // Create a copy with decremented time (for live countdown)
   StartDateTimeModel copyWithDecrementedSecond() {
@@ -218,7 +225,8 @@ class StartDateTimeModel {
         isPast: true,
         totalSeconds: 0,
         formatted: 'Time is up!',
-        status: EventStatus.finished,
+        status: _statusAtZero,
+        isWorkingNow: _statusAtZero == EventStatus.active,
       );
     }
 
@@ -229,16 +237,18 @@ class StartDateTimeModel {
     remainingSeconds = remainingSeconds % 3600;
     int newMinutes = remainingSeconds ~/ 60;
     int newSecondsOnly = remainingSeconds % 60;
+    final started = newTotalSeconds <= 0;
 
     return StartDateTimeModel(
       days: newDays,
       hours: newHours,
       minutes: newMinutes,
       seconds: newSecondsOnly,
-      isPast: newTotalSeconds <= 0,
+      isPast: started,
       totalSeconds: newTotalSeconds.toDouble(),
       formatted: '${newDays} days, ${newHours} hours, ${newMinutes} minutes, ${newSecondsOnly} seconds',
-      status: newTotalSeconds <= 0 ? EventStatus.finished : status,
+      status: started ? _statusAtZero : status,
+      isWorkingNow: started ? _statusAtZero == EventStatus.active : isWorkingNow,
     );
   }
 

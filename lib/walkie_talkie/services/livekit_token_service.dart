@@ -3,34 +3,42 @@ import 'package:get_storage/get_storage.dart';
 import 'package:sagr/helper/base_url.dart';
 import 'package:sagr/walkie_talkie/walkie_dev_config.dart';
 
-/// Result of GET /api/v1/livekit/{channel}/token — everything the LiveKit
-/// client needs to connect to the room for a walkie channel.
+/// Everything the LiveKit client needs to connect to the room for a walkie
+/// channel.
 class LiveKitTokenResult {
   final String url;
   final String token;
   final String room;
   final String identity;
-  final int expiresAt;
 
   LiveKitTokenResult({
     required this.url,
     required this.token,
     required this.room,
     required this.identity,
-    required this.expiresAt,
   });
 
+  /// Reads the backend's `POST /walkie-talkie/token` payload (`server_url`)
+  /// as well as the local dev token server's (`url`).
   factory LiveKitTokenResult.fromJson(Map<String, dynamic> json) {
     return LiveKitTokenResult(
-      url: json['url']?.toString() ?? '',
+      url: (json['server_url'] ?? json['url'])?.toString() ?? '',
       token: json['token']?.toString() ?? '',
       room: json['room']?.toString() ?? '',
       identity: json['identity']?.toString() ?? '',
-      expiresAt: json['expires_at'] is int
-          ? json['expires_at']
-          : int.tryParse(json['expires_at']?.toString() ?? '') ?? 0,
     );
   }
+}
+
+/// The server answered but declined to issue a token; [message] says why
+/// (for example: no active zone assignment for this event).
+class WalkieTokenUnavailable implements Exception {
+  final String message;
+
+  const WalkieTokenUnavailable(this.message);
+
+  @override
+  String toString() => message;
 }
 
 /// Fetches a short-lived LiveKit access token from the backend for a channel.
@@ -48,31 +56,55 @@ class LiveKitTokenService {
   final Dio _dio;
   final _storage = GetStorage();
 
-  Future<LiveKitTokenResult> fetchToken(String channelName) async {
+  /// The backend only signs rooms the caller is assigned to on [eventId], so
+  /// the event id is required outside the dev override.
+  Future<LiveKitTokenResult> fetchToken(String channelName,
+      {int? eventId}) async {
     final auth = _storage.read('access_token');
-
-    final base =
-        WalkieDevConfig.enabled ? WalkieDevConfig.tokenBaseUrl : BASEURL;
-
-    final response = await _dio.get(
-      '$base/livekit/${Uri.encodeComponent(channelName)}/token',
-      options: Options(
-        headers: {
-          'Authorization': 'Bearer $auth',
-          'Accept': 'application/json',
-        },
-      ),
+    final options = Options(
+      headers: {
+        'Authorization': 'Bearer $auth',
+        'Accept': 'application/json',
+      },
     );
 
-    final data = response.data;
-    if (data is! Map) {
-      throw const FormatException('Unexpected token response.');
+    if (WalkieDevConfig.enabled) {
+      final response = await _dio.get(
+        '${WalkieDevConfig.tokenBaseUrl}/livekit/${Uri.encodeComponent(channelName)}/token',
+        options: options,
+      );
+      return LiveKitTokenResult.fromJson(_asMap(response.data));
     }
-    return LiveKitTokenResult.fromJson(Map<String, dynamic>.from(data));
+
+    if (eventId == null) {
+      throw const WalkieTokenUnavailable('Channel information is unavailable.');
+    }
+
+    final response = await _dio.post(
+      '$BASEURL/walkie-talkie/token',
+      data: {'room': channelName, 'event_id': eventId},
+      options: options,
+    );
+
+    // {status, data: {server_url, token, room, ...}, error}. When the server
+    // can't issue a token it still answers 200, with data.channel = null and
+    // the reason in data.message.
+    final data = _asMap(_asMap(response.data)['data']);
+    if (data['token'] == null) {
+      throw WalkieTokenUnavailable(
+          data['message']?.toString() ?? 'Could not start the walkie-talkie.');
+    }
+    return LiveKitTokenResult.fromJson(data);
+  }
+
+  static Map<String, dynamic> _asMap(Object? value) {
+    if (value is Map) return Map<String, dynamic>.from(value);
+    throw const FormatException('Unexpected token response.');
   }
 
   /// Turns a token-fetch failure into something worth showing on the walkie UI.
   static String describeError(Object error) {
+    if (error is WalkieTokenUnavailable) return error.message;
     if (error is DioException) {
       final status = error.response?.statusCode;
       if (status == 401 || status == 403) {

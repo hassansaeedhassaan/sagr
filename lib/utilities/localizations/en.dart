@@ -295,4 +295,11 @@ const Map<String, String> en = {
   "save_password": "save_password",
   "الدعم": "Support",
   "منصة الفعاليات والوظائف": "Events & jobs platform",
+  "accepted": "Accepted",
+  "initAccept": "Preliminary acceptance",
+  "pending": "Under review",
+  "rejected": "Rejected",
+  "Could not save your decision. Please try again.": "Could not save your decision. Please try again.",
+  "Permission request sent": "Permission request sent",
+  "Permission requests are available once you are assigned to a zone on the event day.": "Permission requests are available once you are assigned to a zone on the event day.",
 };
