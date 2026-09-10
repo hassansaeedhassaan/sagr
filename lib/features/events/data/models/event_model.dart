@@ -38,6 +38,9 @@ class EventModel extends Event {
   final int? zone_id;
   final int? user_id;
   final bool? isCheckedIn;
+  /// Organisation running the event, shown on the details hero.
+  final String? companyName;
+
   final ChannelInfo? channel;
   final ChannelInfo? supervisorChannel;
   final List<ZoneCoordinates>? zoneCoordinates;
@@ -66,6 +69,7 @@ class EventModel extends Event {
       this.periods,
       this.startDateTime,
       this.assigned,
+      this.companyName,
       this.channel,
       this.attachment,
       this.supervisorChannel,
@@ -122,6 +126,9 @@ class EventModel extends Event {
       startDateTime: StartDateTimeModel.fromJson(json['startDateTime']),
       assigned: json['assigned'] ?? false,
       userType: json['userType'] ?? "employee",
+      companyName: json['company'] is Map
+          ? json['company']['name']?.toString()
+          : null,
       channel: json['channel'] != null
           ? ChannelInfo.fromJson(json['channel'])
           : null,
@@ -166,6 +173,7 @@ class EventModel extends Event {
       'nationalID': nationalID,
       'startDateTime': startDateTime,
       'assigned': assigned,
+      'companyName': companyName,
       'channel': channel?.toJson(),
       'supervisorChannel': supervisorChannel?.toJson(),
       'zoneCoordinates': zoneCoordinates,

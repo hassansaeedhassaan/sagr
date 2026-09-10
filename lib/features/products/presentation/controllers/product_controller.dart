@@ -21,6 +21,12 @@ class ProductController extends GetxController {
 
   Product? product;
 
+  /// Set when the fetch fails, so screens can show a reason and a retry
+  /// instead of dereferencing a null [product].
+  final RxnString _loadError = RxnString();
+
+  String? get loadError => _loadError.value;
+
   /// Products Loading 
   /// @Setter
   RxBool _productsLoading = false.obs;
@@ -52,9 +58,13 @@ class ProductController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // Get Product Info And set main image.
-    getProductInfo().then((value) {
-      _productImage.value = product!.image!;
+    // Get Product Info And set main image. The fetch can fail (the ad detail
+    // endpoint 404s, for one), and the old unconditional `product!.image!`
+    // threw "Null check operator used on a null value" out of an async
+    // callback, on top of whatever the screen then did with a null product.
+    getProductInfo().then((_) {
+      final image = product?.image;
+      if (image != null) _productImage.value = image;
     });
   }
 
@@ -118,11 +128,14 @@ class ProductController extends GetxController {
 
   Future<void> getProductInfo() async {
     _productsLoading.value = true;
+    _loadError.value = null;
 
     final failureOrProduct = await productUsecase.productInfo(Get.arguments);
 
     failureOrProduct.fold((failure) {
+      _loadError.value = failure.message;
       _productsLoading.value = false;
+      update();
     }, (receivedProduct) async {
       // receivedProduct.images!
       //     .add({"id": 0, "file": receivedProduct.image, "type": "image"});

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:sagr/firebase_options.dart';
 import 'package:sagr/smart_task_manager_service.dart';
 import 'bindings/application_binding.dart';
@@ -21,6 +22,11 @@ void main() async {
   // SystemChrome.setSystemUIOverlayStyle(AppTheme.statusBarLight);
 
   SmartTaskManager().initialize();
+
+  // Boot the WebRTC layer once, up front. Without this the first walkie-talkie
+  // connect pays the native init cost mid-join, which on iOS shows up as a
+  // multi-second stall before audio flows.
+  await LiveKitClient.initialize();
 
   // StatusBarHelper.setDarkStatusBar();
 

@@ -1,6 +1,7 @@
 
 import 'package:get/get.dart';
 import 'package:sagr/features/ads/presentation/bindings/ads_bindings.dart';
+import 'package:sagr/features/ads/presentation/screens/ad_details_screen.dart';
 import 'package:sagr/features/attendance/presentation/bindings/attendance_bindings.dart';
 import 'package:sagr/features/auth/presentation/screens/login_screen.dart';
 import 'package:sagr/features/auth/presentation/screens/update_profile_screen.dart';
@@ -26,7 +27,6 @@ import 'package:sagr/features/marital_status/presentation/bindings/marital_statu
 import 'package:sagr/features/regions/presentation/bindings/region_bindings.dart';
 import 'package:sagr/sagr_chat/screens/home/home_screen.dart';
 import 'package:sagr/walkie_talkie/screens/livekit_walkie_screen.dart';
-import 'package:sagr/walkie_talkie/screens/walkie_talkie_supervisor_screen.dart';
 import '../bindings/application_binding.dart';
 import '../bindings/auth_bindings.dart';
 import '../bindings/change_password_bindings.dart';
@@ -201,12 +201,12 @@ final List<GetPage> routes = [
 
       GetPage(
       name: '/event_walkie_talkie',
-      page: () => const LiveKitWalkieScreen(),
+      page: () => const LiveKitWalkieScreen(kind: WalkieChannelKind.team),
       bindings: [ApplicationBinding(), EventsBindings()]),
 
       GetPage(
       name: '/event_supervisor_walkie_talkie',
-      page: () => WalkieTalkieSupervisorScreen(),
+      page: () => const LiveKitWalkieScreen(kind: WalkieChannelKind.supervisor),
       bindings: [ApplicationBinding(), EventsBindings()]),
 
   
@@ -270,6 +270,10 @@ final List<GetPage> routes = [
       name: '/product_info',
       page: () => ProductInfoScreen(),
       bindings: [ApplicationBinding(), ProductBindings()]),
+  GetPage(
+      name: '/ad_details',
+      page: () => const AdDetailsScreen(),
+      bindings: [ApplicationBinding()]),
   GetPage(
       name: '/product_detail_screen',
       page: () => AdsDetailsScreen(),
