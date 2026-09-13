@@ -349,4 +349,10 @@ const Map<String, String> en = {
   "No application is awaiting your decision for this event.": "No application is awaiting your decision for this event.",
   "You are not assigned to this zone for this event today.": "You are not assigned to this zone for this event today.",
   "This request has already been reviewed.": "This request has already been reviewed.",
+  "You have not been assigned to a zone for this event yet.": "You have not been assigned to a zone for this event yet.",
+  "This event is not running today.": "This event is not running today.",
+  "This file could not be displayed here.": "This file could not be displayed here.",
+  "Open outside the app": "Open outside the app",
+  "Try again": "Try again",
+  "Could not open this file.": "Could not open this file.",
 };

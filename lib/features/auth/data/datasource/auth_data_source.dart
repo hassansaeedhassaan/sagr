@@ -93,7 +93,9 @@ class AuthDataSourceImpl extends AuthDataSource {
   Future<CustomerModel> completeAccount(Map<String, dynamic> body) async {
     try {
       // prepare to upload form
-      dio.options.contentType = "multipart/form-data";
+      // Content type comes from the FormData body below. Setting it on the
+      // shared dio.options leaked multipart — with no boundary — into every
+      // later Map post, and PHP then threw those bodies away.
 
       // set image append to formData
       final MultipartFile? multiPartFile;
@@ -161,7 +163,9 @@ class AuthDataSourceImpl extends AuthDataSource {
   Future<CustomerModel> updateProfile(Map<String, dynamic> body) async {
     try {
       // prepare to upload form
-      dio.options.contentType = "multipart/form-data";
+      // Content type comes from the FormData body below. Setting it on the
+      // shared dio.options leaked multipart — with no boundary — into every
+      // later Map post, and PHP then threw those bodies away.
 
       // set image append to formData
       final MultipartFile? multiPartFile;

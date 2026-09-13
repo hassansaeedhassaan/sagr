@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import 'package:sagr/helper/base_url.dart';
 import 'package:sagr/theme/app_theme.dart';
@@ -17,6 +16,7 @@ import '../../data/models/event_model.dart';
 import '../../data/models/start_date_time_model.dart';
 import '../controllers/event_controller.dart';
 import '../widgets/event_status_pill.dart';
+import 'pdf_viewer_screen.dart';
 
 const _tabular = [FontFeature.tabularFigures()];
 
@@ -356,10 +356,7 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
   void _openContract(String url) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: Text('Contract'.tr)),
-          body: SfPdfViewer.network(url),
-        ),
+        builder: (_) => PdfViewerScreen(url: url, title: 'Contract'.tr),
       ),
     );
   }

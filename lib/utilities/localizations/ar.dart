@@ -545,4 +545,10 @@ const Map<String, String> ar = {
   "No application is awaiting your decision for this event.": "لا يوجد طلب بانتظار قرارك على هذه الفعالية.",
   "You are not assigned to this zone for this event today.": "أنت غير معيّن في هذه المنطقة لهذه الفعالية اليوم.",
   "This request has already been reviewed.": "تمت مراجعة هذا الطلب بالفعل.",
+  "You have not been assigned to a zone for this event yet.": "لم يتم تعيينك في منطقة لهذه الفعالية بعد.",
+  "This event is not running today.": "هذه الفعالية غير قائمة اليوم.",
+  "This file could not be displayed here.": "لا يمكن عرض هذا الملف هنا.",
+  "Open outside the app": "فتح خارج التطبيق",
+  "Try again": "إعادة المحاولة",
+  "Could not open this file.": "تعذّر فتح هذا الملف.",
 };
