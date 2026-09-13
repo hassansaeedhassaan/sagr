@@ -250,6 +250,16 @@ class EventController extends GetxController {
 
   // Enhanced attendance method with better error handling
   Future<void> _performAttendanceAction(String type) async {
+    // No zone, no check-in: the request would only come back rejected, and
+    // asking for the user's location first makes that worse.
+    if (event?.zone_id == null) {
+      MessageHelper.showErrorDialog(
+        title: 'Attendance'.tr,
+        message: 'You have not been assigned to a zone for this event yet.'.tr,
+      );
+      return;
+    }
+
     // Get current position
     Position? position = await SagrLocationService.getCurrentLocation();
 
