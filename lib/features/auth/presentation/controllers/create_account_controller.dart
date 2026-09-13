@@ -43,24 +43,7 @@ class CreateAccountController extends GetxController {
   String? previousEvents;
   String? chronicDiseases;
   
-  int? selectedDay;
-  int? selectedMonth;
-  int? selectedYear;
-
-  final List<String> months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
-  ];
+  DateTime? birthdate;
 
 
   // ========== Observable States ==========
@@ -157,6 +140,10 @@ class CreateAccountController extends GetxController {
       _selectedEducation.value = EducationModel.fromJson(user['education']);
     }
 
+    if (user['birthdate'] is String) {
+      birthdate = DateTime.tryParse(user['birthdate']);
+    }
+
     if (user['languages'] != null && user['languages'] is List) {
       _languages.value = (user['languages'] as List)
           .map((lang) => LanguageModel.fromJson(lang))
@@ -198,6 +185,16 @@ class CreateAccountController extends GetxController {
     update();
   }
 
+
+  void setBirthdate(DateTime date) {
+    birthdate = date;
+    update();
+  }
+
+  void setLanguages(List<LanguageModel> languages) {
+    _languages.assignAll(languages);
+    update();
+  }
 
   void setSelectedLanguages(LanguageModel language) {
     if (!_languages.contains(language)) {
@@ -393,16 +390,17 @@ class CreateAccountController extends GetxController {
     }
   }
 
-  /// Completes user profile with additional information
-  Future<void> completeAccount() async {
+  /// Completes the user profile. Returns true once saved so the screen can
+  /// close itself; failures are surfaced here as a snackbar.
+  Future<bool> completeAccount() async {
     _setValidationState();
-    _setLoadingState(true);
 
     if (profileImageRequired) {
-      _handleError('Please upload a profile image');
-      _setLoadingState(false);
-      return;
+      _handleError('Please add a profile photo'.tr);
+      return false;
     }
+
+    _setLoadingState(true);
 
     final Map<String, dynamic> body = {
       'firstName': firstName,
@@ -424,37 +422,67 @@ class CreateAccountController extends GetxController {
       'iban_file': ibanFilePath,
       'nationality_id': selectedNationality.id,
       'region_id': selectedRegion.id,
-      'birthdate': DateTime(selectedYear!, selectedMonth!, selectedDay!)
+      'langs': _languages.map((lang) => lang.id).toList(),
+      if (birthdate != null) 'birthdate': _isoDate(birthdate!),
     };
 
     try {
       final failureOrCustomer = await authUsecase.completeAccount(body);
 
-      failureOrCustomer.fold(
+      return failureOrCustomer.fold(
         (failure) {
-          _setLoadingState(false);
-          _handleError('Failed to complete account');
+          _handleError("Couldn't complete your profile".tr);
+          return false;
         },
         (receivedData) {
-          // Commented
-          // _updateLocalStorage(receivedData.toJson());
-          Get.snackbar(
-            'Success',
-            'Profile completed successfully',
-            snackPosition: SnackPosition.BOTTOM,
-          );
-          _navigateToSuccessPage();
+          _markProfileCompleted();
+          return true;
         },
       );
     } on ValidationException catch (e) {
       _logError('Validation error during account completion', e);
-      _handleError(e.data['message'] ?? 'Validation failed');
+      _handleError(
+          _firstServerError(e.data) ?? "Couldn't complete your profile".tr);
+      return false;
     } catch (e) {
       _logError('Unexpected error during account completion', e);
       _handleError('wrong'.tr);
+      return false;
     } finally {
       _setLoadingState(false);
     }
+  }
+
+  /// yyyy-MM-dd with Latin digits whatever the app locale.
+  String _isoDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// First message from a Laravel 422 body ({message, errors: {field: [..]}}).
+  String? _firstServerError(dynamic data) {
+    if (data is! Map) return null;
+    final errors = data['errors'];
+    if (errors is Map && errors.isNotEmpty) {
+      final first = errors.values.first;
+      return first is List && first.isNotEmpty ? '${first.first}' : '$first';
+    }
+    final message = data['message'];
+    return message is String && message.isNotEmpty ? message : null;
+  }
+
+  /// Flags the cached user as completed so the event-apply gate lets them
+  /// through without logging out and back in.
+  void _markProfileCompleted() {
+    final stored = GetStorage().read('userData');
+    final user = <String, dynamic>{
+      if (stored is Map) ...Map<String, dynamic>.from(stored),
+      'is_completed': true,
+      'firstName': firstName,
+      'middleName': middleName,
+      'lastName': lastName,
+    };
+    GetStorage().write('userData', user);
+    authController.authenticatedUser = user;
+    authController.update();
   }
 
   /// Updates user profile information
@@ -665,35 +693,6 @@ class CreateAccountController extends GetxController {
 
   
 
-  List<int> getDaysInMonth() {
-    if (selectedMonth == null || selectedYear == null) {
-      return List.generate(31, (index) => index + 1);
-    }
-    int daysInMonth = DateTime(selectedYear!, selectedMonth!, 0).day;
-    return List.generate(daysInMonth, (index) => index + 1);
-  }
-
-  List<int> getYears() {
-    final currentYear = DateTime.now().year;
-    return List.generate(100, (index) => currentYear - index);
-  }
-
-  int _calculateAge() {
-    if (selectedDay == null || selectedMonth == null || selectedYear == null) {
-      return 0;
-    }
-    final birthDate = DateTime(selectedYear!, selectedMonth!, selectedDay!);
-    final now = DateTime.now();
-    int age = now.year - birthDate.year;
-    if (now.month < birthDate.month ||
-        (now.month == birthDate.month && now.day < birthDate.day)) {
-      age--;
-    }
-    return age;
-  }
-
-  bool get isDateSelected =>
-      selectedDay != null && selectedMonth != null && selectedYear != null;
       
 
 }
