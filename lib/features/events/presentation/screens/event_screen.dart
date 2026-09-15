@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import 'package:sagr/data/colors.dart';
+import 'package:sagr/helper/base_url.dart';
 import 'package:sagr/features/events/data/models/job_model.dart';
 import 'package:sagr/features/events/data/models/period_model.dart';
 import 'package:sagr/features/events/data/models/start_date_time_model.dart';
@@ -68,9 +69,19 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
       _isRejected = !isAccept;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    _eventController.contractDecisions(isAccept ? 'accepted' : 'rejected');
-    _showStatusDialog(isAccept);
+    // Confirm only once the server has saved the decision; the dialog used to
+    // appear even when the request failed.
+    final saved = await _eventController
+        .contractDecisions(isAccept ? 'accepted' : 'rejected');
+    if (!mounted) return;
+    if (saved) {
+      _showStatusDialog(isAccept);
+    } else {
+      setState(() {
+        _isAccepted = false;
+        _isRejected = false;
+      });
+    }
   }
 
   void _showStatusDialog(bool isAccept) {
@@ -144,6 +155,18 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
     return a != null && a.isNotEmpty && a != 'undefined';
   }
 
+  /// Admin-panel contracts are stored as `contracts/…` on Laravel's public
+  /// disk, which is served under /storage/; company-panel uploads are already
+  /// public under /uploads/.
+  String _attachmentUrl(String path) {
+    if (path.startsWith('http')) return path;
+    final p = path.startsWith('/') ? path.substring(1) : path;
+    if (p.startsWith('uploads/') || p.startsWith('storage/')) {
+      return '$HOSTURL$p';
+    }
+    return '${HOSTURL}storage/$p';
+  }
+
   void _openAttachment() {
     final attachment = _eventController.event?.attachment;
     if (attachment == null || attachment.isEmpty) return;
@@ -151,7 +174,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => _AttachmentViewer(
-          url: 'https://sagr.net/$attachment',
+          url: _attachmentUrl(attachment),
         ),
       ),
     );

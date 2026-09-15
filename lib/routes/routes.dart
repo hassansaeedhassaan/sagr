@@ -15,6 +15,7 @@ import 'package:sagr/features/events/presentation/screens/event_calender.dart';
 import 'package:sagr/features/events/presentation/screens/event_calender_screen.dart';
 import 'package:sagr/features/events/presentation/screens/event_precessing_screen.dart';
 import 'package:sagr/features/events/presentation/screens/event_screen.dart';
+import 'package:sagr/features/events/presentation/screens/event_journey_screen.dart';
 import 'package:sagr/features/events/presentation/screens/events_screen.dart';
 import 'package:sagr/features/events/presentation/screens/permissions.dart';
 import 'package:sagr/features/events/presentation/screens/prev_events_screen.dart';
@@ -194,6 +195,12 @@ final List<GetPage> routes = [
       GetPage(
       name: '/event_screen',
       page: () => EventDetailsScreen(),
+      bindings: [ApplicationBinding(), EventsBindings()]),
+
+      // Every application status opens here: stage tracker + next action.
+      GetPage(
+      name: '/event_details',
+      page: () => const EventJourneyScreen(),
       bindings: [ApplicationBinding(), EventsBindings()]),
 
 

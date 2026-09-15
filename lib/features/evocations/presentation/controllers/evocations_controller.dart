@@ -131,39 +131,34 @@ class EvocationsController extends GetxController {
 
 
 
-Future<void> apply (EvocationModel evocation) async{
-
-
-  final Map<String, dynamic> body = {
-      // 'event_id': eventController.event?.id,
-      // 'zone_id': eventController.event?.zone_id,
-      // 'user_id': eventController.event?.user_id,
+  /// Sends a permission request. Returns true once the server accepted it;
+  /// otherwise shows the server's reason.
+  Future<bool> apply(EvocationModel evocation) async {
+    final Map<String, dynamic> body = {
+      'event_id': evocation.eventId,
+      'zone_id': evocation.zoneId,
+      'user_id': evocation.userId,
       'notes': evocation.notes,
       'duration': evocation.duration,
-      'type': evocation.type == EvocationType.prayer ? 'prayer': 'food'
+      'type': evocation.type.toJson(),
     };
 
-     final failureOrEvent = await evocationsUsecase.apply(body);
+    final failureOrEvent = await evocationsUsecase.apply(body);
 
-    failureOrEvent.fold((failure) {
-      _isLoading.value = false;
-    }, (receivedProduct) async {
-      _isLoading.value = false;
-
-
-      Future.delayed(Duration(seconds: 2));
-
-     
-     MessageHelper.showSuccessSnackbar(title: "DONE", message: "DONE DONE DONE");
-
-
-     
+    return failureOrEvent.fold((failure) {
+      MessageHelper.showErrorDialog(
+        title: 'Request Failed'.tr,
+        message: failure.message.tr,
+      );
+      return false;
+    }, (_) {
+      MessageHelper.showSuccessSnackbar(
+        title: 'Success'.tr,
+        message: 'Permission request sent'.tr,
+      );
+      return true;
     });
-
-
-}
-
-
+  }
 
   Future<void> filterEventsByJob(JobModel job) async {
     if (job.id == null) {

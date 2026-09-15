@@ -605,7 +605,7 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           onTap: () {
             Get.toNamed(
-              '/event_processing_screen',
+              '/event_details',
               arguments: event.id,
               preventDuplicates: true,
             );
@@ -701,37 +701,11 @@ class HomeScreen extends StatelessWidget {
                     _buildDateTimeInfo(event),
                     InkWell(
                       onTap: () {
-                        switch (event.appliedStatus) {
-                          case 'accepted':
-                            Get.toNamed(
-                              '/event_accept_screen',
-                              arguments: event.id,
-                              preventDuplicates: true,
-                            );
-                            break;
-                          case 'initAccept':
-                            Get.toNamed(
-                              '/event_screen',
-                              arguments: event.id,
-                              preventDuplicates: true,
-                            );
-                            break;
-                          case 'rejected':
-                            break;
-                          case 'pending':
-                            Get.toNamed(
-                              '/event_processing_screen',
-                              arguments: event.id,
-                              preventDuplicates: true,
-                            );
-                            break;
-                          default:
-                            Get.toNamed(
-                              '/event_apply_screen',
-                              arguments: event!.id,
-                              preventDuplicates: true,
-                            );
-                        }
+                        Get.toNamed(
+                          '/event_details',
+                          arguments: event.id,
+                          preventDuplicates: true,
+                        );
                       },
                       child: Row(
                         children: [

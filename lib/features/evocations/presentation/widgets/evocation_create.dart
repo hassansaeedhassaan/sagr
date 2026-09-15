@@ -17,13 +17,23 @@ const _tabular = [FontFeature.tabularFigures()];
 /// (prayer / food permission request). Uses the unified [AppTheme] tokens —
 /// no purple gradient, no rotating borders, no heavy animation stack.
 class CreateEvocationBottomSheet extends StatefulWidget {
-  final Function(EvocationModel) onEvocationCreated;
+  /// Sends the request; resolves to true once the server accepted it.
+  final Future<bool> Function(EvocationModel) onEvocationCreated;
   final EvocationModel? initialEvocation;
+
+  /// The employee's event, zone and user ids, as reported on the event. The
+  /// server only reports a zone on the event day, once they are assigned.
+  final int? eventId;
+  final int? zoneId;
+  final int? userId;
 
   const CreateEvocationBottomSheet({
     super.key,
     required this.onEvocationCreated,
     this.initialEvocation,
+    this.eventId,
+    this.zoneId,
+    this.userId,
   });
 
   @override
@@ -123,6 +133,22 @@ class _CreateEvocationBottomSheetState
       return;
     }
 
+    final eventId = widget.eventId;
+    final zoneId = widget.zoneId;
+    final userId = widget.userId;
+    if (eventId == null ||
+        zoneId == null ||
+        zoneId <= 0 ||
+        userId == null ||
+        userId <= 0) {
+      _toast(
+        'Permission requests are available once you are assigned to a zone on the event day.'
+            .tr,
+        isSuccess: false,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -131,15 +157,13 @@ class _CreateEvocationBottomSheetState
         type: _selectedType!,
         duration: int.parse(_durationController.text),
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-        eventId: 1,
-        zoneId: 1,
-        userId: 1,
+        eventId: eventId,
+        zoneId: zoneId,
+        userId: userId,
       );
 
-      await Future.delayed(const Duration(milliseconds: 1200));
-
-      widget.onEvocationCreated(evocation);
-      if (mounted) Navigator.of(context).pop();
+      final sent = await widget.onEvocationCreated(evocation);
+      if (sent && mounted) Navigator.of(context).pop();
     } catch (e) {
       _toast('Error: $e', isSuccess: false);
     } finally {

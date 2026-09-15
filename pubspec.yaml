@@ -208,7 +208,7 @@ flutter:
 
     - family: Heebo
       fonts:
-        - asset: assets/fonts/heebo/Heebo-Regular.ttf
+        - asset: assets/fonts/Heebo/Heebo-Regular.ttf
 
     - family: STC
       fonts:

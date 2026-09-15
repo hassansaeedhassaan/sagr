@@ -31,42 +31,27 @@ class EvocationsDataSourceImpl extends EvocationsDataSource {
   }
 
 
-@override
+  @override
   Future<Response> apply(Map<String, dynamic> body) async {
     try {
-      final response = await dio
-          .post("$BASEURL/evocations", data: body);
-
-      return response;
+      return await dio.post("$BASEURL/evocations", data: body);
     } on DioException catch (e) {
-      // كل أخطاء Dio بتيجي هنا
-      if (e.type == DioExceptionType.connectionTimeout) {
-        print('Connection Timeout');
-      } else if (e.type == DioExceptionType.sendTimeout) {
-        print('Send Timeout');
-      } else if (e.type == DioExceptionType.receiveTimeout) {
-        print('Receive Timeout');
-      } else if (e.type == DioExceptionType.badResponse) {
-        // في حالة السيرفر رجّع استجابة بخطأ (مثلاً 400 أو 500)
-        final statusCode = e.response?.statusCode;
-        final data = e.response?.data;
-        print('Server error: $statusCode - $data');
-      } else if (e.type == DioExceptionType.cancel) {
-        print('Request was cancelled');
-      } else if (e.type == DioExceptionType.unknown) {
-        print('Unknown error: ${e.message}');
-      } else {
-        print('Other Dio error: ${e.message}');
+      // This used to only print the error, so a rejected request (Laravel's
+      // 422 with the reason in `message`) failed with nothing shown to the
+      // employee. Surface the server's own message instead.
+      final status = e.response?.statusCode;
+      final data = e.response?.data;
+
+      String message =
+          'Could not send your permission request. Please try again.';
+      if (data is Map && data['message'] is String) {
+        message = data['message'] as String;
       }
-    } catch (e) {
-      // أي خطأ ثاني غير Dio
-      print('Unexpected error: $e');
+
+      if (status == 400 || status == 422) {
+        throw ValidationException(data, message: message, statusCode: status);
+      }
+      throw ServerException();
     }
-
-    throw ServerException();
-
-  
   }
 }
-
-

@@ -86,25 +86,9 @@ class EventStatusPill extends StatelessWidget {
   }
 }
 
-/// Routes to the right screen for an event based on its application status.
+/// Opens an event. Every application status lands on the journey screen,
+/// which shows the stage tracker and the next action for that status.
 /// Shared by the card status pill and list rows so navigation stays consistent.
 void openEventByStatus(int? id, String? status) {
-  switch (status) {
-    case 'accepted':
-      Get.toNamed('/event_accept_screen',
-          arguments: id, preventDuplicates: true);
-      break;
-    case 'initAccept':
-      Get.toNamed('/event_screen', arguments: id, preventDuplicates: true);
-      break;
-    case 'rejected':
-      break;
-    case 'pending':
-      Get.toNamed('/event_processing_screen',
-          arguments: id, preventDuplicates: true);
-      break;
-    default:
-      Get.toNamed('/event_apply_screen',
-          arguments: id, preventDuplicates: true);
-  }
+  Get.toNamed('/event_details', arguments: id, preventDuplicates: true);
 }

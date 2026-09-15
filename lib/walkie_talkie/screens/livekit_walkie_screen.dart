@@ -103,7 +103,10 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
       return;
     }
 
-    final session = WalkieSession(channelName: channel.channelName);
+    final session = WalkieSession(
+      channelName: channel.channelName,
+      eventId: event?.id,
+    );
     session.addListener(_onSessionChanged);
     setState(() {
       _resolving = false;

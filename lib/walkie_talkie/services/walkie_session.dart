@@ -60,11 +60,18 @@ class WalkieParticipant {
 /// The session always joins **muted** and only publishes while
 /// [startTalking] is in effect.
 class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
-  WalkieSession({required this.channelName, LiveKitTokenService? tokenService})
-      : _tokenService = tokenService ?? LiveKitTokenService();
+  WalkieSession({
+    required this.channelName,
+    this.eventId,
+    LiveKitTokenService? tokenService,
+  }) : _tokenService = tokenService ?? LiveKitTokenService();
 
   /// Walkie channel name for the event → maps 1:1 to a LiveKit room.
   final String channelName;
+
+  /// Event the channel belongs to. The backend only signs a token for a room
+  /// the caller is assigned to on this event.
+  final int? eventId;
 
   final LiveKitTokenService _tokenService;
 
@@ -124,7 +131,7 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
 
     final LiveKitTokenResult tk;
     try {
-      tk = await _tokenService.fetchToken(channelName);
+      tk = await _tokenService.fetchToken(channelName, eventId: eventId);
     } catch (e) {
       _fail(LiveKitTokenService.describeError(e));
       return;

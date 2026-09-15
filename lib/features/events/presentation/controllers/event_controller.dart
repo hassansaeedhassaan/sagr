@@ -108,60 +108,57 @@ class EventController extends GetxController {
   }
 
 
- // Enhanced attendance check in/out
-  Future<void> contractDecisions(String type) async {
-    if (_isLoading.value) return; // Prevent multiple calls
+  // Applicant's answer to the contract sent with a preliminary acceptance.
+  // Returns true only once the server has saved it.
+  Future<bool> contractDecisions(String type) async {
+    if (_isLoading.value) return false; // Prevent multiple calls
 
     _setLoadingState(true);
 
     try {
-      
-      await _performStatusAction(type);
+      return await _performStatusAction(type);
     } catch (e) {
-      _handleError('Attendance action failed: $e');
+      _handleError('Contract decision failed: $e');
+      _showContractDecisionError(null);
+      return false;
     } finally {
       _setLoadingState(false);
     }
   }
 
-
-
-
-   // Enhanced attendance method with better error handling
-  Future<void> _performStatusAction(String type) async {
-    // Get current position
-   
-
-    // Prepare request body
+  Future<bool> _performStatusAction(String type) async {
     final Map<String, dynamic> body = {
       'event_id': event?.id,
       'status': type,
       'timestamp': DateTime.now().toIso8601String(),
     };
 
-    try {
-      // Perform attendance API call
-      final failureOrResponse = await eventsUsecase.applicationStatus(body);
+    final failureOrResponse = await eventsUsecase.applicationStatus(body);
 
-
-      await failureOrResponse.fold(
-        (failure) async {
-          _handleAttendanceFailure(failure);
-        }, 
-        (response) async {
-          _handleApplicationStatusSuccess(response, type);
-        }
-      );
-
-    } catch (e) {
-      _handleError('Attendance processing error: $e');
-      MessageHelper.showErrorDialog(
-        title: 'Error'.tr,
-        message: 'An unexpected error occurred. Please try again.'.tr,
-      );
-    }
+    return failureOrResponse.fold(
+      (failure) {
+        _showContractDecisionError(failure.message);
+        return false;
+      },
+      (response) {
+        // The backend answers {status: 200, data: <applications updated>};
+        // there is no `success` flag, and 0 means nothing was saved.
+        final data = response.data;
+        final updated = data is Map ? data['data'] : null;
+        if (updated is int && updated > 0) return true;
+        _showContractDecisionError(null);
+        return false;
+      },
+    );
   }
 
+  void _showContractDecisionError(String? message) {
+    MessageHelper.showErrorDialog(
+      title: 'Request Failed'.tr,
+      message:
+          (message ?? 'Could not save your decision. Please try again.').tr,
+    );
+  }
 
   // Set loading state with UI updates
   void _setLoadingState(bool loading) {
@@ -358,36 +355,6 @@ class EventController extends GetxController {
     }
   }
 
-
-  // Handle attendance success
-  void _handleApplicationStatusSuccess(dynamic response, String type) {
-    if (response.data?['success'] == true) {
-      // Update check-in status
-      final wasCheckingIn = type == 'attendance';
-      _isCheckedIn.value = wasCheckingIn;
-      _attendanceStatus.value = wasCheckingIn 
-          ? AttendanceStatus.checkedIn 
-          : AttendanceStatus.notCheckedIn;
-      
-      _updateLastUpdateTime();
-      _updateStatusMessage();
-
-      // Show success message
-      MessageHelper.showSuccessDialog(
-        title: 'Success'.tr,
-        message: wasCheckingIn 
-            ? 'Successfully checked in! 🎉'.tr 
-            : 'Successfully checked out! 👋'.tr,
-      );
-
-      // Update event model
-      if (eventModel != null) {
-        // eventModel!.isCheckedIn = wasCheckingIn;
-      }
-    } else {
-      _handleAttendanceFailure('Server returned unsuccessful response');
-    }
-  }
 
   // Create evocation with enhanced error handling
   Future<void> createEvocation(EvocationModel evocation) async {

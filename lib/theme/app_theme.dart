@@ -190,7 +190,7 @@ class AppTheme {
           ),
         ),
 
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: surface,
           elevation: 0,
           margin: EdgeInsets.zero,
@@ -214,7 +214,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         ),
 
-        dialogTheme: DialogTheme(
+        dialogTheme: DialogThemeData(
           backgroundColor: surface,
           elevation: 4,
           shape: RoundedRectangleBorder(
@@ -292,7 +292,7 @@ class AppTheme {
           ),
         ),
 
-        tabBarTheme: const TabBarTheme(
+        tabBarTheme: const TabBarThemeData(
           labelColor: brand,
           unselectedLabelColor: textMuted,
           indicatorColor: brand,
