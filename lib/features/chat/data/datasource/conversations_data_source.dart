@@ -84,7 +84,9 @@ class ConversationDataSourceImpl extends ConversationDataSource {
       Map<String, dynamic> body, BuildContext context) async {
     try {
       // prepare to upload form
-      dio.options.contentType = "multipart/form-data";
+      // Content type comes from the FormData body below. Setting it on the
+      // shared dio.options leaked multipart — with no boundary — into every
+      // later Map post, and PHP then threw those bodies away.
 
       formData.FormData preparedFormData = formData.FormData.fromMap(
           {'message': body['message'], 'chat_id': body['chat_id']});

@@ -4,6 +4,7 @@ import 'package:sagr/features/events/data/models/start_date_time_model.dart';
 
 import '../../domain/entities/event.dart';
 import 'application_info.dart';
+import 'event_access.dart';
 import 'zone_coordinate_model.dart';
 
 class EventModel extends Event {
@@ -58,6 +59,15 @@ class EventModel extends Event {
   /// that don't send the `application` block yet.
   final ApplicationInfo? application;
 
+  /// The organizer's workflow status: pending, draft or active.
+  final String? eventStatus;
+
+  /// The payload's `access` block; read [access] instead.
+  final EventAccess? accessInfo;
+
+  /// The server records the walkie-talkie channels; the walkie screen says so.
+  final bool walkieRecorded;
+
   const EventModel(
       {this.id,
       this.name,
@@ -85,7 +95,10 @@ class EventModel extends Event {
       this.user_id,
       this.isCheckedIn,
       this.userType,
-      this.application})
+      this.application,
+      this.eventStatus,
+      this.accessInfo,
+      this.walkieRecorded = false})
       : super(
             id: id,
             name: name,
@@ -136,6 +149,12 @@ class EventModel extends Event {
           ? ApplicationInfo.fromJson(
               Map<String, dynamic>.from(json['application'] as Map))
           : null,
+      eventStatus: json['event_status']?.toString(),
+      walkieRecorded: json['walkie_recorded'] == true,
+      accessInfo: json['access'] is Map
+          ? EventAccess.fromJson(
+              Map<String, dynamic>.from(json['access'] as Map))
+          : null,
       companyName: json['company'] is Map
           ? json['company']['name']?.toString()
           : null,
@@ -163,6 +182,17 @@ class EventModel extends Event {
 
     );
   }
+
+  /// What the user may do on this event right now: the server's answer, or
+  /// the same rules rebuilt locally on servers that don't send `access`.
+  EventAccess get access =>
+      accessInfo ??
+      EventAccess.derive(
+        applicationStatus: application?.status ?? appliedStatus ?? 'undefined',
+        assigned: application?.assignment != null || assigned == true,
+        eventStatus: eventStatus,
+        window: startDateTime,
+      );
 
   @override
   Map<String, dynamic> toJson() {
