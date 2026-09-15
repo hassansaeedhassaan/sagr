@@ -16,6 +16,8 @@ import 'package:sagr/walkie_talkie/widgets/push_to_talk_button.dart';
 import '../../../evocations/data/models/evocation_model.dart';
 import '../../../evocations/presentation/controllers/evocations_controller.dart';
 import '../../../evocations/presentation/widgets/evocation_create.dart';
+import '../../data/models/event_access.dart';
+import '../../data/models/event_model.dart';
 import '../../data/models/job_model.dart';
 import '../../data/models/start_date_time_model.dart';
 import '../controllers/event_controller.dart';
@@ -41,6 +43,7 @@ class _AttendanceAndDepartureScreenState
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulse;
   Timer? _clockTimer;
+  Timer? _startTimer;
   String _now = '';
 
   final EventController eventController = Get.put(EventController(Get.find()));
@@ -60,6 +63,36 @@ class _AttendanceAndDepartureScreenState
     _clockTimer = Timer.periodic(const Duration(seconds: 20), (_) {
       if (mounted) setState(_refreshNow);
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  /// Opened with an event id (the event page, the bottom bar): load it fresh.
+  /// The controller is shared across event screens and may hold another
+  /// event, or this one with a stale `access` block.
+  Future<void> _load() async {
+    if (eventIdFromArguments(Get.arguments) != null) {
+      await eventController.refreshEventData();
+    }
+    if (mounted) _armStartReload();
+  }
+
+  /// Check-in opens at the event's start time: reload then, so the button
+  /// unlocks without leaving the screen.
+  void _armStartReload() {
+    _startTimer?.cancel();
+    final e = eventController.event;
+    final sdt = e?.startDateTime;
+    if (e == null ||
+        sdt == null ||
+        e.access.checkInReason != EventAccess.notStarted) {
+      return;
+    }
+    final secs = sdt.totalSeconds;
+    if (secs <= 0 || secs > const Duration(days: 1).inSeconds) return;
+    _startTimer = Timer(Duration(seconds: secs.ceil() + 1), () {
+      if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+      _load();
+    });
   }
 
   void _refreshNow() {
@@ -69,6 +102,7 @@ class _AttendanceAndDepartureScreenState
   @override
   void dispose() {
     _clockTimer?.cancel();
+    _startTimer?.cancel();
     _pulse.dispose();
     super.dispose();
   }
@@ -89,7 +123,17 @@ class _AttendanceAndDepartureScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => CenterCircleOverlay(
+    return Obx(() {
+      final event = eventController.event;
+      final wanted = eventIdFromArguments(Get.arguments);
+      if (!eventController.isLoading &&
+          event != null &&
+          (wanted == null || event.id == wanted) &&
+          !event.access.toolsUnlocked) {
+        return _locked(event);
+      }
+
+      return CenterCircleOverlay(
           showIndicator: eventController.isLoading,
           isAnimated: true,
           circleColor: Colors.transparent,
@@ -117,6 +161,7 @@ class _AttendanceAndDepartureScreenState
                   // Once checked in, the employee can talk on the event's
                   // walkie channel without leaving this screen.
                   if (eventController.isCheckedIn &&
+                      eventController.event?.access.walkie == true &&
                       (eventController.event?.channel?.channelName ?? '')
                           .isNotEmpty) ...[
                     const SizedBox(height: 12),
@@ -140,9 +185,73 @@ class _AttendanceAndDepartureScreenState
             bottomNavigationBar: EventBottomNavigation(
               active: EventNavTab.attendance,
               eventId: eventController.event?.id?.toString(),
+              event: eventController.event,
             ),
           ),
-        ));
+        );
+    });
+  }
+
+  /// Attendance belongs to an accepted applicant with a zone. Anyone else who
+  /// reaches this route (an old link, another screen's bottom bar) is told
+  /// what is missing and sent back to the event's status page.
+  Widget _locked(EventModel event) {
+    return Scaffold(
+      backgroundColor: AppTheme.scaffold,
+      appBar: _appBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppTheme.textHint.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock_outline_rounded,
+                    size: 30, color: AppTheme.textMuted),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Attendance is not available yet'.tr,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textTitle,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                eventAccessMessage(event.access.checkInReason),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  height: 1.5,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 20),
+              FilledButton(
+                onPressed: () {
+                  if (Get.previousRoute == '/event_details') {
+                    Get.back<void>();
+                  } else {
+                    Get.offNamed<void>('/event_details', arguments: event.id);
+                  }
+                },
+                style: FilledButton.styleFrom(backgroundColor: AppTheme.brand),
+                child: Text('Back to the event'.tr),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // ---- AppBar ----
@@ -258,12 +367,19 @@ class _AttendanceAndDepartureScreenState
   // ---- Status row (pulse dot + label + icon) ----
   Widget _statusRow() {
     final bool checkedIn = eventController.isCheckedIn;
-    final Color color = checkedIn ? AppTheme.warning : AppTheme.success;
+    final bool open = _attendanceOpen;
+    final Color color = checkedIn
+        ? AppTheme.warning
+        : open
+            ? AppTheme.success
+            : AppTheme.textMuted;
     final String label = eventController.isLoading
         ? 'Processing...'.tr
         : checkedIn
             ? 'Checked In'.tr
-            : 'Ready to Check In'.tr;
+            : open
+                ? 'Ready to Check In'.tr
+                : 'Check-in unavailable'.tr;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -467,18 +583,26 @@ class _AttendanceAndDepartureScreenState
     );
   }
 
-  /// Warns when the event isn't running yet, without blocking the action —
-  /// the server has the final say, and nothing in the app checked the window
-  /// at all before this.
-  Widget _windowNotice() {
-    final sdt = eventController.event?.startDateTime;
-    if (sdt == null || sdt.isWorkingNow) return const SizedBox.shrink();
+  /// Whether the button does anything right now: check in inside the event's
+  /// hours, or check out after a check-in. The server applies the same rules.
+  bool get _attendanceOpen =>
+      eventController.event?.access
+          .attendanceOpen(checkedIn: eventController.isCheckedIn) ??
+      false;
 
-    final finished = sdt.isFinished;
+  /// Why the button is locked: the event isn't active yet, hasn't started,
+  /// or has ended.
+  Widget _windowNotice() {
+    final access = eventController.event?.access;
+    if (access == null) return const SizedBox.shrink();
+    final reason = eventController.isCheckedIn
+        ? access.checkOutReason
+        : access.checkInReason;
+    if (reason == null) return const SizedBox.shrink();
+
+    final finished = reason == EventAccess.ended;
     final color = finished ? AppTheme.textMuted : AppTheme.warning;
-    final text = finished
-        ? 'This event has ended. Attendance may be rejected.'.tr
-        : 'This event has not started yet. Attendance may be rejected.'.tr;
+    final text = eventAccessMessage(reason);
 
     return Container(
       width: double.infinity,
@@ -492,7 +616,11 @@ class _AttendanceAndDepartureScreenState
       child: Row(
         children: [
           Icon(
-            finished ? Icons.event_busy_rounded : Icons.schedule_rounded,
+            finished
+                ? Icons.event_busy_rounded
+                : reason == EventAccess.eventNotActive
+                    ? Icons.pause_circle_outline_rounded
+                    : Icons.schedule_rounded,
             size: 16,
             color: color,
           ),
@@ -517,15 +645,26 @@ class _AttendanceAndDepartureScreenState
   Widget _primaryAction() {
     final bool checkedIn = eventController.isCheckedIn;
     final bool loading = eventController.isLoading;
-    final Color color = checkedIn ? AppTheme.danger : AppTheme.success;
-    final Color dark =
-        checkedIn ? const Color(0xffdc2626) : const Color(0xff15803d);
+    final bool open = _attendanceOpen;
+    final Color color = !open
+        ? AppTheme.textHint
+        : checkedIn
+            ? AppTheme.danger
+            : AppTheme.success;
+    final Color dark = !open
+        ? AppTheme.textMuted
+        : checkedIn
+            ? const Color(0xffdc2626)
+            : const Color(0xff15803d);
     final String label = checkedIn ? 'Check Out'.tr : 'Check In'.tr;
-    final IconData icon =
-        checkedIn ? Icons.logout_rounded : Icons.fingerprint_rounded;
+    final IconData icon = !open
+        ? Icons.lock_outline_rounded
+        : checkedIn
+            ? Icons.logout_rounded
+            : Icons.fingerprint_rounded;
 
     return GestureDetector(
-      onTap: loading
+      onTap: loading || !open
           ? null
           : () => eventController.attendanceCheckInOut(
               checkedIn ? 'departure' : 'attendance'),
@@ -540,13 +679,15 @@ class _AttendanceAndDepartureScreenState
             colors: [color, dark],
           ),
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.32),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          boxShadow: open
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.32),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -578,6 +719,7 @@ class _AttendanceAndDepartureScreenState
   }
 
   Widget _hint() {
+    if (!_attendanceOpen) return const SizedBox.shrink();
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [

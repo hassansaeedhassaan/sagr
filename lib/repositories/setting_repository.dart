@@ -30,7 +30,9 @@ class SettingRepository {
 
   Future<Response> uploadSlide(body) async {
     // prepare to upload form
-    _dio.options.contentType = "multipart/form-data";
+    // Content type comes from the FormData body below. Setting it on the
+    // shared dio.options leaked multipart — with no boundary — into every
+    // later Map post, and PHP then threw those bodies away.
 
     // set image append to formData
     final multiPartFile = await MultipartFile.fromFile(
