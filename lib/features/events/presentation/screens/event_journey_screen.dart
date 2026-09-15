@@ -12,6 +12,7 @@ import 'package:sagr/utilities/map.dart';
 import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../data/models/application_info.dart';
+import '../../data/models/event_access.dart';
 import '../../data/models/event_model.dart';
 import '../../data/models/start_date_time_model.dart';
 import '../controllers/event_controller.dart';
@@ -171,7 +172,25 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
             AppTheme.success,
           );
         }
-        if (sdt?.isFinished == true) {
+        final access = event.access;
+        if (access.checkIn) {
+          return _StateCopy(
+            'The event has started'.tr,
+            'Check in from inside your zone to start.'.tr,
+            Icons.play_circle_fill_rounded,
+            AppTheme.brand,
+          );
+        }
+        if (event.isCheckedIn == true && access.checkOut) {
+          return _StateCopy(
+            'You are checked in'.tr,
+            'Check out from the attendance screen when you leave.'.tr,
+            Icons.how_to_reg_rounded,
+            AppTheme.brand,
+          );
+        }
+        if (sdt?.isFinished == true ||
+            access.checkInReason == EventAccess.ended) {
           return _StateCopy(
             'This event has ended'.tr,
             _assignmentLine(app?.assignment),
@@ -179,12 +198,13 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
             AppTheme.textMuted,
           );
         }
-        if (_isLive(sdt)) {
+        if (access.checkInReason == EventAccess.eventNotActive) {
           return _StateCopy(
-            'The event has started'.tr,
-            'Check in from inside your zone to start.'.tr,
-            Icons.play_circle_fill_rounded,
-            AppTheme.brand,
+            'Waiting for the event to be activated'.tr,
+            'Check-in and the walkie-talkie open once the organizer activates the event.'
+                .tr,
+            Icons.pause_circle_filled_rounded,
+            AppTheme.warning,
           );
         }
         return _StateCopy(
@@ -305,9 +325,11 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
             ? null
             : sdt?.isFinished == true
                 ? 'Event ended'.tr
-                : _isLive(sdt)
-                    ? 'Event in progress'.tr
-                    : null,
+                : event.access.checkInReason == EventAccess.eventNotActive
+                    ? 'Waiting for the event to be activated'.tr
+                    : _isLive(sdt)
+                        ? 'Event in progress'.tr
+                        : null,
       ),
     ];
   }
@@ -390,6 +412,12 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
                 if (app?.assignment != null) ...[
                   const SizedBox(height: 12),
                   _assignmentCard(app!.assignment!),
+                ],
+                // Attendance and the walkie-talkie only exist for someone
+                // accepted and placed in a zone; before that they aren't shown.
+                if (event.access.toolsUnlocked) ...[
+                  const SizedBox(height: 12),
+                  _toolsCard(event),
                 ],
                 if (showCountdown) ...[
                   const SizedBox(height: 12),
@@ -622,6 +650,133 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Attendance and the walkie-talkie for an accepted, assigned applicant.
+  /// Each opens only when the server's `access` allows it; until then the row
+  /// is locked and says why (event not activated, not started, ended).
+  Widget _toolsCard(EventModel event) {
+    final access = event.access;
+    final checkedIn = event.isCheckedIn == true;
+    final attendance = access.attendanceOpen(checkedIn: checkedIn);
+
+    return _section(
+      'Event tools'.tr,
+      Column(
+        children: [
+          _toolRow(
+            icon: Icons.how_to_reg_rounded,
+            title: 'Attendance'.tr,
+            subtitle: attendance
+                ? 'Check in and out from inside your zone.'.tr
+                : eventAccessMessage(
+                    checkedIn ? access.checkOutReason : access.checkInReason),
+            enabled: attendance,
+            onTap: () => Get.toNamed('/attendance_screen', arguments: event.id),
+          ),
+          const Divider(height: 16, color: AppTheme.line),
+          _toolRow(
+            icon: Icons.phone_in_talk_rounded,
+            title: 'Walkie Talkie'.tr,
+            subtitle: access.walkie
+                ? 'Talk to your team on your zone channel.'.tr
+                : eventAccessMessage(access.walkieReason, forWalkie: true),
+            enabled: access.walkie,
+            onTap: () =>
+                Get.toNamed('/event_walkie_talkie', arguments: event.id),
+          ),
+          if (access.walkie && event.userType == 'supervisor') ...[
+            const Divider(height: 16, color: AppTheme.line),
+            _toolRow(
+              icon: Icons.shield_rounded,
+              title: 'Supervisors channel'.tr,
+              subtitle: 'Coordinate with the other supervisors.'.tr,
+              enabled: true,
+              onTap: () => Get.toNamed('/event_supervisor_walkie_talkie',
+                  arguments: event.id),
+            ),
+          ],
+          if (access.recordings) ...[
+            const Divider(height: 16, color: AppTheme.line),
+            _toolRow(
+              icon: Icons.graphic_eq_rounded,
+              title: 'Walkie-talkie recordings'.tr,
+              subtitle: "Listen back to your zone's channels.".tr,
+              enabled: true,
+              onTap: () =>
+                  Get.toNamed('/event_walkie_recordings', arguments: event.id),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _toolRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    final color = enabled ? AppTheme.brand : AppTheme.textHint;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: enabled ? AppTheme.textTitle : AppTheme.textMuted,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      height: 1.35,
+                      color: AppTheme.textMuted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              enabled
+                  ? (rtl
+                      ? Icons.chevron_left_rounded
+                      : Icons.chevron_right_rounded)
+                  : Icons.lock_outline_rounded,
+              size: enabled ? 22 : 18,
+              color: enabled ? AppTheme.textMuted : AppTheme.textHint,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -947,11 +1102,12 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
         Icons.send_rounded,
         () => Get.toNamed('/event_apply_screen', arguments: event.id),
       );
-    } else if (status == 'accepted' &&
-        _isAssigned(event) &&
-        _isLive(event.startDateTime)) {
+    } else if (event.access
+        .attendanceOpen(checkedIn: event.isCheckedIn == true)) {
+      // Only once the server would take it: accepted, assigned, the event
+      // active and its start time reached.
       content = _primaryButton(
-        'Go to check-in'.tr,
+        event.isCheckedIn == true ? 'Go to attendance'.tr : 'Go to check-in'.tr,
         Icons.how_to_reg_rounded,
         () => Get.toNamed('/attendance_screen', arguments: event.id),
       );

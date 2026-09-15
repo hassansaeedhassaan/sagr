@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:sagr/features/events/data/models/event_access.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/data/models/zone_coordinate_model.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
@@ -250,6 +251,22 @@ class EventController extends GetxController {
 
   // Enhanced attendance method with better error handling
   Future<void> _performAttendanceAction(String type) async {
+    // The server's rules (EventAccess): accepted, assigned, the event active
+    // and inside its hours. Say what's missing up front instead of asking for
+    // the location and then posting a request that can only be refused.
+    final access = event?.access;
+    if (access != null) {
+      final departure = type == 'departure';
+      if (!(departure ? access.checkOut : access.checkIn)) {
+        MessageHelper.showErrorDialog(
+          title: 'Attendance'.tr,
+          message: eventAccessMessage(
+              departure ? access.checkOutReason : access.checkInReason),
+        );
+        return;
+      }
+    }
+
     // No zone, no check-in: the request would only come back rejected, and
     // asking for the user's location first makes that worse.
     if (event?.zone_id == null) {
