@@ -100,7 +100,9 @@ class ProductDataSourceImpl extends ProductDataSource {
       Map<String, dynamic> body, BuildContext context) async {
     try {
       // prepare to upload form
-      dio.options.contentType = "multipart/form-data";
+      // Content type comes from the FormData body below. Setting it on the
+      // shared dio.options leaked multipart — with no boundary — into every
+      // later Map post, and PHP then threw those bodies away.
 
       // set image append to formData
       final multiPartFile = await dioHttp.MultipartFile.fromFile(
@@ -236,7 +238,9 @@ class ProductDataSourceImpl extends ProductDataSource {
 // throw ServerException();
 
       // prepare to upload form
-      dio.options.contentType = "multipart/form-data";
+      // Content type comes from the FormData body below. Setting it on the
+      // shared dio.options leaked multipart — with no boundary — into every
+      // later Map post, and PHP then threw those bodies away.
 
       // set image append to formData
 

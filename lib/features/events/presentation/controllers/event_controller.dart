@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:sagr/features/events/data/models/event_access.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/data/models/zone_coordinate_model.dart';
 import 'package:sagr/features/events/domain/usecases/get_events.dart';
@@ -30,9 +31,11 @@ class EventController extends GetxController {
   final RxDouble _distanceToZone = 0.0.obs;
   final RxBool _isLocationLoading = false.obs;
   final RxString _lastUpdateTime = ''.obs;
+  final RxnString _loadError = RxnString();
 
   // Getters
   bool get isLoading => _isLoading.value;
+  String? get loadError => _loadError.value;
   bool get isCheckedIn => _isCheckedIn.value;
   bool get isLocationLoading => _isLocationLoading.value;
   AttendanceStatus get attendanceStatus => _attendanceStatus.value;
@@ -182,12 +185,14 @@ class EventController extends GetxController {
   // Get event information
   Future<void> getEventInfo() async {
     _isLoading.value = true;
+    _loadError.value = null;
+    update();
 
     try {
       final id = eventIdFromArguments(Get.arguments);
       if (id == null) {
+        _loadError.value = 'Could not load this event. Please try again.';
         _handleError('Failed to get event info: missing event id');
-        _isLoading.value = false;
         return;
       }
 
@@ -195,14 +200,18 @@ class EventController extends GetxController {
 
       await failureOrProduct.fold(
         (failure) async {
+          // Screens show a retry view off this; before, a failed load left
+          // them on the skeleton forever.
+          _loadError.value = failure.message;
           _handleError('Failed to get event info: ${failure.toString()}');
-        }, 
+        },
         (receivedEvent) async {
           eventModel = receivedEvent;
           _updateLastUpdateTime();
         }
       );
     } catch (e) {
+      _loadError.value = 'Could not load this event. Please try again.';
       _handleError('Exception in getEventInfo: $e');
     } finally {
       _isLoading.value = false;
@@ -250,6 +259,32 @@ class EventController extends GetxController {
 
   // Enhanced attendance method with better error handling
   Future<void> _performAttendanceAction(String type) async {
+    // The server's rules (EventAccess): accepted, assigned, the event active
+    // and inside its hours. Say what's missing up front instead of asking for
+    // the location and then posting a request that can only be refused.
+    final access = event?.access;
+    if (access != null) {
+      final departure = type == 'departure';
+      if (!(departure ? access.checkOut : access.checkIn)) {
+        MessageHelper.showErrorDialog(
+          title: 'Attendance'.tr,
+          message: eventAccessMessage(
+              departure ? access.checkOutReason : access.checkInReason),
+        );
+        return;
+      }
+    }
+
+    // No zone, no check-in: the request would only come back rejected, and
+    // asking for the user's location first makes that worse.
+    if (event?.zone_id == null) {
+      MessageHelper.showErrorDialog(
+        title: 'Attendance'.tr,
+        message: 'You have not been assigned to a zone for this event yet.'.tr,
+      );
+      return;
+    }
+
     // Get current position
     Position? position = await SagrLocationService.getCurrentLocation();
 

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/helper/base_url.dart';
@@ -18,6 +17,7 @@ import 'package:sagr/widgets/bottom_navigation_bar/event_navigation.dart';
 import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../controllers/event_controller.dart';
+import 'pdf_viewer_screen.dart';
 
 /// Tabular-figure feature used for countdown / numeric stats so digits never
 /// jitter when the value changes.
@@ -173,8 +173,9 @@ class _EventDetailsScreenState extends State<EventDetailsScreen>
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => _AttachmentViewer(
+        builder: (_) => PdfViewerScreen(
           url: _attachmentUrl(attachment),
+          title: 'Attachment'.tr,
         ),
       ),
     );
@@ -1134,42 +1135,6 @@ class _SectionCard extends StatelessWidget {
         border: Border.all(color: AppTheme.line),
       ),
       child: child,
-    );
-  }
-}
-
-// =============================================================================
-// Attachment viewer (PDF) — opened as a separate route to keep the details
-// page light. Mirrors the prior SfPdfViewer.network usage.
-// =============================================================================
-
-class _AttachmentViewer extends StatelessWidget {
-  final String url;
-  const _AttachmentViewer({required this.url});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.scaffold,
-      appBar: AppBar(
-        backgroundColor: WHITE_COLOR,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        systemOverlayStyle: AppTheme.statusBarLight,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: AppTheme.textTitle),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Attachment'.tr,
-          style: const TextStyle(
-            color: AppTheme.textTitle,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-      body: SfPdfViewer.network(url),
     );
   }
 }

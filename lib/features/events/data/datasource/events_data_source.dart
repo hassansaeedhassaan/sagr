@@ -369,8 +369,13 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
 
 print(body);
 try {
-      final response = await dio
-          .post("$BASEURL/event/apply", data: body);
+      // Pinned explicitly: a Map body must not go out as multipart, or PHP
+      // discards it and the server answers 422 with every field "required".
+      final response = await dio.post(
+        "$BASEURL/event/apply",
+        data: body,
+        options: Options(contentType: Headers.jsonContentType),
+      );
 
       return response;
     } on DioException catch (e) {

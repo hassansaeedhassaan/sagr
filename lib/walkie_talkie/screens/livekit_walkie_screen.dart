@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:sagr/features/events/data/models/event_access.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
 import 'package:sagr/walkie_talkie/services/walkie_session.dart';
@@ -70,6 +71,19 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
       event = eventController.event;
     }
     if (!mounted) return;
+
+    // The walkie-talkie is for accepted, assigned applicants on the event's
+    // days, and the server sends no channel otherwise. Say which of those is
+    // missing rather than "no channel assigned".
+    if (event != null && !event.access.walkie && !WalkieDevConfig.enabled) {
+      final message =
+          eventAccessMessage(event.access.walkieReason, forWalkie: true);
+      setState(() {
+        _resolving = false;
+        _loadError = message;
+      });
+      return;
+    }
 
     final channel = event == null ? null : _channelOf(event);
 
@@ -265,6 +279,23 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
               ),
             ],
           ),
+          // People should know before they talk.
+          if (eventController.event?.walkieRecorded == true) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.fiber_manual_record,
+                    color: Colors.redAccent, size: 12),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    'This channel is recorded.'.tr,
+                    style: TextStyle(color: Colors.grey[300], fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
