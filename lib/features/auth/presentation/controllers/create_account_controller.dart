@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sagr/core/error/exceptions.dart';
@@ -233,16 +234,12 @@ class CreateAccountController extends GetxController {
   }
 
   // ========== File Handling ==========
-  /// Picks a CV/resume file
+  /// Picks a CV/resume - a photo or a PDF/Word file
   Future<void> handleFileSelection() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx'],
-      );
-
-      if (result != null && result.files.single.path != null) {
-        _cvEmpPath.value = result.files.single.path!;
+      final path = await _pickDocument(['pdf', 'doc', 'docx'], 'ملف PDF / Word');
+      if (path != null) {
+        _cvEmpPath.value = path;
         update();
       }
     } catch (e) {
@@ -250,21 +247,70 @@ class CreateAccountController extends GetxController {
     }
   }
 
-  /// Picks an IBAN document file
+  /// Picks an IBAN document - a photo or a PDF file
   Future<void> handleFileSelectionForIban() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-      );
-
-      if (result != null && result.files.single.path != null) {
-        _ibanFilePath.value = result.files.single.path!;
+      final path = await _pickDocument(['pdf'], 'ملف PDF');
+      if (path != null) {
+        _ibanFilePath.value = path;
         update();
       }
     } catch (e) {
       _handleError('Failed to pick IBAN file: ${e.toString()}');
     }
+  }
+
+  /// Lets the user choose between a photo (gallery or camera) and a document
+  /// file, and returns the picked path, or null if they backed out.
+  Future<String?> _pickDocument(
+      List<String> fileExtensions, String fileLabel) async {
+    final source = await Get.bottomSheet<String>(
+      SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('صورة من المعرض'),
+              onTap: () => Get.back(result: 'gallery'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('التقاط صورة'),
+              onTap: () => Get.back(result: 'camera'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf_outlined),
+              title: Text(fileLabel),
+              onTap: () => Get.back(result: 'file'),
+            ),
+          ],
+        ),
+      ),
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+    );
+
+    switch (source) {
+      case 'gallery':
+      case 'camera':
+        final image = await _picker.pickImage(
+          source: source == 'camera' ? ImageSource.camera : ImageSource.gallery,
+          maxWidth: 2000,
+          maxHeight: 2000,
+          imageQuality: 85,
+        );
+        return image?.path;
+      case 'file':
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: fileExtensions,
+        );
+        return result?.files.single.path;
+    }
+    return null;
   }
 
   /// Picks a profile image from gallery
@@ -436,6 +482,8 @@ class CreateAccountController extends GetxController {
         },
         (receivedData) {
           _markProfileCompleted();
+          // The data source has stored the returned profile; reload it.
+          authController.getProfile();
           return true;
         },
       );
@@ -522,7 +570,12 @@ class CreateAccountController extends GetxController {
     }
     if (selectedEducation.id != null)
       body['education_id'] = selectedEducation.id;
-    if (selectedRegion.id != null) body['zone_id'] = selectedRegion.id;
+    // The API reads region_id (zone_id was silently ignored).
+    if (selectedRegion.id != null) body['region_id'] = selectedRegion.id;
+    if (selectedNationality.id != null) {
+      body['nationality_id'] = selectedNationality.id;
+    }
+    if (birthdate != null) body['birthdate'] = _isoDate(birthdate!);
 
     // Include files only if they're new/updated
     if (imagePath.isNotEmpty) body['image'] = imagePath;
@@ -534,9 +587,6 @@ class CreateAccountController extends GetxController {
       body['langs'] = _languages.map((lang) => lang.id).toList();
     }
 
-    print("🤔🤔🤔🤔🤔🤔🤔🤔🤔");
-    print(body);
-    print("🤔🤔🤔🤔🤔🤔🤔🤔🤔");
 
     try {
       final failureOrCustomer = await authUsecase.updateProfile(body);
@@ -547,9 +597,8 @@ class CreateAccountController extends GetxController {
           _handleError('Failed to update profile');
         },
         (receivedData) {
-          // _updateLocalStorage(receivedData.toJson());
-          // Commented
-          // authController.refreshUserData();
+          // The data source has stored the returned profile; reload it.
+          authController.getProfile();
 
           if (showSuccessMessage) {
             Get.snackbar(

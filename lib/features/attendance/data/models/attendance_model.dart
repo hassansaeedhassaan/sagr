@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:sagr/features/attendance/domain/entities/attendance.dart';
 
 /// Model for Attendance data with JSON serialization
@@ -75,7 +76,7 @@ class AttendanceModel extends Attendance {
           try {
             return DailyReportModel.fromJson(e as Map<String, dynamic>);
           } catch (error) {
-            print('Error parsing daily report: $error');
+            appLog('Error parsing daily report: $error');
             return null;
           }
         })
@@ -94,7 +95,7 @@ class AttendanceModel extends Attendance {
           try {
             return EventTotalModel.fromJson(e as Map<String, dynamic>);
           } catch (error) {
-            print('Error parsing event total: $error');
+            appLog('Error parsing event total: $error');
             return null;
           }
         })
@@ -192,7 +193,7 @@ class DailyReportModel extends DailyReport {
           try {
             return SessionModel.fromJson(e as Map<String, dynamic>);
           } catch (error) {
-            print('Error parsing session: $error');
+            appLog('Error parsing session: $error');
             return null;
           }
         })

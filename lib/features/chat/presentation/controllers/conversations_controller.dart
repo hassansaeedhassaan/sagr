@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 
 import 'package:get/get.dart';
@@ -80,13 +81,13 @@ class ConversationsController extends GetxController {
   }
 
   Future<void> openChat(adId, context) async {
-    print(adId);
-// print(context);
+    appLog(adId);
+// appLog(context);
 
     final conversationOpenChat =
         await conversationUsecase.openChat(adId, context);
 
-    print(conversationOpenChat);
+    appLog(conversationOpenChat);
 
     conversationOpenChat.fold((failure) {
       _productsLoading.value = false;

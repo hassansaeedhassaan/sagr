@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 
 
 import 'package:another_flushbar/flushbar.dart';
@@ -37,7 +38,7 @@ class AccountController extends GetxController {
   void onInit() async {
     super.onInit();
 
-print("Hello, it's me");
+appLog("Hello, it's me");
 
 
   }
@@ -80,7 +81,7 @@ print("Hello, it's me");
   Future<void> updateUser(context) async {
     _isLoading.value = true;
     try {
-      // print(GetStorage().read('userData'));
+      // appLog(GetStorage().read('userData'));
 
       final Map<String, dynamic> body = {
         'name': name,
@@ -147,7 +148,7 @@ print("Hello, it's me");
         // }
 
         update();
-        //        print( GetStorage().read('userData'));
+        //        appLog( GetStorage().read('userData'));
 
         //   GetStorage().write('userData', data);
         //   GetStorage().write('access_token', data.api_token);

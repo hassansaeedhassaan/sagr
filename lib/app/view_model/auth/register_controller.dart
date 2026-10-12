@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 
 import '../../../repositories/auth_repository.dart';
@@ -58,7 +59,7 @@ class RegisterController extends GetxController {
 
       isLoading.value = false;
     } catch (e) {
-      print(e);
+      appLog(e);
       Get.snackbar("Error!", 'wrong'.tr);
       isLoading.value = false;
     }

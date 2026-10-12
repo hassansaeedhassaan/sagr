@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/features/attendance/data/models/attendance_model.dart';
@@ -170,7 +171,7 @@ class AttendanceDataSourceImpl implements AttendanceDataSource {
               try {
                 return AttendanceModel.fromJson(item as Map<String, dynamic>);
               } catch (e) {
-                print('Error parsing attendance item: $e');
+                appLog('Error parsing attendance item: $e');
                 return null;
               }
             })

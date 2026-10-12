@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +53,7 @@ class AccountController extends GetxController {
     authenticatedUser = await GetStorage().read('userData');
 
 
-print(authenticatedUser);
+appLog(authenticatedUser);
 
     _isLoading.value = false;
 
@@ -89,7 +90,7 @@ print(authenticatedUser);
     _isLoading.value = true;
     try {
       
-      // print(GetStorage().read('userData'));
+      // appLog(GetStorage().read('userData'));
 
       final Map<String, dynamic> body = {
         'name': name,
@@ -156,7 +157,7 @@ print(authenticatedUser);
         // }
 
         update();
-        //        print( GetStorage().read('userData'));
+        //        appLog( GetStorage().read('userData'));
 
         //   GetStorage().write('userData', data);
         //   GetStorage().write('access_token', data.api_token);

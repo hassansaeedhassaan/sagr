@@ -183,7 +183,7 @@ class _ChatScreenState extends State<ChatScreen> {
   //             textFieldConfig: TextFieldConfiguration(
   //               onMessageTyping: (status) {
   //                 /// Do with status
-  //                 debugPrint(status.toString());
+  //                 appLog(status.toString());
   //               },
   //               compositionThresholdTime: const Duration(seconds: 1),
   //               textStyle: TextStyle(color: theme.textFieldTextColor),
@@ -223,7 +223,7 @@ class _ChatScreenState extends State<ChatScreen> {
   //               textStyle: TextStyle(color: theme.inComingChatBubbleTextColor),
   //               onMessageRead: (message) {
   //                 /// send your message reciepts to the other client
-  //                 debugPrint('Message Read');
+  //                 appLog('Message Read');
   //               },
   //               senderNameTextStyle:
   //                   TextStyle(color: theme.inComingChatBubbleTextColor),

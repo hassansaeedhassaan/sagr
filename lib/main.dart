@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,8 +22,6 @@ void main() async {
   // Transparent, brightness-aware status bar that matches the app surfaces.
   // SystemChrome.setSystemUIOverlayStyle(AppTheme.statusBarLight);
 
-  SmartTaskManager().initialize();
-
   // Boot the WebRTC layer once, up front. Without this the first walkie-talkie
   // connect pays the native init cost mid-join, which on iOS shows up as a
   // multi-second stall before audio flows.
@@ -32,6 +31,9 @@ void main() async {
 
 
  await GetStorage.init();
+
+  // Live-location heartbeat: only resumes for a logged-in, checked-in user.
+  SmartTaskManager().initialize();
 
   
   // Android's FirebaseInitProvider auto-inits the [DEFAULT] app natively from
@@ -43,7 +45,7 @@ void main() async {
     );
   } on FirebaseException catch (e) {
     if (e.code != 'duplicate-app') {
-      print('Firebase initialization error: $e');
+      appLog('Firebase initialization error: $e');
     }
   }
  
@@ -89,6 +91,8 @@ class MyApp extends StatelessWidget {
 
       // initialRoute:  '/init_view',
       getPages: routes,
+      // A typo'd or removed route lands on home instead of a blank screen.
+      unknownRoute: routes.firstWhere((page) => page.name == '/home'),
     );
   }
 }

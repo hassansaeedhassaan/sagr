@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/features/auth/domain/repositories/auth_repository.dart';
 
@@ -22,6 +23,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -33,6 +36,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -43,6 +48,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(profileData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
  

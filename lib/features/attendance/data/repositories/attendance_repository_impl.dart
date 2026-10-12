@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dartz/dartz.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/core/error/failures.dart';
@@ -191,7 +192,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         }
       }
     } catch (e) {
-      print('Error extracting validation errors: $e');
+      appLog('Error extracting validation errors: $e');
     }
     
     return errors;

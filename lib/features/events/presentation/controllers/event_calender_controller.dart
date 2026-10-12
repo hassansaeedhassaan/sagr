@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 
 import 'package:get/get.dart';
@@ -374,13 +375,13 @@ _isLoading.value = true;
 
 
 
-print(receivedProduct);
+appLog(receivedProduct);
 
 
       // Map<DateTime, List<EventCalenderModel>> parsedEvents = parseCalendarEvents(receivedProduct);
-print("🖨️🖨️🖨️🖨️🖨️🖨️");
-print(receivedProduct);
-print("🖨️🖨️🖨️🖨️🖨️🖨️");
+appLog("🖨️🖨️🖨️🖨️🖨️🖨️");
+appLog(receivedProduct);
+appLog("🖨️🖨️🖨️🖨️🖨️🖨️");
 
 events.value = receivedProduct;
 _rebuildFlat();
@@ -446,10 +447,10 @@ _isLoading.value = false;
 update();
 
       // events.value = receivedProduct;
-// print("✅✅✅✅✅");
+// appLog("✅✅✅✅✅");
 //   receivedProduct.forEach((dateKey, eventsList) {
        
-//         // print(dateKey);
+//         // appLog(dateKey);
 //         events.value = {
 //            DateTime.utc(2025, 8, 06): [
 //         EventCalenderModel(
@@ -467,9 +468,9 @@ update();
 
 //       update();
 
-//       print("✅✅✅✅✅");
+//       appLog("✅✅✅✅✅");
 
-//       print(receivedProduct);
+//       appLog(receivedProduct);
 
 //       // receivedProduct.images!
 //       //     .add({"id": 0, "file": receivedProduct.image, "type": "image"});
@@ -516,8 +517,8 @@ update();
     Map<DateTime, List<EventCalenderModel>> events = {};
     
     try {
-      print("🔍 Raw response data type: ${responseData.runtimeType}");
-      print("🔍 Raw response data: $responseData");
+      appLog("🔍 Raw response data type: ${responseData.runtimeType}");
+      appLog("🔍 Raw response data: $responseData");
       
       // Handle different response formats
       dynamic dataToProcess;
@@ -530,13 +531,13 @@ update();
       
       // Case 1: Laravel success response format: {"success": true, "data": {...}}
       if (dataToProcess is Map<String, dynamic> && dataToProcess.containsKey('data')) {
-        print("📦 Detected Laravel success response format");
+        appLog("📦 Detected Laravel success response format");
         dataToProcess = dataToProcess['data'];
       }
       
       // Case 2: Direct array of events [event1, event2, ...]
       if (dataToProcess is List) {
-        print("📋 Detected flat list format with ${dataToProcess.length} events");
+        appLog("📋 Detected flat list format with ${dataToProcess.length} events");
         
         for (var eventJson in dataToProcess) {
           try {
@@ -556,24 +557,24 @@ update();
               events[day] = [event];
             }
             
-            print("✅ Successfully parsed event: ${event.id} ${event.name} ${event.startTime} ${event.endTime}");
+            appLog("✅ Successfully parsed event: ${event.id} ${event.name} ${event.startTime} ${event.endTime}");
             
           } catch (e) {
-            print('❌ Error parsing event: $e');
-            print('Event JSON: $eventJson');
+            appLog('❌ Error parsing event: $e');
+            appLog('Event JSON: $eventJson');
           }
         }
       }
       // Case 3: Grouped format {"2025-07-27": [events], "2025-07-30": [events]}
       else if (dataToProcess is Map<String, dynamic>) {
-        print("📅 Detected grouped format with ${dataToProcess.keys.length} date groups");
+        appLog("📅 Detected grouped format with ${dataToProcess.keys.length} date groups");
         
         dataToProcess.forEach((dateKey, eventsList) {
-          print("\n📅 Processing date: $dateKey");
-          print("Events list type: ${eventsList.runtimeType}");
+          appLog("\n📅 Processing date: $dateKey");
+          appLog("Events list type: ${eventsList.runtimeType}");
           
           if (eventsList is List) {
-            print("Found ${eventsList.length} events for $dateKey");
+            appLog("Found ${eventsList.length} events for $dateKey");
             
             for (int i = 0; i < eventsList.length; i++) {
               var eventJson = eventsList[i];
@@ -595,15 +596,15 @@ update();
                   events[day] = [event];
                 }
                 
-                print("✅ Successfully parsed event: ${event.name}");
+                appLog("✅ Successfully parsed event: ${event.name}");
                 
               } catch (e) {
-                print('❌ Error parsing event $i: $e');
-                print('Event JSON: $eventJson');
+                appLog('❌ Error parsing event $i: $e');
+                appLog('Event JSON: $eventJson');
               }
             }
           } else {
-            print("❌ Expected List but got ${eventsList.runtimeType} for date $dateKey");
+            appLog("❌ Expected List but got ${eventsList.runtimeType} for date $dateKey");
           }
         });
       }
@@ -611,14 +612,14 @@ update();
         throw Exception('Unsupported data format: ${dataToProcess.runtimeType}');
       }
       
-      print("\n✅ Successfully parsed ${events.length} days with events");
-      print("Events map keys: ${events.keys.map((e) => e.toString()).toList()}");
+      appLog("\n✅ Successfully parsed ${events.length} days with events");
+      appLog("Events map keys: ${events.keys.map((e) => e.toString()).toList()}");
       
       return events;
       
     } catch (e, stackTrace) {
-      print('❌ Error parsing calendar events: $e');
-      print('❌ Stack trace: $stackTrace');
+      appLog('❌ Error parsing calendar events: $e');
+      appLog('❌ Stack trace: $stackTrace');
       return {};
     }
   }
@@ -677,7 +678,7 @@ update();
 void appendLaravelEventsToCalendarSafe(Map<String, dynamic> laravelResponse) {
   try {
     if (laravelResponse['success'] != true) {
-      print('Laravel response indicates failure');
+      appLog('Laravel response indicates failure');
       return;
     }
     
@@ -718,7 +719,7 @@ void appendLaravelEventsToCalendarSafe(Map<String, dynamic> laravelResponse) {
         }
         
       } catch (e) {
-        print('Error processing date $dateString: $e');
+        appLog('Error processing date $dateString: $e');
       }
     });
     
@@ -726,7 +727,7 @@ void appendLaravelEventsToCalendarSafe(Map<String, dynamic> laravelResponse) {
   
     
   } catch (e) {
-    print('Error processing Laravel response: $e');
+    appLog('Error processing Laravel response: $e');
   }
 }
 

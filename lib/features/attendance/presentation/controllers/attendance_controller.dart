@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sagr/core/error/failures.dart';
@@ -70,11 +71,11 @@ class AttendanceController extends GetxController {
 
       final result = await getCurrentUserAttendanceUseCase(params);
 
-        print("🤝 $result ");
+        appLog("🤝 $result ");
       result.fold(
         (failure) => _handleError(failure),
         (attendanceData) {
-          print("🤝 $attendanceData ");
+          appLog("🤝 $attendanceData ");
           _attendance.value = attendanceData;
           _errorMessage.value = null;
         },

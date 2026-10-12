@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
@@ -994,7 +995,7 @@ class PriceTypeDropdown extends StatelessWidget {
             init: CountriesController(Get.find()),
             builder: (catCntr) {
               return CustomDropdownV2<String?>(
-                // onChange: (int index) => print(index),
+                // onChange: (int index) => appLog(index),
                 onChange: (int index) =>
                     _productController.updateAdPriceType(dropdownItemList[index]),
                 dropdownButtonStyle: DropdownButtonStyle(
@@ -1065,7 +1066,7 @@ class PriceCurrencyDropdown extends StatelessWidget {
             init: CountriesController(Get.find()),
             builder: (catCntr) {
               return CustomDropdownV2<String?>(
-                onChange: (int index) => print(index),
+                onChange: (int index) => appLog(index),
                 icon: Icon(
                   Icons.keyboard_arrow_down_sharp,
                   color: ZAHRA_RED,
@@ -1145,7 +1146,7 @@ class CategoryDropDown extends StatelessWidget {
             init: CategoriesController(Get.find()),
             builder: (catCntr) {
               return CustomDropdownV2<Category?>(
-                // onChange: (int index) => print(""),
+                // onChange: (int index) => appLog(""),
                 onChange: (int index) =>
                     _prodCntr.setCurrentCategory(catCntr.categories[index]),
                 dropdownButtonStyle: DropdownButtonStyle(

@@ -126,7 +126,7 @@ class FeaturedAdsController extends GetxController {
       });
     }
 
-    // print(_paginationFilter.value);
+    // appLog(_paginationFilter.value);
 
 _items.clear();
 

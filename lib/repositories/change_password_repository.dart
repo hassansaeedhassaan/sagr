@@ -99,13 +99,6 @@ class ChangePasswordRepository {
 
 
 
-  Future<void> logout() {
-    return _dio
-        .post('https://testing.wrraqoon.com/api/rest/logout')
-        .then((res) {
-      print("Logged out");
-    });
-  }
 
   fetchUser() async {
     try {

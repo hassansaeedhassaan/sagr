@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/core/error/failures.dart';
@@ -20,6 +21,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -31,6 +34,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -41,13 +46,11 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
-    } on DioException {
-      // Dio throws on any non-2xx before the data source can map it, so a
-      // server 500 escaped as an unhandled exception and the screen spun forever.
-      return Left(ServerFailure());
-    } catch (_) {
-      // A payload EventModel.fromJson can't read is just as unloadable.
-      return Left(DataParsingFailure());
+    } catch (e) {
+      // Dio throws on any non-2xx before the data source can map it, and a
+      // payload EventModel.fromJson can't read is just as unloadable; both
+      // become a Failure instead of leaving the screen spinning.
+      return Left(failureFromException(e));
     }
   }
 
@@ -58,6 +61,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(eventData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -74,6 +79,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Left(ValidationFailure(message: e.message));
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   @override
@@ -83,6 +90,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(eventData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
 import 'package:get/get.dart';
@@ -405,7 +406,7 @@ class EventAcceptScreen extends StatelessWidget {
                 ),
               ),
               onEnd: () {
-                print("Timer finished");
+                appLog("Timer finished");
               },
             ),
           ),

@@ -173,7 +173,7 @@ class _EventApplyScreenState extends State<EventApplyScreen>
 //                                 NavigationBarWidget(
 //   initialActiveIndex: 0,
 //   onTabChanged: (index) {
-//     print('Tab changed to: $index');
+//     appLog('Tab changed to: $index');
 //   },
 // ),
 

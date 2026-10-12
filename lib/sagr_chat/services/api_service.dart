@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -243,7 +244,7 @@ class ApiService extends GetxService {
     }
     return null;
   } catch (e) {
-    print('Error fetching message: $e');
+    appLog('Error fetching message: $e');
     return null;
   }
 }

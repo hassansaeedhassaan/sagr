@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart' show Dio;
+import 'package:sagr/helper/base_url.dart';
 import 'dart:async';
 import 'package:get/get.dart';
 import 'package:sagr/features/notifications/data/models/notification_model.dart';
@@ -99,7 +101,7 @@ class NotificationsController extends GetxController {
     super.onInit();
     ever(_paginationFilter, (_) => _findItems());
 
-    _changePaginationFilter(1, 100);
+    _changePaginationFilter(1, 20);
   }
 
   Future<void> _findItems() async {
@@ -109,10 +111,20 @@ _isLoadingList.value = true;
         await notificationsUsecase(_paginationFilter.value);
 
     failureOrCategories.fold((failure) {
+      // Clear the loader on failure too, or the screen spins forever.
       _productsLoading.value = false;
+      _isLoadingList.value = false;
+      _hasMore.value = false;
+      update();
     }, (receivedCategories) {
-      if (receivedCategories.isEmpty) {
+      if (receivedCategories.length < limit) {
         _hasMore.value = false;
+      }
+
+      // Page 1 replaces the list (first load or pull-to-refresh).
+      if (page <= 1) {
+        _items.clear();
+        _markAllRead();
       }
 
       if (receivedCategories.isNotEmpty) {
@@ -120,18 +132,26 @@ _isLoadingList.value = true;
 
         // categoriesList.add({receivedCategories[0].id!: receivedCategories});
 
-        // print("🙄Start 01");
+        // appLog("🙄Start 01");
 
         // var logger = Logger( printer: PrettyPrinter());
 
         // logger.d(categoriesList[0]);
 
-        // print("End 01");
+        // appLog("End 01");
       }
 
       _isLoadingList.value = false;
       update();
     });
+  }
+
+  /// Opening the list counts as reading it; best effort.
+  Future<void> _markAllRead() async {
+    if (!Get.isRegistered<Dio>()) return;
+    try {
+      await Get.find<Dio>().post('$BASEURL/notifications/read');
+    } catch (_) {}
   }
 
   void _changePaginationFilter(int page, int limit) {
@@ -144,9 +164,12 @@ _isLoadingList.value = true;
 
   void onRefresh() async {
     // monitor network fetch
-    await Future.delayed(Duration(milliseconds: 1000));
-    // _items.clear();
-    _findItems();
+    _hasMore.value = true;
+    if (page == 1) {
+      await _findItems();
+    } else {
+      _changePaginationFilter(1, limit);
+    }
     refreshController.refreshCompleted();
   }
 

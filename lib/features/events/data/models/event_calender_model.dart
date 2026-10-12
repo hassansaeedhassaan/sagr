@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -34,8 +35,8 @@ class EventCalenderModel {
             json['appliedStatus'] ?? json['applied_status'] ?? json['status'],
       );
     } catch (e) {
-      print('Error in EventCalenderModel.fromJson: $e');
-      print('JSON data: $json');
+      appLog('Error in EventCalenderModel.fromJson: $e');
+      appLog('JSON data: $json');
       rethrow;
     }
   }

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -71,7 +72,7 @@ class _VoiceRecorderWaveformsState extends State<VoiceRecorderWaveforms>
         widget.onCancel();
       }
     } catch (e) {
-      debugPrint('Voice record start failed: $e');
+      appLog('Voice record start failed: $e');
       widget.onCancel();
     }
   }
@@ -87,7 +88,7 @@ class _VoiceRecorderWaveformsState extends State<VoiceRecorderWaveforms>
         widget.onCancel();
       }
     } catch (e) {
-      debugPrint('Voice record stop failed: $e');
+      appLog('Voice record stop failed: $e');
       widget.onCancel();
     }
   }
@@ -103,7 +104,7 @@ class _VoiceRecorderWaveformsState extends State<VoiceRecorderWaveforms>
         }
       }
     } catch (e) {
-      debugPrint('Voice record cancel failed: $e');
+      appLog('Voice record cancel failed: $e');
     } finally {
       widget.onCancel();
     }

@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/features/products/data/models/product_model.dart';
 
@@ -21,6 +22,8 @@ class MyAdsRepositoryImpl implements MyAdsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 

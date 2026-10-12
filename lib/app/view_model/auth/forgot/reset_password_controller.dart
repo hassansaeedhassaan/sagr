@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 
 
@@ -33,7 +34,7 @@ class ResetPasswordController extends GetxController {
 
 
 
-    // print("From Forgot Password Controller: " + phone);
+    // appLog("From Forgot Password Controller: " + phone);
     try {
       final Map<String, dynamic> body = {
         'phone': phone,
@@ -42,7 +43,7 @@ class ResetPasswordController extends GetxController {
       };
 
   
-  print(body);
+  appLog(body);
       // await _resetPasswordService.reset(body).then((data) {
       //   if (data['status'] == 200) {
       //     Get.snackbar("Success", data['message']);

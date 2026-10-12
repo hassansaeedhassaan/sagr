@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:sagr/data/colors.dart';
@@ -62,7 +63,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
     if (selectedMonth == null || selectedYear == null) {
       return List.generate(31, (index) => index + 1);
     }
-    int daysInMonth = DateTime(selectedYear!, selectedMonth!, 0).day;
+    // Day 0 of the *next* month is the last day of this one.
+    int daysInMonth = DateTime(selectedYear!, selectedMonth! + 1, 0).day;
     return List.generate(daysInMonth, (index) => index + 1);
   }
 
@@ -622,7 +624,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                         accountController
                                             .selectedCountryCode(code);
                                         // Called when country changes
-                                        print(
+                                        appLog(
                                             'Country changed to: $name ($code)');
                                         // You can update your UI, save to database, etc.
                                       },

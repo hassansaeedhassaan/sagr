@@ -286,7 +286,7 @@ class _MapsScreenState extends State<MapsScreen> {
       //     shape: RoundedRectangleBorder(
       //         borderRadius: BorderRadius.all(Radius.circular(50.0))),
       //     onPressed: () {
-      //       print('Test bottom nav bar');
+      //       appLog('Test bottom nav bar');
       //     },
       //     child: Container(
       //       width: 60,

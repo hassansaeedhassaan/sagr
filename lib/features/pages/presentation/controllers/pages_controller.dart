@@ -79,19 +79,19 @@ class PagesController extends GetxController {
 // //     CategoryModel cat =
 // //         subCategories.firstWhere((element) => element.id == subCategoryId);
 
-// // // print(cat);
+// // // appLog(cat);
 // //     // cat.childs!.clear();
 // //     // cat.childs!.addAll(subCategories);
 
 // //     categoriesList.add({subCategoryId: cat.childs!});
 
-// //     print("🤌");
-// //     print(categoriesList);
+// //     appLog("🤌");
+// //     appLog(categoriesList);
 
 // //     var logger = Logger();
 
 // //     logger.d(categoriesList);
-// //     print("😋");
+// //     appLog("😋");
 
 //     update();
 //   }
@@ -102,19 +102,19 @@ class PagesController extends GetxController {
 // //     CategoryModel cat =
 // //         subCategories.firstWhere((element) => element.id == subCategoryId);
 
-// // // print(cat);
+// // // appLog(cat);
 // //     // cat.childs!.clear();
 // //     // cat.childs!.addAll(subCategories);
 
 // //     categoriesList.add({subCategoryId: cat.childs!});
 
-// //     print("🤌");
-// //     print(categoriesList);
+// //     appLog("🤌");
+// //     appLog(categoriesList);
 
 // //     var logger = Logger();
 
 // //     logger.d(categoriesList);
-// //     print("😋");
+// //     appLog("😋");
 
 //     update();
 //   }
@@ -173,13 +173,13 @@ class PagesController extends GetxController {
 
   //       // categoriesList.add({categoryId!: receivedCategories});
 
-  //       // print("🙄Start 01");
-  //       // print(categoriesList.reversed);
+  //       // appLog("🙄Start 01");
+  //       // appLog(categoriesList.reversed);
 
   //       //  var logger = Logger( printer: PrettyPrinter());
 
   //       // logger.d(categoriesList.reversed);
-  //       // print("End 01");
+  //       // appLog("End 01");
 
   //       // _findSubCategories(receivedCategories[0].id);
   //     }
@@ -208,13 +208,13 @@ class PagesController extends GetxController {
 
 //         // categoriesList.add({categoryId!: receivedCategories});
 
-//         // print("🙄Start 01");
-//         // print(categoriesList.reversed);
+//         // appLog("🙄Start 01");
+//         // appLog(categoriesList.reversed);
 
 //         //  var logger = Logger( printer: PrettyPrinter());
 
 //         // logger.d(categoriesList.reversed);
-//         // print("End 01");
+//         // appLog("End 01");
 
 //         // _findSubCategories(receivedCategories[0].id);
 //       }

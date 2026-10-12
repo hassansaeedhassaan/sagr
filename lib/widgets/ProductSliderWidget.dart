@@ -122,7 +122,7 @@ class _ProductSliderWidgetState extends State<ProductSliderWidget> {
                   _current = index;
                 })),
             
-            // onPageChanged: ((index, reason) => {print(index), print(reason)}),
+            // onPageChanged: ((index, reason) => {appLog(index), appLog(reason)}),
             viewportFraction: 1,
           ),
         ),

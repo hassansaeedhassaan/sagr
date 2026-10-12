@@ -12,7 +12,7 @@ import '../../domain/entities/notification.dart';
 class NotificationModel extends Notification {
   NotificationModel(
       {
-      int? id,
+      String? id,
       String? title,
       String? content,
       String? image,
@@ -30,13 +30,15 @@ class NotificationModel extends Notification {
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-        id: json['id'],
-        title: json['title'],
-        content: json['content'],
-        image: json['image'],
-        created_at: json['created_at'],
-        action: json['action'],
-        is_read: json['is_read']);
+        id: json['id']?.toString(),
+        title: json['title']?.toString(),
+        content: json['content']?.toString(),
+        image: json['image']?.toString(),
+        created_at: json['created_at']?.toString(),
+        action: json['action']?.toString(),
+        is_read: json['is_read'] == true ||
+            json['is_read'] == 1 ||
+            (json['is_read'] == null && json['read_at'] != null));
   }
 
   Map<String, dynamic> toJson() {

@@ -78,7 +78,7 @@ class Userprofile2ItemWidget extends StatelessWidget {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "${notification.created_at} ${notification.is_read}",
+                            _formatDate(notification.created_at),
                             style: theme.textTheme.bodySmall,
                           ),
                         ),
@@ -93,4 +93,13 @@ class Userprofile2ItemWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "2026-10-12T08:30:00+03:00" -> "2026-10-12 08:30" in local time.
+String _formatDate(String? raw) {
+  final parsed = raw == null ? null : DateTime.tryParse(raw);
+  if (parsed == null) return raw ?? '';
+  final d = parsed.toLocal();
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${d.year}-${two(d.month)}-${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
 }

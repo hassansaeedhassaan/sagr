@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -63,7 +64,7 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen> {
         setState(() => _isLoadingData = false);
       }
     } catch (e) {
-      debugPrint('Error loading user data: $e');
+      appLog('Error loading user data: $e');
       if (mounted) setState(() => _isLoadingData = false);
     }
   }
@@ -76,7 +77,8 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen> {
       ..middleName = _userData!['middleName'] ?? ''
       ..lastName = _userData!['lastName'] ?? ''
       ..nationalNo = _userData!['nationalID'] ?? ''
-      ..ibanNumber = _userData!['ibanNumber'] ?? ''
+      // The API returns the IBAN as ibanNo.
+      ..ibanNumber = _userData!['ibanNo'] ?? _userData!['ibanNumber'] ?? ''
       ..bankAccountName = _userData!['bankAccountName'] ?? ''
       ..experts = _userData!['experts'] ?? ''
       ..previousEvents = _userData!['previous_events_past'] ?? ''
@@ -930,7 +932,11 @@ class _PdfPreviewSheet extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SfPdfViewer.network(url),
+              // The IBAN and CV may be uploaded as a photo rather than a PDF.
+              child: RegExp(r'\.(jpe?g|png|webp|heic|heif)$', caseSensitive: false)
+                      .hasMatch(url)
+                  ? InteractiveViewer(child: Image.network(url))
+                  : SfPdfViewer.network(url),
             ),
           ),
         ],

@@ -122,13 +122,13 @@ _isLoadingList.value = true;
 
         // categoriesList.add({receivedCategories[0].id!: receivedCategories});
 
-        // print("🙄Start 01");
+        // appLog("🙄Start 01");
 
         // var logger = Logger( printer: PrettyPrinter());
 
         // logger.d(categoriesList[0]);
 
-        // print("End 01");
+        // appLog("End 01");
       }
 
       _isLoadingList.value = false;

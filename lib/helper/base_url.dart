@@ -2,6 +2,15 @@
 // const BASEURL = "https://zahra.cc/api";
 const HOSTURL = "https://sagr.net/";
 
+/// Full URL of a user's photo. App uploads are stored under public/
+/// ("images/..."), while photos set from the admin panel live on the public
+/// disk ("employees/...").
+String userImageUrl(String path) {
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('images/') || path.startsWith('files/')) return HOSTURL + path;
+  return '${HOSTURL}storage/$path';
+}
+
 // Local realtime testing over LAN: both devices (A52 + iPhone) reach the Mac's
 // `php artisan serve --host=0.0.0.0` at its Wi-Fi IP on the shared network.
 // Swap to one of the commented lines while testing, restore production first.

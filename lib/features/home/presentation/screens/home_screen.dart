@@ -383,7 +383,7 @@ class HomeScreen extends StatelessWidget {
                   //       title: 'نجح العملية',
                   //       message: 'تم حفظ البيانات بنجاح',
                   //       onConfirm: () {
-                  //         print('تم تأكيد العملية');
+                  //         appLog('تم تأكيد العملية');
                   //       },
                   //     );
 
@@ -454,7 +454,7 @@ class HomeScreen extends StatelessWidget {
                   //       title: 'نجح العملية',
                   //       message: 'تم حفظ البيانات بنجاح',
                   //       onConfirm: () {
-                  //         print('تم تأكيد العملية');
+                  //         appLog('تم تأكيد العملية');
                   //       },
                   //     );
 
@@ -550,7 +550,7 @@ class HomeScreen extends StatelessWidget {
                 '',
             // onRetry: () {
             //   // Handle retry action
-            //   print('Retry tapped');
+            //   appLog('Retry tapped');
             // },
           );
         }

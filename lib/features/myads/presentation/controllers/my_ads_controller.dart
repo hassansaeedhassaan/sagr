@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:sagr/features/myads/domain/usecases/get_my_ads.dart';
 import 'package:sagr/features/products/domain/entities/product.dart';
 import 'package:get/get.dart';
@@ -76,10 +77,10 @@ class MyAdsController extends GetxController {
       }
 
 
-      print("object🔥🔥🔥🔥🔥🔥");
+      appLog("object🔥🔥🔥🔥🔥🔥");
 
-      print(receivedProducts);
-      print("object🔥🔥🔥🔥🔥🔥");
+      appLog(receivedProducts);
+      appLog("object🔥🔥🔥🔥🔥🔥");
       if (receivedProducts.isNotEmpty) {
         _items.addAll(receivedProducts);
       }

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 
 import '../exceptions/rest_exception.dart';
@@ -14,7 +15,7 @@ class ResetPasswordRepository {
           await _dio.post(BASEURL + "/v1/reset/password", data: body);
       return  Map<String, dynamic>.from(response.data);
     } on DioException catch (e) {
-      print(e);
+      appLog(e);
       String message = e.response?.data['message'];
       if (e.response?.statusCode == 403) {
         message = 'Usuário ou senha inválidos';

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart' as getx;
 import '../services/auth_service.dart';
@@ -29,7 +30,7 @@ class ApiClient {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (object) => print(object),
+        logPrint: (object) => appLog(object),
       ),
     ]);
   }

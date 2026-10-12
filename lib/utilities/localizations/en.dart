@@ -237,6 +237,7 @@ const Map<String, String> en = {
   "Connected Users": "Connected Users",
   "Connecting...": "Connecting...",
   "Continue": "Continue",
+  "Cv File Required": "Cv File Required",
   "Cv File Uploaded": "Cv File Uploaded",
   "Description": "Description",
   "Disconnected": "Disconnected",
@@ -385,4 +386,5 @@ const Map<String, String> en = {
   "Only this event's supervisors can listen to its recordings.": "Only this event's supervisors can listen to its recordings.",
   "Team channel": "Team channel",
   "Could not play this recording.": "Could not play this recording.",
+  "Copied": "Copied",
 };

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
@@ -22,7 +23,7 @@ class EducationDataSourceImpl extends EducationDataSource {
 
     if (response.statusCode == 200) {
 
-      print(response.data);
+      appLog(response.data);
 
        final List<EducationModel> educations = response.data['data']
           .map<EducationModel>(

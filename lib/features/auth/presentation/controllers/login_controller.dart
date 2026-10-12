@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 
 import 'package:get/get.dart';
@@ -125,7 +126,7 @@ class LoginController extends GetxController {
       await Future.delayed(const Duration(milliseconds: 800));
       Get.offAllNamed('/home');
     } catch (e) {
-      print(e);
+      appLog(e);
       isLoading.value = false;
       Get.snackbar("Error!".tr, 'wrong'.tr);
     }

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sagr/features/categories/data/models/category_model.dart';
@@ -233,7 +234,7 @@ class CreateAdController extends GetxController {
         _imageFiles.addAll(images);
       }
 
-      // print(images);
+      // appLog(images);
 
       update();
     } catch (e) {}
@@ -333,7 +334,7 @@ class CreateAdController extends GetxController {
       _isLoading.value = false;
       update();
     } catch (e) {
-      print(e);
+      appLog(e);
       Get.snackbar("Error!", 'wrong'.tr);
     }
   }

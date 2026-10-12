@@ -1,144 +1,120 @@
 import 'dart:async';
-import 'dart:ui';
-import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
-import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
-import 'package:http/http.dart' as http;
-import 'package:sagr/helper/base_url.dart';
 import 'dart:convert';
 
-import 'package:workmanager/workmanager.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:sagr/helper/base_url.dart';
+import 'package:sagr/core/utils/app_log.dart';
 
+/// Sends the user's position every 30 seconds while they are checked in to an
+/// event, so supervisors can see them on the live map.
+///
+/// It used to start at launch for everyone (even on the login screen), sent
+/// no auth header and never stopped. Now it runs only for a logged-in user who
+/// checked in from this device, and stops on check-out or logout.
 class SmartTaskManager {
-  Timer? _foregroundTimer;
-  bool _isAppActive = true;
-  // Your server endpoint
-  static const String serverEndpoint = BASEURL;
+  SmartTaskManager._();
+  static final SmartTaskManager _instance = SmartTaskManager._();
+  factory SmartTaskManager() => _instance;
 
   static const String send_current_location = '/receive/current_location';
-  static const String get_current_users = '/current/users/live/events';
 
+  /// Storage key holding {event_id, at} while checked in.
+  static const String checkInKey = 'checked_in_event';
+
+  // A forgotten check-out shouldn't keep tracking the user forever.
+  static const Duration _maxShift = Duration(hours: 18);
+
+  Timer? _timer;
+  bool _sending = false;
+
+  /// Starts the heartbeat if the stored session and check-in allow it.
   void initialize() {
-    // مهام متكررة عندما يكون التطبيق نشطاً
-    _startForegroundTasks();
-
-    // مهمة واحدة بـ WorkManager عند إغلاق التطبيق
-    // _scheduleBackgroundSync();
+    if (_shouldRun()) _start();
   }
 
-  void _startForegroundTasks() {
-    _foregroundTimer = Timer.periodic(Duration(seconds: 30), (timer) {
-      if (_isAppActive) {
-        performFrequentTask();
-      }
+  void markCheckedIn(int? eventId) {
+    GetStorage().write(checkInKey, {
+      'event_id': eventId,
+      'at': DateTime.now().toIso8601String(),
     });
+    _start();
   }
 
-  void _scheduleBackgroundSync() {
-    Workmanager().registerOneOffTask(
-      "background_sync",
-      "sync_data",
-      initialDelay: Duration(minutes: 1),
-    );
+  void markCheckedOut() {
+    GetStorage().remove(checkInKey);
+    stop();
   }
 
-  void onAppStateChanged(AppLifecycleState state) {
-    _isAppActive = state == AppLifecycleState.resumed;
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
 
-    if (!_isAppActive) {
-      _foregroundTimer?.cancel();
-      // جدولة مهمة خلفية عند إغلاق التطبيق
-      _scheduleBackgroundSync();
-    } else {
-      _startForegroundTasks();
+  bool _shouldRun() {
+    final storage = GetStorage();
+    if (storage.read('access_token') == null) return false;
+    final checkIn = storage.read(checkInKey);
+    if (checkIn is! Map) return false;
+    final at = DateTime.tryParse('${checkIn['at']}');
+    if (at == null || DateTime.now().difference(at) > _maxShift) {
+      storage.remove(checkInKey);
+      return false;
     }
+    return true;
   }
 
-  void performFrequentTask() async {
-   
-
-    await _getCurrentUsersFromServer();
-
-    print("🔥🔥🔥🔥🔥🔥");
-
-    print("تنفيذ مهمة كل 30 ثانية" + DateTime.now().toString());
-    // منطق المهمة هنا
-    print("🔥🔥🔥🔥🔥🔥");
+  void _start() {
+    if (_timer != null) return;
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) => _tick());
   }
 
-  static Future<void> _sendToServer(Map<String, dynamic> locationData) async {
-   
-  
-   try {
-      final response = await http.post(
-        Uri.parse(serverEndpoint + send_current_location),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          // Add authentication headers if needed
-          // 'Authorization': 'Bearer your_token_here',
-        },
-        body: json.encode(locationData),
-      );
-      // ).timeout(const Duration(seconds: 30));
-
-
-      if (response.statusCode == 200) {
-        print('Location sent successfully');
-      } else {
-        print('Failed to send location _sendToServer: ${response.body}');
-      }
-    } catch (e) {
-      print('Error sending location to server: $e');
+  Future<void> _tick() async {
+    if (!_shouldRun()) {
+      stop();
+      return;
     }
-  }
-
-  static Future<void> _getCurrentUsersFromServer() async {
+    if (_sending) return;
+    _sending = true;
     try {
-      final AuthController authController = Get.put(AuthController());
-
-      final response = await http.get(
-        Uri.parse(serverEndpoint + get_current_users),
-        headers: {
-          'Content-Type': 'application/json',
-          // Add authentication headers if needed
-          // 'Authorization': 'Bearer your_token_here',
-        },
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 20),
       );
-
-
-      if (response.statusCode == 200) {
-        print('User Fetch Success fully successfully');
-        final Map<String, dynamic> response2 = jsonDecode(response.body);
-        final List<dynamic> users = response2['data'];
-
-        for (var user in users) {
-          if (user['user_id'] == authController.authenticatedUser!['id']) {
-            Position position = await Geolocator.getCurrentPosition(
-              desiredAccuracy: LocationAccuracy.high,
-              timeLimit: const Duration(seconds: 30),
-            );
-
-            // Prepare location data
-            Map<String, dynamic> locationData = {
+      final heading = position.heading;
+      final response = await http
+          .post(
+            Uri.parse(BASEURL + send_current_location),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer ${GetStorage().read('access_token')}',
+            },
+            body: json.encode({
               'latitude': position.latitude,
               'longitude': position.longitude,
               'accuracy': position.accuracy,
-              'timestamp': DateTime.now().toIso8601String(),
               'altitude': position.altitude,
-              // 'heading': position.heading,
-              'heading': 1,
-              'speed': position.speed,
-              'user_id': authController.authenticatedUser!['id']
-            };
-            await _sendToServer(locationData);
-          }
-        }
-      } else {
-        print('Failed to send location: ${response.statusCode}');
+              if (heading >= 0 && heading < 360) 'heading': heading,
+              if (position.speed >= 0) 'speed': position.speed,
+            }),
+          )
+          .timeout(const Duration(seconds: 20));
+      if (response.statusCode == 401) {
+        stop();
+      } else if (response.statusCode != 200) {
+        appLog('Location heartbeat failed: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error sending location to server: $e');
+      appLog('Location heartbeat error: $e');
+    } finally {
+      _sending = false;
     }
   }
 }

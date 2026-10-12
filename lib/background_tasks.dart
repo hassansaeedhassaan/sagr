@@ -1,10 +1,11 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:workmanager/workmanager.dart';
 import 'location_service.dart';
 
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
-  print("MAMAMMAMAMAMAAMMMMA 👁️🔥👁️🔥👁️🔥👁️🔥👁️🔥👁️🔥");
+  appLog("MAMAMMAMAMAMAAMMMMA 👁️🔥👁️🔥👁️🔥👁️🔥👁️🔥👁️🔥");
   Workmanager().executeTask((task, inputData) async {
 
     switch (task) {

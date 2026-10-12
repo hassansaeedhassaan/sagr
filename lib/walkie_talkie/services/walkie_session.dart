@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -201,7 +202,7 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
     } catch (e, st) {
       // The reason matters when diagnosing a room that won't join; the UI
       // still shows the friendly line.
-      debugPrint('WalkieSession.connect failed: $e\n$st');
+      appLog('WalkieSession.connect failed: $e\n$st');
       await _teardown();
       _fail('Could not connect to the channel.');
       return;

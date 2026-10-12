@@ -1,3 +1,5 @@
+import 'package:sagr/core/utils/app_log.dart';
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:dio/src/response.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:sagr/core/error/exceptions.dart';
@@ -21,6 +23,8 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
       return Right(conversationsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -31,6 +35,8 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
       return Right(conversationsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -42,6 +48,8 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -49,10 +57,12 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
   Future<Either<Failure, Response>> openChat(int adId, BuildContext context) async{
       try {
       final productsData = await conversationDataSource.openChat(adId, context);
-      print(productsData);
+      appLog(productsData);
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -60,10 +70,12 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
   Future<Either<Failure, Response>> sendOffer(int adId, String offerPrice, BuildContext context) async{
      try {
       final productsData = await conversationDataSource.sendOffer(adId, offerPrice, context);
-      print(productsData);
+      appLog(productsData);
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -74,6 +86,8 @@ class ConversationsRepositoryImpl implements ConversationsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 }

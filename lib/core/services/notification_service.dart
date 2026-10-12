@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -54,12 +55,12 @@ class NotificationService {
    
 
       if (response.statusCode == 200) {
-        print('✅ FCM token sent successfully');
+        appLog('✅ FCM token sent successfully');
       } else {
-        print('❌ Failed to send FCM token: ${response.statusMessage}');
+        appLog('❌ Failed to send FCM token: ${response.statusMessage}');
       }
     } catch (e) {
-      print('❌ Error sending FCM token: $e');
+      appLog('❌ Error sending FCM token: $e');
     }
   }
 
@@ -75,7 +76,7 @@ class NotificationService {
     // Get FCM token
     // final token = await _messaging.getToken();
 
-    // print('FCM Token: $token');
+    // appLog('FCM Token: $token');
 
     initFCM();
 
@@ -83,9 +84,9 @@ class NotificationService {
 //     _messaging.onTokenRefresh.listen((newToken) async {
 //       // await sendTokenToServer(newToken);
 
-//        print('FCM Token Refresh: $newToken');
+//        appLog('FCM Token Refresh: $newToken');
 
-//        print("HHHW🔥");
+//        appLog("HHHW🔥");
 //     });
   }
 
@@ -100,7 +101,7 @@ class NotificationService {
       criticalAlert: false,
     );
 
-    print('Permission status: ${settings.authorizationStatus}');
+    appLog('Permission status: ${settings.authorizationStatus}');
   }
 
   Future<void> setupFlutterNotifications() async {

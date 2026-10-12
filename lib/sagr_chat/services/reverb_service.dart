@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -64,13 +65,13 @@ class ReverbService extends GetxService {
         _onData,
         onDone: _onDone,
         onError: (e) {
-          print('❌ Reverb socket error: $e');
+          appLog('❌ Reverb socket error: $e');
           _onDone();
         },
         cancelOnError: true,
       );
     } catch (e) {
-      print('❌ Reverb connect failed: $e');
+      appLog('❌ Reverb connect failed: $e');
       _scheduleReconnect();
     } finally {
       _connecting = false;
@@ -87,7 +88,7 @@ class ReverbService extends GetxService {
     switch (event) {
       case 'pusher:connection_established':
         _socketId = data?['socket_id']?.toString();
-        print('🔌 Reverb connected, socket_id=$_socketId');
+        appLog('🔌 Reverb connected, socket_id=$_socketId');
         _resubscribeAll();
         break;
       case 'pusher:ping':
@@ -141,7 +142,7 @@ class ReverbService extends GetxService {
         'data': {'channel': channel, 'auth': auth},
       });
     } catch (e) {
-      print('❌ Reverb auth/subscribe failed for $channel: $e');
+      appLog('❌ Reverb auth/subscribe failed for $channel: $e');
     }
   }
 

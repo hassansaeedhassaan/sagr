@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:equatable/equatable.dart';
 import 'user.dart';
 import 'message.dart';
@@ -255,7 +256,7 @@ class Chat extends Equatable {
         return DateTime.fromMillisecondsSinceEpoch(value);
       }
     } catch (e) {
-      print('Error parsing datetime: $e');
+      appLog('Error parsing datetime: $e');
     }
     
     return null;
@@ -268,7 +269,7 @@ class Chat extends Equatable {
       if (value is int) return value;
       if (value is String) return int.parse(value);
     } catch (e) {
-      print('Error parsing int: $e');
+      appLog('Error parsing int: $e');
     }
     
     return null;

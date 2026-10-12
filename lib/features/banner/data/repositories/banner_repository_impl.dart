@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
@@ -17,6 +18,8 @@ class BannerRepositoryImpl implements BannerRepository {
       return Right(bannerData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   

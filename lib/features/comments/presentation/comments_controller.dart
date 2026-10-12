@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/features/comments/data/models/comment_model.dart';
@@ -73,10 +74,10 @@ class CommentsController extends GetxController {
 
     // final failureOrComments = await commentsUsecase(_paginationFilter.value);
 
-    print("👏👏👏👏👏👏👏👏👏👏👏");
+    appLog("👏👏👏👏👏👏👏👏👏👏👏");
 
-    print(comment);
-    print(adId);
+    appLog(comment);
+    appLog(adId);
 
     try {
       // // Map<String, dynamic> body = {'parent': comment.id, 'comment': replay};
@@ -97,7 +98,7 @@ class CommentsController extends GetxController {
     } on ServerExceptionFailure catch (e) {
       Get.snackbar("Error!", e.data['error']);
     } catch (e) {
-      print(e);
+      appLog(e);
       Get.snackbar("Error!", 'wrong'.tr);
     }
   }
@@ -108,11 +109,11 @@ class CommentsController extends GetxController {
   }
 
   Future<void> updateComment(adId) async {
-    print("👏👏👏👏👏👏👏👏👏👏👏");
+    appLog("👏👏👏👏👏👏👏👏👏👏👏");
 
-    print(replay);
-    print(updatedComment);
-    print(adId);
+    appLog(replay);
+    appLog(updatedComment);
+    appLog(adId);
 
     Map<String, dynamic> body = {
       'commentId': updatedComment,
@@ -140,13 +141,13 @@ class CommentsController extends GetxController {
 
     // final failureOrComments = await commentsUsecase(_paginationFilter.value);
 
-    print("👏👏👏👏👏👏👏👏👏👏👏");
+    appLog("👏👏👏👏👏👏👏👏👏👏👏");
 
     Map<String, dynamic> body = {'parent': comment.id, 'comment': replay};
     final failureOrCreateComment = await commentsUsecase.createComment(body);
 
     _findItems();
-    print("👏👏👏👏👏👏👏👏👏👏👏");
+    appLog("👏👏👏👏👏👏👏👏👏👏👏");
     update();
   }
 
@@ -158,9 +159,9 @@ class CommentsController extends GetxController {
     failureOrComments.fold((failure) {
       _productsLoading.value = false;
     }, (receivedProducts) {
-      print("👏👏👏👏👏👏👏👏👏👏👏START");
-      print(receivedProducts);
-      print("👏👏👏👏👏👏👏👏👏👏👏");
+      appLog("👏👏👏👏👏👏👏👏👏👏👏START");
+      appLog(receivedProducts);
+      appLog("👏👏👏👏👏👏👏👏👏👏👏");
       if (receivedProducts.isEmpty) {
         _hasMore.value = false;
       }

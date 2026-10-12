@@ -188,7 +188,7 @@ class ProductScreen extends StatelessWidget {
                                                           //   ),
                                                           //   onRatingUpdate:
                                                           //       (rating) {
-                                                          //     print(rating);
+                                                          //     appLog(rating);
                                                           //   },
                                                           // ),
                                                           Padding(
@@ -447,7 +447,7 @@ class ProductScreen extends StatelessWidget {
                                                                       //   ),
                                                                       //   onRatingUpdate:
                                                                       //       (rating) {
-                                                                      //     print(
+                                                                      //     appLog(
                                                                       //         rating);
                                                                       //   },
                                                                       // ),
@@ -537,7 +537,7 @@ class ProductScreen extends StatelessWidget {
                                                                       //   ),
                                                                       //   onRatingUpdate:
                                                                       //       (rating) {
-                                                                      //     print(
+                                                                      //     appLog(
                                                                       //         rating);
                                                                       //   },
                                                                       // ),
@@ -683,7 +683,7 @@ class ProductScreen extends StatelessWidget {
                                                                     //   ),
                                                                     //   onRatingUpdate:
                                                                     //       (rating) {
-                                                                    //     print(
+                                                                    //     appLog(
                                                                     //         rating);
                                                                     //   },
                                                                     // ),
@@ -820,7 +820,7 @@ class ProductScreen extends StatelessWidget {
                                                                           //   ),
                                                                           //   onPressed:
                                                                           //         () =>
-                                                                          //             print("object"),
+                                                                          //             appLog("object"),
                                                                           // ),
                                                                         ),
                                                                       ),

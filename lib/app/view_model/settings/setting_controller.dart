@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sagr/data/colors.dart';
@@ -48,7 +49,7 @@ class SettingController extends GetxController {
 
     // _getSetting();
 
-    print("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥");
+    appLog("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥");
     super.onInit();
   }
 
@@ -78,7 +79,7 @@ class SettingController extends GetxController {
   //   try {
   //     final settingData = await _settingRepository.uploadSlide(imagePath);
 
-  //     print(settingData);
+  //     appLog(settingData);
   //     _imagePath.value = "";
   //     // catch exc
   //     //eption here...
@@ -108,9 +109,9 @@ class SettingController extends GetxController {
 
   //   final settingData = await _settingRepository.getSettings('about-us');
 
-  //   print("🔥");
-  //   print(settingData);
-  //   print("🔥");
+  //   appLog("🔥");
+  //   appLog(settingData);
+  //   appLog("🔥");
   //   _setting.value = settingData;
 
   //   _isLoading.value = false;

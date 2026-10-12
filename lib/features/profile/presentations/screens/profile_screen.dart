@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
@@ -5,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/app/view_model/profile/profile_controller.dart';
 import 'package:sagr/core/utils/size_utils.dart';
+import 'package:sagr/helper/base_url.dart';
 import 'package:sagr/theme/app_theme.dart';
 import 'package:sagr/view/auth/login_screen.dart';
 import 'package:sagr/view/widgets/fixed_app_bottom_bars.dart';
@@ -256,6 +258,14 @@ class ProfileScreen extends StatelessWidget {
     //   ],
     // ));
 
+    // The signed-in user as stored at login and after completing the profile.
+    final Map user = GetStorage().read('userData') ?? {};
+    final String fullName = [user['firstName'], user['middleName'], user['lastName']]
+        .where((p) => p != null && p.toString().isNotEmpty)
+        .join(' ');
+    final String? image = user['image']?.toString();
+    final String? nationalID = user['nationalID']?.toString();
+
     return MasterWrapper(
         body: Scaffold(
       // appBar: PreferredSize(
@@ -288,10 +298,20 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: ClipRRect(
                           borderRadius: BorderRadius.circular(65.h),
-                          child: Image.asset(
-                            'assets/images/avatar.png',
-                            width: 65,
-                          )),
+                          child: image != null && image.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: userImageUrl(image),
+                                  width: 65,
+                                  height: 65,
+                                  fit: BoxFit.cover,
+                                  errorWidget: (_, __, ___) => Image.asset(
+                                      'assets/images/avatar.png',
+                                      width: 65),
+                                )
+                              : Image.asset(
+                                  'assets/images/avatar.png',
+                                  width: 65,
+                                )),
                     ),
                     Expanded(
                       child: Padding(
@@ -300,7 +320,9 @@ class ProfileScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Ahmed Alayshy",
+                              fullName.isNotEmpty
+                                  ? fullName
+                                  : (user['name'] ?? '--').toString(),
                               style: CustomTextStyles
                                   .titleMediumOnPrimarySemiBold
                                   .copyWith(color: AppTheme.textTitle),
@@ -311,10 +333,13 @@ class ProfileScreen extends StatelessWidget {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '+9665746663478',
+                                    (user['phone'] ?? '--').toString(),
                                     style: CustomTextStyles.titleSmallOnPrimary
                                         .copyWith(color: AppTheme.textMuted),
                                   ),
+                                  // The ID is the national ID, entered when
+                                  // the profile is completed.
+                                  if (nationalID != null && nationalID.isNotEmpty)
                                   Container(
                                     padding: EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 3),
@@ -323,7 +348,7 @@ class ProfileScreen extends StatelessWidget {
                                         borderRadius:
                                             BorderRadius.circular(AppTheme.radiusSm)),
                                     child: Text(
-                                      '78236478',
+                                      nationalID,
                                       style:
                                           CustomTextStyles.titleSmallOnPrimary,
                                     ),

@@ -138,13 +138,13 @@ class CountriesController extends GetxController {
 
   //       // categoriesList.add({categoryId!: receivedCategories});
 
-  //       // print("🙄Start 01");
-  //       // print(categoriesList.reversed);
+  //       // appLog("🙄Start 01");
+  //       // appLog(categoriesList.reversed);
 
   //       //  var logger = Logger( printer: PrettyPrinter());
 
   //       // logger.d(categoriesList.reversed);
-  //       // print("End 01");
+  //       // appLog("End 01");
 
   //       // _findSubCategories(receivedCategories[0].id);
   //     }
@@ -173,13 +173,13 @@ class CountriesController extends GetxController {
 
 //         // categoriesList.add({categoryId!: receivedCategories});
 
-//         // print("🙄Start 01");
-//         // print(categoriesList.reversed);
+//         // appLog("🙄Start 01");
+//         // appLog(categoriesList.reversed);
 
 //         //  var logger = Logger( printer: PrettyPrinter());
 
 //         // logger.d(categoriesList.reversed);
-//         // print("End 01");
+//         // appLog("End 01");
 
 //         // _findSubCategories(receivedCategories[0].id);
 //       }

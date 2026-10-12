@@ -5,7 +5,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:sagr/app/view_model/settings/setting_controller.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/features/notifications/presentation/controllers/notifications_controller.dart';
-import 'package:sagr/utilities/local_storage/locale_storage.dart';
 import 'package:sagr/view/feature_ads_page/feature_ads_page.dart';
 
 import '../../core/utils/image_constant.dart';
@@ -400,39 +399,7 @@ class BuildCoreAppBar extends StatelessWidget {
                   ),
                 ))),
 
-        FutureBuilder(
-          future: LocaleStorage().getAccessToken,
-          builder: (_, snapshot) {
-            if (snapshot.hasError) return Text('Error = ${snapshot.error}');
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Text("Loading");
-            }
-            if (snapshot.data != '') {
-              return GestureDetector(
-                onTap: () {
-                  GetStorage().remove('access_token');
-                  GetStorage().remove('userData');
-                  Get.offAndToNamed("/login");
-                },
-                child: Container(
-                  margin: EdgeInsetsDirectional.fromSTEB(0, 0, 12, 0),
-                  padding: EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: GREY_COLOR.withOpacity(0.1)),
-                  child: CustomImageView(
-                    imagePath: ImageConstant.imgClockPrimary,
-                  ),
-                ),
-              );
-            } else {
-              return SizedBox.shrink();
-            }
-
-            // return SizedBox.shrink();
-            // return Text(snapshot.data.toString()); //👈 Your valid data here
-          },
-        ),
+        // The clock icon here used to log the user out silently; removed.
 
         // Text(LocaleStorage().getAccessTolken.then((value) => value.toString())),
       ],
