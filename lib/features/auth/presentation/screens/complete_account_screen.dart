@@ -1,14 +1,8 @@
-import 'dart:io';
-
-import 'package:animated_custom_dropdown/custom_dropdown.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:sagr/data/colors.dart';
-import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import 'package:sagr/features/auth/presentation/controllers/create_account_controller.dart';
-import 'package:sagr/features/auth/presentation/widgets/animated_field.dart';
-import 'package:sagr/features/auth/presentation/widgets/complete_account_fields.dart';
-import 'package:sagr/features/auth/presentation/widgets/pro_dropdown.dart';
+import 'package:sagr/features/auth/presentation/widgets/profile_form_kit.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
 import 'package:sagr/features/education/presentation/controllers/education_status_controller.dart';
 import 'package:sagr/features/jobs/data/models/job_model.dart';
@@ -18,1153 +12,744 @@ import 'package:sagr/features/language/presentation/controllers/languages_contro
 import 'package:sagr/features/marital_status/data/models/marital_status_model.dart';
 import 'package:sagr/features/marital_status/presentation/controllers/marital_status_controller.dart';
 import 'package:sagr/features/nationalities/data/models/nationality_model.dart';
-
-import 'package:sagr/view/widgets/Forms/easy_app_text_form_field.dart';
-import 'package:flutter/material.dart';
-
-import '../../../../widgets/Common/custom_dropdown.dart';
-import '../../../regions/data/models/region_model.dart';
-import '/../core/utils/size_utils.dart';
-
 import 'package:sagr/features/nationalities/presentation/controllers/nationalities_controller.dart';
+import 'package:sagr/features/regions/data/models/region_model.dart';
 import 'package:sagr/features/regions/presentation/controllers/regions_controller.dart';
+import 'package:sagr/theme/app_theme.dart';
 
+T _findOrPut<T>(T Function() create) =>
+    Get.isRegistered<T>() ? Get.find<T>() : Get.put<T>(create());
+
+/// Profile completion, required once before a user can apply for events.
+///
+/// Three short steps (personal → background → bank & documents) instead of
+/// one long card, each validated before moving on. Pops with `true` once the
+/// profile is saved so the apply form underneath can carry on.
 class CompleteAccountScreen extends StatefulWidget {
-  CompleteAccountScreen({Key? key}) : super(key: key);
+  const CompleteAccountScreen({super.key});
 
   @override
-  _CompleteAccountScreenState createState() => _CompleteAccountScreenState();
+  State<CompleteAccountScreen> createState() => _CompleteAccountScreenState();
 }
 
-class _CompleteAccountScreenState extends State<CompleteAccountScreen>
-    with TickerProviderStateMixin {
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController phoneNumberController = TextEditingController();
-  TextEditingController passwordController1 = TextEditingController();
-  TextEditingController confirmPasswordController = TextEditingController();
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
+  static const _stepCount = 3;
+  static const _transition = Duration(milliseconds: 280);
 
-  CreateAccountController _accountController =
-      Get.put(CreateAccountController(Get.find()));
+  final _formKeys = List.generate(_stepCount, (_) => GlobalKey<FormState>());
+  final _attempted = <int>{};
+  int _step = 0;
+  bool _forward = true;
+  DateTime _lastNavigation = DateTime(0);
 
-  late AnimationController _slideController;
-  late AnimationController _fadeController;
-  late AnimationController _scaleController;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  final c = _findOrPut<CreateAccountController>(
+      () => CreateAccountController(Get.find()));
+  final _educations =
+      _findOrPut<EducationsController>(() => EducationsController(Get.find()));
+  final _jobs = _findOrPut<JobsController>(() => JobsController(Get.find()));
+  final _marital = _findOrPut<MaritalStatusController>(
+      () => MaritalStatusController(Get.find()));
+  final _languages =
+      _findOrPut<LanguagesController>(() => LanguagesController(Get.find()));
+  final _nationalities = _findOrPut<NationalitiesController>(
+      () => NationalitiesController(Get.find()));
+  final _regions =
+      _findOrPut<RegionsController>(() => RegionsController(Get.find()));
+
+  final _first = TextEditingController();
+  final _middle = TextEditingController();
+  final _last = TextEditingController();
+  final _nationalId = TextEditingController();
+  final _iban = TextEditingController();
+  final _bankName = TextEditingController();
+  final _previousEvents = TextEditingController();
+  final _experts = TextEditingController();
+  final _chronic = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 2800),
-      vsync: this,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeIn,
-    ));
-
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.elasticOut,
-    ));
-
-    _startAnimations();
+    _prefill();
   }
 
-  void _startAnimations() async {
-    await Future.delayed(const Duration(milliseconds: 100));
-    _fadeController.forward();
-    _slideController.forward();
-    await Future.delayed(const Duration(milliseconds: 200));
-    _scaleController.forward();
+  /// Seeds fields from what the account already has. New accounts only carry
+  /// the single `name` typed at sign-up, so split it into first/middle/last.
+  void _prefill() {
+    final user = c.authController.authenticatedUser ?? const {};
+    String? read(String key) {
+      final v = user[key];
+      return v is String && v.trim().isNotEmpty ? v.trim() : null;
+    }
+
+    final parts = (read('name') ?? '')
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
+    _first.text = read('firstName') ?? (parts.isNotEmpty ? parts.first : '');
+    _middle.text = read('middleName') ?? (parts.length > 2 ? parts[1] : '');
+    _last.text = read('lastName') ?? (parts.length > 1 ? parts.last : '');
+    _nationalId.text = read('nationalID') ?? '';
+    _bankName.text = read('bankAccountName') ?? '';
+    _experts.text = read('experts') ?? '';
+    _chronic.text = read('chronic_diseases') ?? '';
+    final iban = read('ibanNo');
+    if (iban != null) {
+      _iban.value = IbanInputFormatter()
+          .formatEditUpdate(TextEditingValue.empty, TextEditingValue(text: iban));
+    }
+    final previous = user['previous_events_past'];
+    if (previous != null) _previousEvents.text = '$previous';
   }
 
   @override
   void dispose() {
-    _slideController.dispose();
-    _fadeController.dispose();
-    _scaleController.dispose();
+    for (final controller in [
+      _first,
+      _middle,
+      _last,
+      _nationalId,
+      _iban,
+      _bankName,
+      _previousEvents,
+      _experts,
+      _chronic,
+    ]) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
+  // ---- Navigation ----
 
-  NationalitiesController nationalitiesController =
-      Get.put(NationalitiesController(Get.find()));
+  /// Swallows taps while a step transition is still running; re-entering a
+  /// step mid-animation would mount its form key twice.
+  bool _navigationLocked() {
+    final now = DateTime.now();
+    if (now.difference(_lastNavigation) < _transition) return true;
+    _lastNavigation = now;
+    return false;
+  }
 
-  RegionsController regionsController = Get.put(RegionsController(Get.find()));
+  Future<void> _next() async {
+    FocusScope.of(context).unfocus();
+    if (!_formKeys[_step].currentState!.validate()) {
+      HapticFeedback.heavyImpact();
+      setState(() => _attempted.add(_step));
+      return;
+    }
+    if (_step == _stepCount - 1) return _submit();
+    if (_navigationLocked()) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _forward = true;
+      _step++;
+    });
+  }
 
+  void _back() {
+    if (_step == 0) {
+      Navigator.of(context).maybePop();
+      return;
+    }
+    if (_navigationLocked()) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _forward = false;
+      _step--;
+    });
+  }
+
+  Future<void> _submit() async {
+    c
+      ..firstName = _first.text.trim()
+      ..middleName = _middle.text.trim()
+      ..lastName = _last.text.trim()
+      ..nationalNo = _nationalId.text.trim()
+      ..ibanNumber = _iban.text.replaceAll(' ', '')
+      ..bankAccountName = _bankName.text.trim()
+      ..previousEvents = _previousEvents.text.trim()
+      ..experts = _experts.text.trim()
+      ..chronicDiseases = _chronic.text.trim();
+
+    final saved = await c.completeAccount();
+    if (!saved || !mounted) return;
+
+    HapticFeedback.mediumImpact();
+    Navigator.of(context).pop(true);
+    Get.snackbar(
+      'Profile completed'.tr,
+      'You can now apply for events'.tr,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+      backgroundColor: AppTheme.navy,
+      colorText: Colors.white,
+      icon: const Icon(Icons.check_circle_rounded, color: AppTheme.success),
+    );
+  }
+
+  Future<void> _pickPhoto() async {
+    final source = await showPhotoSourceSheet(context,
+        hasPhoto: c.imagePath.isNotEmpty);
+    if (source == null) return;
+    switch (source) {
+      case PhotoSource.camera:
+        await c.takePhoto();
+        break;
+      case PhotoSource.gallery:
+        await c.pickImage();
+        break;
+      case PhotoSource.remove:
+        c.clearImage();
+        break;
+    }
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _pickDocument(Future<void> Function() pick) async {
+    await pick();
+    if (mounted) setState(() {});
+  }
+
+  // ---- Validators ----
+
+  String? _requiredText(String? v) =>
+      (v?.trim().isEmpty ?? true) ? 'Required'.tr : null;
+
+  String? _name(String? v) {
+    final text = v?.trim() ?? '';
+    if (text.isEmpty) return 'Required'.tr;
+    // Backend rule: min:3.
+    if (text.length < 3) return 'Must be at least 3 characters'.tr;
+    return null;
+  }
+
+  String? _nationalIdRule(String? v) =>
+      RegExp(r'^\d{10}$').hasMatch(v?.trim() ?? '')
+          ? null
+          : 'National ID must be 10 digits'.tr;
+
+  String? _ibanRule(String? v) =>
+      RegExp(r'^SA\d{22}$').hasMatch((v ?? '').replaceAll(' ', ''))
+          ? null
+          : 'Enter a valid Saudi IBAN (SA + 22 digits)'.tr;
+
+  // ---- Build ----
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: GetBuilder<CreateAccountController>(
-        init: CreateAccountController(Get.find()),
-        builder: (CreateAccountController accountController) {
-          return SizedBox(
-            width: SizeUtils.width,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
+    final isLast = _step == _stepCount - 1;
+
+    return PopScope(
+      canPop: _step == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _back();
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: AppTheme.statusBarLight,
+        child: Scaffold(
+          backgroundColor: AppTheme.scaffold,
+          appBar: AppBar(
+            backgroundColor: AppTheme.scaffold,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            centerTitle: true,
+            leading: BackButton(onPressed: _back, color: AppTheme.textTitle),
+            title: Text(
+              'Complete your profile'.tr,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textTitle,
               ),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: Form(
-                      key: _formKey,
-                      child: Container(
-                        margin: EdgeInsets.fromLTRB(16.h, 40.v, 16.h, 30.v),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20.h,
-                          vertical: 40.v,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedField(
-                              delay: 0,
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Complete Account".tr,
-                                    style: TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[800],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "Enter your information to register".tr,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 40),
-
-                            AnimatedField(
-                              delay: 1,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: EasyAppTextFormField(
-                                  onSave: (value) =>
-                                      accountController.firstName = value!,
-                                  labelText: "First Name".tr,
-                                  hintText: "",
-                                  prefixIcon: Icon(
-                                    Icons.person_outline_rounded,
-                                    color: SAGR_PRIMARY,
-                                  ),
-                                  onValidate: (value) {
-                                    if (value?.length == 0) {
-                                      return "First Name Required!".tr;
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-                            AnimatedField(
-                              delay: 2,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: EasyAppTextFormField(
-                                  onSave: (value) =>
-                                      accountController.middleName = value!,
-                                  labelText: "Middle Name".tr,
-                                  hintText: "Middle Name".tr,
-                                  prefixIcon: Icon(
-                                    Icons.person_outline_rounded,
-                                    color: SAGR_PRIMARY,
-                                  ),
-                                  onValidate: (value) {
-                                    if (value?.length == 0) {
-                                      return "Middle Name Required!".tr;
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-                            AnimatedField(
-                              delay: 3,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: EasyAppTextFormField(
-                                  onSave: (value) =>
-                                      accountController.lastName = value!,
-                                  labelText: "Family Name".tr,
-                                  hintText: "",
-                                  prefixIcon: Icon(
-                                    Icons.person_outline_rounded,
-                                    color: SAGR_PRIMARY,
-                                  ),
-                                  onValidate: (value) {
-                                    if (value?.isEmpty == true) {
-                                      return "Family Name Required!".tr;
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-                            AnimatedField(
-                              delay: 5,
-                              child: EasyAppTextFormField(
-                                onSave: (value) =>
-                                    accountController.nationalNo = value!,
-                                labelText: "National Number".tr,
-                                hintText: "",
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(10),
-                                ],
-                                prefixIcon: Icon(
-                                  Icons.badge_outlined,
-                                  color: SAGR_PRIMARY,
-                                ),
-                                onValidate: (value) {
-                                  if (value?.length == 0) {
-                                    return "National Number Required!".tr;
-                                  }
-                                  if (value?.length != 10) {
-                                    return "National ID Should be 10 Digits!"
-                                        .tr;
-                                  }
-                              
-                                  return null;
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Educations
-                            SizedBox(
-                              height: 50,
-                              child: AnimatedField(
-                                  delay: 3,
-                                  child: Container(
-                                    // margin:
-                                    //     EdgeInsetsDirectional.fromSTEB(3, 0, 3, 0),
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        10, 0, 10, 0),
-                                    decoration: BoxDecoration(
-                                        // color: const Color.fromARGB(255, 219, 48, 48),
-                                        borderRadius:
-                                            BorderRadius.circular(8),
-                                        border: Border.all(
-                                            width: 1,
-                                            color: const Color.fromARGB(
-                                                255, 192, 192, 192))),
-                                    child: GetBuilder<EducationsController>(
-                                        init: EducationsController(
-                                            Get.find()),
-                                        builder: (educationController) {
-                                          return CustomDropdownV2<
-                                              EducationModel?>(
-                                            leadingIcon: true,
-                                            onChange: (int index) =>
-                                                accountController
-                                                    .setSelectedEducation(
-                                                        educationController
-                                                                .educations[
-                                                            index]),
-                                            dropdownButtonStyle: DropdownButtonStyle(
-                                                width: double.infinity,
-                                                shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius
-                                                            .circular(200)),
-                                                height: 50,
-                                                elevation: 0,
-                                                backgroundColor:
-                                                    const Color.fromARGB(
-                                                        255, 255, 255, 255),
-                                                primaryColor:
-                                                    const Color.fromARGB(
-                                                        221, 205, 205, 205),
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween),
-                                            dropdownStyle: DropdownStyle(
-                                                // width: 340,
-                                                color: WHITE_COLOR,
-                                                elevation: 0,
-                                                padding: EdgeInsets.all(0),
-                                                shape:
-                                                    RoundedRectangleBorder(
-                                                        side: BorderSide(
-                                                          color:
-                                                              Colors.grey,
-                                                          width: 0,
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                                    8))),
-                                            items: educationController
-                                                .educations
-                                                .asMap()
-                                                .entries
-                                                .map(
-                                                  (item) => DropdownItem<
-                                                      EducationModel?>(
-                                                    value: item.value,
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets
-                                                              .all(8.0),
-                                                      child: Text(
-                                                          item.value.name!),
-                                                    ),
-                                                  ),
-                                                )
-                                                .toList(),
-                                            child: Text(accountController
-                                                        .selectedEducation
-                                                        .id !=
-                                                    null
-                                                ? accountController
-                                                    .selectedEducation.name!
-                                                : "Education Level".tr),
-                                          );
-                                        }),
-                                  )),
-                            ),
-                            const SizedBox(height: 16),
-// Jobs
-                            Container(
-                              margin: EdgeInsetsDirectional.fromSTEB(
-                                  3, 0, 3, 0),
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  3, 0, 3, 0),
-                              decoration: BoxDecoration(
-                                  // color: const Color.fromARGB(255, 219, 48, 48),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      width: 1,
-                                      color: const Color.fromARGB(
-                                          255, 192, 192, 192))),
-                              child: GetBuilder<JobsController>(
-                                  init: JobsController(Get.find()),
-                                  builder: (jobsController) {
-                                    return CustomDropdownV2<JobModel?>(
-                                      leadingIcon: true,
-                                      onChange: (int index) =>
-                                          accountController.setSelectedJob(
-                                              jobsController.jobs[index]),
-                                      dropdownButtonStyle:
-                                          DropdownButtonStyle(
-                                              width: double.infinity,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius
-                                                      .circular(200)),
-                                              height: 50,
-                                              elevation: 0,
-                                              backgroundColor:
-                                                  const Color
-                                                      .fromARGB(255, 255,
-                                                      255, 255),
-                                              primaryColor:
-                                                  const Color.fromARGB(221,
-                                                      205, 205, 205),
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween),
-                                      dropdownStyle: DropdownStyle(
-                                          // width: 340,
-                                          color: WHITE_COLOR,
-                                          elevation: 0,
-                                          padding: EdgeInsets.all(0),
-                                          shape: RoundedRectangleBorder(
-                                              side: BorderSide(
-                                                color: Colors.grey,
-                                                width: 0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      8))),
-                                      items: jobsController.jobs
-                                          .asMap()
-                                          .entries
-                                          .map(
-                                            (item) =>
-                                                DropdownItem<JobModel?>(
-                                              value: item.value,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(
-                                                        8.0),
-                                                child:
-                                                    Text(item.value.name!),
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                      child: Text(accountController
-                                                  .selectedJob.id !=
-                                              null
-                                          ? accountController
-                                              .selectedJob.name!
-                                          : "Job Status".tr),
-                                    );
-                                  }),
-                            ),
-                            const SizedBox(height: 15),
-//MaritalStatus
-                            Container(
-                              margin: EdgeInsetsDirectional.fromSTEB(
-                                  3, 0, 3, 0),
-                              padding: EdgeInsetsDirectional.fromSTEB(
-                                  10, 0, 3, 0),
-                              decoration: BoxDecoration(
-                                  // color: const Color.fromARGB(255, 219, 48, 48),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                      width: 1,
-                                      color: const Color.fromARGB(
-                                          255, 192, 192, 192))),
-                              child: GetBuilder<MaritalStatusController>(
-                                  init: MaritalStatusController(Get.find()),
-                                  builder: (maritalStatusController) {
-                                    return CustomDropdownV2<
-                                        MaritalStatusModel?>(
-                                      leadingIcon: true,
-                                      onChange: (int index) =>
-                                          accountController
-                                              .setSelectedMaritalStatus(
-                                                  maritalStatusController
-                                                          .maritalStatus[
-                                                      index]),
-                                      dropdownButtonStyle:
-                                          DropdownButtonStyle(
-                                              width: double.infinity,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius
-                                                      .circular(200)),
-                                              height: 50,
-                                              elevation: 0,
-                                              backgroundColor:
-                                                  const Color
-                                                      .fromARGB(255, 255,
-                                                      255, 255),
-                                              primaryColor:
-                                                  const Color.fromARGB(221,
-                                                      205, 205, 205),
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween),
-                                      dropdownStyle: DropdownStyle(
-                                          // width: 340,
-                                          color: WHITE_COLOR,
-                                          elevation: 0,
-                                          shape: RoundedRectangleBorder(
-                                              side: BorderSide(
-                                                color: Colors.grey,
-                                                width: 0,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      8))),
-                                      items: maritalStatusController
-                                          .maritalStatus
-                                          .asMap()
-                                          .entries
-                                          .map(
-                                            (item) => DropdownItem<
-                                                MaritalStatusModel?>(
-                                              value: item.value,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(
-                                                        8.0),
-                                                child:
-                                                    Text(item.value.name!),
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                      child: Row(
-                                        children: [
-                                          // Icon(Icons.signal_wifi_statusbar_4_bar_outlined),
-                                          SizedBox(width: 2),
-                                          Text(accountController
-                                                      .selectedMaritalStatus
-                                                      .id !=
-                                                  null
-                                              ? accountController
-                                                  .selectedMaritalStatus
-                                                  .name!
-                                              : "Marital Status".tr)
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                            ),
-
-// Languages
-                            SizedBox(
-                              child: Container(
-                                // height: 50,
-                                margin: EdgeInsetsDirectional.fromSTEB(
-                                    3, 15, 3, 10),
-                                padding: EdgeInsetsDirectional.fromSTEB(
-                                    0, 0, 0, 0),
-                                decoration: BoxDecoration(
-                                    // color: const Color.fromARGB(255, 219, 48, 48),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        width: 1,
-                                        color: const Color.fromARGB(
-                                            255, 192, 192, 192))),
-                                child: GetBuilder<LanguagesController>(
-                                    init: LanguagesController(Get.find()),
-                                    builder: (languageController) {
-                                      return SizedBox(
-                                        child: CustomDropdown<
-                                            LanguageModel>.multiSelect(
-                                          decoration:
-                                              CustomDropdownDecoration(),
-                                          hintText: 'Languages'.tr,
-                                          items: languageController
-                                              .languages
-                                              .toList(),
-                                          initialItems: languageController
-                                              .languages
-                                              .where((lang) =>
-                                                  accountController
-                                                      .languages!
-                                                      .contains(lang.id))
-                                              .toList(),
-                                          onListChanged: (value) {
-                                            // accountController.setSelectedLanguages(value);
-                                            print(value);
-                                            print(
-                                                'SimpleDropdown onChanged value: $value');
-                                          },
-                                        ),
-                                      );
-                                    }),
-                              ),
-                            ),
-
-
-                            SizedBox(height: 15),
-
-                            EasyAppTextFormField(
-                              onSave: (value) =>
-                                  accountController.ibanNumber = value!,
-                              labelText: "Iban Number".tr,
-                              hintText: "",
-                              prefixIcon: Icon(
-                                Icons.add_card_rounded,
-                                color: Color.fromARGB(255, 0, 0, 0),
-                              ),
-                              onValidate: (value) {
-                                if (value?.isEmpty == true) {
-                                  return "Iban Number Required!".tr;
-                                }
-                                
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: 20),
-                            Obx(() => nationalitiesController.isLoading
-                                ? AppLoader.inline()
-                                : ProDropdown<NationalityModel>(
-                                    selectedValue:
-                                        accountController.selectedNationality,
-                                    hint: 'Select your nationality'.tr,
-                                    searchHint: 'Search nationalities...'.tr,
-                                    onChanged: (value) => accountController
-                                        .setSelectedNationality(value!),
-                                    items: nationalitiesController
-                                        .nationalityItems)),
-
-                            SizedBox(height: 20),
-                            Obx(() => regionsController.isLoading
-                                ? AppLoader.inline()
-                                : ProDropdown<RegionModel>(
-                                    selectedValue:
-                                        accountController.selectedRegion,
-                                    hint: 'Select your region'.tr,
-                                    searchHint: 'Search regions...'.tr,
-                                    onChanged: (region) => accountController
-                                        .setSelectedRegion(region!),
-                                    items: regionsController.regionsItems)),
-
-                            const SizedBox(height: 16),
-                            Padding(
-                                padding: const EdgeInsets.all(0.0),
-                                child: Padding(
-                                    padding: const EdgeInsets.all(0.0),
-                                    child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          // Day and Year Row
-                                          Row(
-                                            children: [
-                                              // Day Dropdown
-                                              Expanded(
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey.shade50,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    border: Border.all(
-                                                        color: Colors
-                                                            .grey.shade300),
-                                                  ),
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 16),
-                                                  child:
-                                                      DropdownButtonHideUnderline(
-                                                    child: DropdownButton<int>(
-                                                      isExpanded: true,
-                                                      hint: Text(
-                                                        'Day'.tr,
-                                                        style: TextStyle(
-                                                            color: Colors.grey),
-                                                      ),
-                                                      value: accountController
-                                                          .selectedDay,
-                                                      icon: const Icon(Icons
-                                                          .arrow_drop_down),
-                                                      items: accountController
-                                                          .getDaysInMonth()
-                                                          .map((day) {
-                                                        return DropdownMenuItem<
-                                                            int>(
-                                                          value: day,
-                                                          child: Text('$day'),
-                                                        );
-                                                      }).toList(),
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          accountController
-                                                                  .selectedDay =
-                                                              value;
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 16),
-
-                                              Expanded(
-                                                  child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade50,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                      color:
-                                                          Colors.grey.shade300),
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 10),
-                                                child:
-                                                    DropdownButtonHideUnderline(
-                                                  child: DropdownButton<int>(
-                                                    isExpanded: true,
-                                                    hint: Text(
-                                                      'Month'.tr,
-                                                      style: TextStyle(
-                                                          color: Colors.grey),
-                                                    ),
-                                                    value: accountController
-                                                        .selectedMonth,
-                                                    icon: const Icon(
-                                                        Icons.arrow_drop_down),
-                                                    items: List.generate(12,
-                                                        (index) {
-                                                      return DropdownMenuItem<
-                                                          int>(
-                                                        value: index + 1,
-                                                        child: Row(
-                                                          children: [
-                                                            Text(
-                                                                accountController
-                                                                    .months[
-                                                                        index]
-                                                                    .tr),
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }),
-                                                    onChanged: (value) {
-                                                      setState(() {
-                                                        accountController
-                                                                .selectedMonth =
-                                                            value;
-                                                        // Reset day if it's invalid for new month
-                                                        if (accountController
-                                                                    .selectedDay !=
-                                                                null &&
-                                                            accountController
-                                                                    .selectedYear !=
-                                                                null) {
-                                                          final daysInMonth =
-                                                              accountController
-                                                                  .getDaysInMonth();
-                                                          if (!daysInMonth.contains(
-                                                              accountController
-                                                                  .selectedDay)) {
-                                                            accountController
-                                                                    .selectedDay =
-                                                                null;
-                                                          }
-                                                        }
-                                                      });
-                                                    },
-                                                  ),
-                                                ),
-                                              )),
-
-                                              const SizedBox(width: 16),
-
-                                              // Year Dropdown
-                                              Expanded(
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.grey.shade50,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    border: Border.all(
-                                                        color: Colors
-                                                            .grey.shade300),
-                                                  ),
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 16),
-                                                  child:
-                                                      DropdownButtonHideUnderline(
-                                                    child: DropdownButton<int>(
-                                                      isExpanded: true,
-                                                      hint: Text(
-                                                        'Year'.tr,
-                                                        style: TextStyle(
-                                                            color: Colors.grey),
-                                                      ),
-                                                      value: accountController
-                                                          .selectedYear,
-                                                      icon: const Icon(Icons
-                                                          .arrow_drop_down),
-                                                      items: accountController
-                                                          .getYears()
-                                                          .map((year) {
-                                                        return DropdownMenuItem<
-                                                            int>(
-                                                          value: year,
-                                                          child: Text('$year'),
-                                                        );
-                                                      }).toList(),
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          accountController
-                                                                  .selectedYear =
-                                                              value;
-                                                          // Reset day if it's invalid for new year
-                                                          if (accountController
-                                                                      .selectedDay !=
-                                                                  null &&
-                                                              accountController
-                                                                      .selectedMonth !=
-                                                                  null) {
-                                                            final daysInMonth =
-                                                                accountController
-                                                                    .getDaysInMonth();
-                                                            if (!daysInMonth.contains(
-                                                                accountController
-                                                                    .selectedDay)) {
-                                                              accountController
-                                                                      .selectedDay =
-                                                                  null;
-                                                            }
-                                                          }
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ]))),
-
-                            const SizedBox(height: 16),
-
-                            Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  10, 0, 10, 0),
-                              child: EasyAppTextFormField(
-                                onSave: (value) =>
-                                    accountController.bankAccountName = value!,
-                                labelText: "Bank Account Name".tr,
-                                hintText: "",
-                                prefixIcon: Icon(
-                                  Icons.add_card_rounded,
-                                  color: Color.fromARGB(255, 0, 0, 0),
-                                ),
-                                onValidate: (value) {
-                                  if (value?.length == 0) {
-                                    return "Bank Account Name Required!".tr;
-                                  } else {
-                                    return null;
-                                  }
-                                },
-                              ),
-                            ),
-                            SizedBox(height: 12),
-
-                            // Exist Before But Commented
-                            // const SizedBox(height: 25),
-                            // _buildModernGenderSelector(accountController),
-
-                            const SizedBox(height: 25),
-                            AnimatedField(
-                              delay: 7,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: EasyAppTextFormField(
-                                  enable: false,
-                                  required: false,
-                                  multiline: 3,
-                                  onSave: (value) =>
-                                      accountController.experts = value!,
-                                  labelText: "Experts".tr,
-                                  hintText: "",
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-                            AnimatedField(
-                              delay: 8,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: EasyAppTextFormField(
-                                  required: false,
-                                  textInputType: TextInputType.number,
-                                  onSave: (value) =>
-                                      accountController.previousEvents = value!,
-                                  labelText: "Previous Events Past".tr,
-                                  hintText: "",
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-                            AnimatedField(
-                              delay: 9,
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: EasyAppTextFormField(
-                                  required: false,
-                                  multiline: 3,
-                                  onSave: (value) => accountController
-                                      .chronicDiseases = value!,
-                                  labelText: "Chronic diseases".tr,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 30),
-                            AnimatedField(
-                              delay: 8,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          // border: Border.all(width: 1, color:accountController.ibanFilePath =='' ? RED_COLOR: Colors.transparent),
-                                          // borderRadius: BorderRadius.circular(16)
-                                          ),
-                                      child: Column(
-                                        children: [
-                                          ModernFileUpload(
-                                            "إرفاق مستند الايبان",
-                                            accountController.ibanFilePath == ''
-                                                ? Icon(
-                                                    Icons
-                                                        .picture_as_pdf_rounded,
-                                                    size: 20,
-                                                    color: SAGR_SECONDARY,
-                                                  )
-                                                : Container(),
-                                            () => accountController
-                                                .handleFileSelectionForIban(),
-                                            8,
-                                          ),
-                                          accountController.ibanFilePath != ''
-                                              ? Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.check,
-                                                      color: Colors.green,
-                                                    ),
-                                                    Text(
-                                                      "Iban Uploaded".tr,
-                                                      style: TextStyle(
-                                                          color: WHITE_COLOR),
-                                                    )
-                                                  ],
-                                                )
-                                              : Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.star_border,
-                                                      color: RED_COLOR,
-                                                      size: 12,
-                                                    ),
-                                                    Text(
-                                                      "Iban File Required".tr,
-                                                      style: TextStyle(
-                                                          fontSize: 12),
-                                                    )
-                                                  ],
-                                                )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 15),
-                                  Expanded(
-                                    child: Column(
-                                      children: [
-                                        ModernFileUpload(
-                                          "إرفاق السيرة الذاتية",
-                                          accountController.ibanFilePath == ''
-                                              ? Icon(
-                                                  Icons.picture_as_pdf_rounded,
-                                                  size: 20,
-                                                  color: SAGR_SECONDARY)
-                                              : Container(),
-                                          () => accountController
-                                              .handleFileSelection(),
-                                          9,
-                                        ),
-                                        accountController.ibanFilePath != ''
-                                            ? Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.check,
-                                                    color: Colors.green,
-                                                  ),
-                                                  Text("Cv File Uploaded".tr)
-                                                ],
-                                              )
-                                            : Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.star_border,
-                                                    color: RED_COLOR,
-                                                    size: 12,
-                                                  ),
-                                                  Text(
-                                                    "Iban File Required".tr,
-                                                    style:
-                                                        TextStyle(fontSize: 12),
-                                                  )
-                                                ],
-                                              )
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 25),
-                            ModernImageUpload(accountController),
-
-                            accountController.profileImageRequired == true
-                                ? Text("a s")
-                                : SizedBox(),
-
-                            const SizedBox(height: 30),
-                            AnimatedCheckbox(accountController),
-
-                            if (accountController.agreeErrorMessage)
-                              AnimatedField(
-                                delay: 12,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 10),
-                                  child: Text(
-                                    "Please, agree on terms of Use & Privacy Policy."
-                                        .tr,
-                                    style: TextStyle(
-                                      color: Colors.red.shade600,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                            const SizedBox(height: 35),
-                            AnimatedField(
-                              delay: 13,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                width: double.infinity,
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: accountController.isLoading
-                                        ? null
-                                        : () {
-                                            _formKey.currentState!.save();
-                                            if (_formKey.currentState!
-                                                .validate()) {
-                                              accountController
-                                                  .completeAccount();
-                                            }
-                                          },
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                      decoration: BoxDecoration(
-                                        gradient: accountController.isLoading
-                                            ? LinearGradient(
-                                                colors: [
-                                                  Colors.grey.shade400,
-                                                  Colors.grey.shade500
-                                                ],
-                                              )
-                                            : LinearGradient(
-                                                colors: [
-                                                  SAGR_PRIMARY,
-                                                  SAGR_PRIMARY
-                                                ],
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              ),
-                                        borderRadius: BorderRadius.circular(16),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                SAGR_PRIMARY.withOpacity(0.3),
-                                            blurRadius: 15,
-                                            offset: const Offset(0, 5),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          if (accountController.isLoading)
-                                            SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: AppLoader.inline(
-                                                  size: 20,
-                                                  color: Colors.white),
-                                            ),
-                                          Text(
-                                            accountController.isLoading
-                                                ? "Creating Account...".tr
-                                                : "Create Account".tr,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                          ],
-                        ),
+            ),
+          ),
+          body: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: ProfileStepProgress(
+                    current: _step, total: _stepCount),
+              ),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: _transition,
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  layoutBuilder: (current, previous) => Stack(
+                    alignment: Alignment.topCenter,
+                    children: [...previous, if (current != null) current],
+                  ),
+                  transitionBuilder: (child, animation) {
+                    final incoming = child.key == ValueKey(_step);
+                    final rtl =
+                        Directionality.of(context) == TextDirection.rtl;
+                    final dx =
+                        (incoming == _forward ? 0.08 : -0.08) * (rtl ? -1 : 1);
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween(
+                          begin: Offset(dx, 0),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
                       ),
-                    ),
+                    );
+                  },
+                  child: KeyedSubtree(
+                    key: ValueKey(_step),
+                    child: _stepView(_step),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+              Obx(() => ProfileBottomBar(
+                    label: isLast ? 'Submit profile'.tr : 'Continue'.tr,
+                    loading: c.isLoading,
+                    onPressed: _next,
+                  )),
+            ],
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _stepView(int step) {
+    final children = step == 0
+        ? _personalStep()
+        : step == 1
+            ? _backgroundStep()
+            : _bankStep();
+
+    // A Column, not a ListView: validate() only sees fields that are built.
+    return Form(
+      key: _formKeys[step],
+      autovalidateMode: _attempted.contains(step)
+          ? AutovalidateMode.onUserInteraction
+          : AutovalidateMode.disabled,
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      ),
+    );
+  }
+
+  Widget _intro(String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(4, 0, 4, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textTitle,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 15,
+              color: AppTheme.textMuted,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _gap = SizedBox(height: 24);
+
+  List<Widget> _personalStep() {
+    final now = DateTime.now();
+    return [
+      _intro(
+        'Personal info'.tr,
+        'Enter your details exactly as they appear on your national ID.'.tr,
+      ),
+      AvatarFormField(
+        path: c.imagePath,
+        onTap: _pickPhoto,
+        requiredMessage: 'Please add a profile photo'.tr,
+      ),
+      _gap,
+      AutofillGroup(
+        child: FormSection(
+          title: 'Full name'.tr,
+          icon: Icons.person_outline_rounded,
+          children: [
+            LabeledField(
+              label: 'First Name'.tr,
+              child: _text(_first,
+                  validator: _name, autofill: AutofillHints.givenName),
+            ),
+            LabeledField(
+              label: 'Middle Name'.tr,
+              child: _text(_middle,
+                  validator: _name, autofill: AutofillHints.middleName),
+            ),
+            LabeledField(
+              label: 'Family Name'.tr,
+              child: _text(_last,
+                  validator: _name, autofill: AutofillHints.familyName),
+            ),
+          ],
+        ),
+      ),
+      _gap,
+      FormSection(
+        title: 'Identity'.tr,
+        icon: Icons.badge_outlined,
+        children: [
+          LabeledField(
+            label: 'National Number'.tr,
+            child: _text(
+              _nationalId,
+              hint: '10 digits'.tr,
+              validator: _nationalIdRule,
+              keyboard: TextInputType.number,
+              action: TextInputAction.done,
+              formatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ],
+            ),
+          ),
+          LabeledField(
+            label: 'Date of birth'.tr,
+            child: DateFormField(
+              value: c.birthdate,
+              hint: 'Select date'.tr,
+              first: DateTime(now.year - 80),
+              last: DateTime(now.year - 16, now.month, now.day),
+              onChanged: c.setBirthdate,
+              requiredMessage: 'Please select your date of birth'.tr,
+            ),
+          ),
+          LabeledField(
+            label: 'Nationality'.tr,
+            child: Obx(() => SelectFormField<NationalityModel>(
+                  title: 'Nationality'.tr,
+                  hint: 'Select your nationality'.tr,
+                  icon: Icons.flag_outlined,
+                  loading: _nationalities.isLoading &&
+                      _nationalities.nationalities.isEmpty,
+                  value: c.selectedNationality.id == null
+                      ? null
+                      : c.selectedNationality,
+                  items: _nationalities.nationalities,
+                  itemLabel: (n) => n.name ?? '',
+                  itemKey: (n) => n.id,
+                  onChanged: c.setSelectedNationality,
+                )),
+          ),
+          LabeledField(
+            label: 'Region'.tr,
+            child: Obx(() => SelectFormField<RegionModel>(
+                  title: 'Region'.tr,
+                  hint: 'Select your region'.tr,
+                  icon: Icons.location_on_outlined,
+                  loading: _regions.isLoading && _regions.regions.isEmpty,
+                  value: c.selectedRegion.id == null ? null : c.selectedRegion,
+                  items: _regions.regions,
+                  itemLabel: (r) => r.name ?? '',
+                  itemKey: (r) => r.id,
+                  onChanged: c.setSelectedRegion,
+                )),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _backgroundStep() {
+    return [
+      _intro(
+        'Background'.tr,
+        'This helps supervisors assign you to the right role.'.tr,
+      ),
+      FormSection(
+        title: 'Education & work'.tr,
+        icon: Icons.school_outlined,
+        children: [
+          LabeledField(
+            label: 'Education Level'.tr,
+            child: Obx(() => SelectFormField<EducationModel>(
+                  title: 'Education Level'.tr,
+                  hint: 'Select'.tr,
+                  loading: _educations.isLoading &&
+                      _educations.educations.isEmpty,
+                  value: c.selectedEducation.id == null
+                      ? null
+                      : c.selectedEducation,
+                  items: _educations.educations,
+                  itemLabel: (e) => e.name ?? '',
+                  itemKey: (e) => e.id,
+                  onChanged: c.setSelectedEducation,
+                )),
+          ),
+          LabeledField(
+            label: 'Job Status'.tr,
+            child: Obx(() => SelectFormField<JobModel>(
+                  title: 'Job Status'.tr,
+                  hint: 'Select'.tr,
+                  loading: _jobs.isLoading && _jobs.jobs.isEmpty,
+                  value: c.selectedJob.id == null ? null : c.selectedJob,
+                  items: _jobs.jobs,
+                  itemLabel: (j) => j.name ?? '',
+                  itemKey: (j) => j.id,
+                  onChanged: c.setSelectedJob,
+                )),
+          ),
+          LabeledField(
+            label: 'Marital Status'.tr,
+            child: Obx(() => SelectFormField<MaritalStatusModel>(
+                  title: 'Marital Status'.tr,
+                  hint: 'Select'.tr,
+                  loading: _marital.isLoading && _marital.maritalStatus.isEmpty,
+                  value: c.selectedMaritalStatus.id == null
+                      ? null
+                      : c.selectedMaritalStatus,
+                  items: _marital.maritalStatus,
+                  itemLabel: (m) => m.name ?? '',
+                  itemKey: (m) => m.id,
+                  onChanged: c.setSelectedMaritalStatus,
+                )),
+          ),
+        ],
+      ),
+      _gap,
+      FormSection(
+        title: 'Experience'.tr,
+        icon: Icons.workspace_premium_outlined,
+        children: [
+          LabeledField(
+            label: 'Languages'.tr,
+            optional: true,
+            child: Obx(() => MultiSelectFormField<LanguageModel>(
+                  title: 'Languages'.tr,
+                  hint: 'Select languages'.tr,
+                  icon: Icons.translate_rounded,
+                  loading:
+                      _languages.isLoading && _languages.languages.isEmpty,
+                  values: c.languages,
+                  items: _languages.languages,
+                  itemLabel: (l) => l.name ?? '',
+                  itemKey: (l) => l.id,
+                  onChanged: c.setLanguages,
+                )),
+          ),
+          LabeledField(
+            label: 'Previous Events Past'.tr,
+            optional: true,
+            child: _text(
+              _previousEvents,
+              hint: '0',
+              keyboard: TextInputType.number,
+              formatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(3),
+              ],
+            ),
+          ),
+          LabeledField(
+            label: 'Experts'.tr,
+            optional: true,
+            child: _text(
+              _experts,
+              hint: 'Events or roles you have worked in'.tr,
+              lines: 4,
+              caps: TextCapitalization.sentences,
+            ),
+          ),
+        ],
+      ),
+      _gap,
+      FormSection(
+        title: 'Health'.tr,
+        icon: Icons.favorite_border_rounded,
+        footer: 'Only shared with event supervisors, for your safety.'.tr,
+        children: [
+          LabeledField(
+            label: 'Chronic diseases'.tr,
+            optional: true,
+            child: _text(
+              _chronic,
+              hint: 'Leave empty if none'.tr,
+              lines: 3,
+              caps: TextCapitalization.sentences,
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _bankStep() {
+    return [
+      _intro(
+        'Bank & documents'.tr,
+        'Your event payments are transferred to this account.'.tr,
+      ),
+      FormSection(
+        title: 'Bank account'.tr,
+        icon: Icons.account_balance_outlined,
+        children: [
+          LabeledField(
+            label: 'Iban Number'.tr,
+            child: Directionality(
+              // IBANs read left-to-right even in Arabic.
+              textDirection: TextDirection.ltr,
+              child: _text(
+                _iban,
+                hint: 'SA00 0000 0000 0000 0000 0000',
+                validator: _ibanRule,
+                caps: TextCapitalization.characters,
+                autocorrect: false,
+                formatters: [IbanInputFormatter()],
+              ),
+            ),
+          ),
+          LabeledField(
+            label: 'Bank Account Name'.tr,
+            child: _text(
+              _bankName,
+              hint: 'Name as on the bank account'.tr,
+              validator: _requiredText,
+              autofill: AutofillHints.name,
+              action: TextInputAction.done,
+            ),
+          ),
+        ],
+      ),
+      _gap,
+      FormSection(
+        title: 'Documents'.tr,
+        icon: Icons.folder_outlined,
+        children: [
+          DocumentFormField(
+            title: 'IBAN certificate'.tr,
+            hint: 'PDF or image'.tr,
+            path: c.ibanFilePath,
+            icon: Icons.receipt_long_outlined,
+            onTap: () => _pickDocument(c.handleFileSelectionForIban),
+            requiredMessage: 'Please upload this document'.tr,
+          ),
+          DocumentFormField(
+            title: 'CV / Resume'.tr,
+            hint: 'PDF or Word'.tr,
+            path: c.cvEmpPath,
+            icon: Icons.description_outlined,
+            onTap: () => _pickDocument(c.handleFileSelection),
+            requiredMessage: 'Please upload this document'.tr,
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
+      _terms(),
+    ];
+  }
+
+  Widget _terms() {
+    return FormField<bool>(
+      initialValue: c.agree,
+      validator: (_) =>
+          c.agree ? null : 'Please accept the terms to continue'.tr,
+      builder: (field) {
+        void toggle() {
+          HapticFeedback.selectionClick();
+          c.acceptAgree();
+          field.didChange(c.agree);
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: toggle,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              child: Row(
+                children: [
+                  Checkbox.adaptive(
+                    value: c.agree,
+                    activeColor: AppTheme.brand,
+                    onChanged: (_) => toggle(),
+                  ),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        text: '${'I agree to the'.tr} ',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.textBody,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Terms of Use & Privacy Policy'.tr,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.brand,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (field.hasError && !c.agree)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 12),
+                child: Text(
+                  field.errorText!,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.danger),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _text(
+    TextEditingController controller, {
+    String? hint,
+    FormFieldValidator<String>? validator,
+    TextInputType? keyboard,
+    List<TextInputFormatter>? formatters,
+    String? autofill,
+    int lines = 1,
+    TextInputAction? action,
+    TextCapitalization caps = TextCapitalization.words,
+    bool autocorrect = true,
+  }) {
+    final multiline = lines > 1;
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      keyboardType: multiline ? TextInputType.multiline : keyboard,
+      inputFormatters: formatters,
+      autofillHints: autofill == null ? null : [autofill],
+      autocorrect: autocorrect,
+      minLines: multiline ? lines : 1,
+      maxLines: multiline ? lines + 2 : 1,
+      textInputAction: action ??
+          (multiline ? TextInputAction.newline : TextInputAction.next),
+      textCapitalization: caps,
+      cursorColor: AppTheme.brand,
+      style: const TextStyle(fontSize: 15, color: AppTheme.textTitle),
+      decoration: profileInputDecoration(hint: hint),
     );
   }
 }
