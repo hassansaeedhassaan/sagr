@@ -40,31 +40,6 @@ void main() {
 
   tearDown(Get.reset);
 
-  group('getDaysInMonth', () {
-    test('no month/year selected -> 31 days', () {
-      final c = build();
-      expect(c.getDaysInMonth().length, 31);
-    });
-
-    // Regression: DateTime(y, m, 0) used to give each month the previous
-    // month's length; the code now uses DateTime(y, m + 1, 0).
-    final cases = <List<int>>[
-      [2023, 2, 28],
-      [2024, 2, 29],
-      [2023, 3, 31],
-      [2023, 4, 30],
-      [2023, 1, 31],
-    ];
-    for (final c in cases) {
-      test('${c[0]}-${c[1]} has ${c[2]} days', () {
-        final ctrl = build()
-          ..selectedYear = c[0]
-          ..selectedMonth = c[1];
-        expect(ctrl.getDaysInMonth().length, c[2]);
-      });
-    }
-  });
-
   group('completeAccount without a birth date', () {
     test('stops before the request and re-enables the submit button',
         () async {

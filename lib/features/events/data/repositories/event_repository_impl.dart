@@ -47,6 +47,9 @@ class EventsRepositoryImpl implements EventRepository {
     } on ServerException {
       return Left(ServerFailure());
     } catch (e) {
+      // Dio throws on any non-2xx before the data source can map it, and a
+      // payload EventModel.fromJson can't read is just as unloadable; both
+      // become a Failure instead of leaving the screen spinning.
       return Left(failureFromException(e));
     }
   }

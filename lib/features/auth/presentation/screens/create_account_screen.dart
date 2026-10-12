@@ -63,7 +63,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
     if (selectedMonth == null || selectedYear == null) {
       return List.generate(31, (index) => index + 1);
     }
-    int daysInMonth = DateTime(selectedYear!, selectedMonth!, 0).day;
+    // Day 0 of the *next* month is the last day of this one.
+    int daysInMonth = DateTime(selectedYear!, selectedMonth! + 1, 0).day;
     return List.generate(daysInMonth, (index) => index + 1);
   }
 

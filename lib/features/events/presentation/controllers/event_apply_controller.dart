@@ -87,7 +87,12 @@ class EventApplyController extends GetxController {
       if (Get.isRegistered<AuthController>() &&
           authController.authenticatedUser != null &&
           authController.authenticatedUser!['is_completed'] == false) {
-        Get.offNamed('/complete_account');
+        // Push over the apply form rather than replacing it: finishing the
+        // profile lands the user straight back on the form; abandoning it
+        // leaves the form too, since they can't apply yet.
+        Get.toNamed('/complete_account')?.then((completed) {
+          if (completed != true) Get.key.currentState?.pop();
+        });
       }
     });
   }

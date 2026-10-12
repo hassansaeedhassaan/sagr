@@ -25,4 +25,3 @@ const BASEURL = "https://sagr.net/api/v1";
 const APIHOST = "https://sagr.net";
 // const APIHOST = "https://sagr.softex-it.online";
 // const APIHOST = "http://172.20.10.11:8099";
-// const APIHOST = "http://127.0.0.1:8099";

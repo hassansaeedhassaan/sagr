@@ -33,9 +33,11 @@ class EventController extends GetxController {
   final RxDouble _distanceToZone = 0.0.obs;
   final RxBool _isLocationLoading = false.obs;
   final RxString _lastUpdateTime = ''.obs;
+  final RxnString _loadError = RxnString();
 
   // Getters
   bool get isLoading => _isLoading.value;
+  String? get loadError => _loadError.value;
   bool get isCheckedIn => _isCheckedIn.value;
   bool get isLocationLoading => _isLocationLoading.value;
   AttendanceStatus get attendanceStatus => _attendanceStatus.value;
@@ -185,12 +187,14 @@ class EventController extends GetxController {
   // Get event information
   Future<void> getEventInfo() async {
     _isLoading.value = true;
+    _loadError.value = null;
+    update();
 
     try {
       final id = eventIdFromArguments(Get.arguments);
       if (id == null) {
+        _loadError.value = 'Could not load this event. Please try again.';
         _handleError('Failed to get event info: missing event id');
-        _isLoading.value = false;
         return;
       }
 
@@ -198,14 +202,18 @@ class EventController extends GetxController {
 
       await failureOrProduct.fold(
         (failure) async {
+          // Screens show a retry view off this; before, a failed load left
+          // them on the skeleton forever.
+          _loadError.value = failure.message;
           _handleError('Failed to get event info: ${failure.toString()}');
-        }, 
+        },
         (receivedEvent) async {
           eventModel = receivedEvent;
           _updateLastUpdateTime();
         }
       );
     } catch (e) {
+      _loadError.value = 'Could not load this event. Please try again.';
       _handleError('Exception in getEventInfo: $e');
     } finally {
       _isLoading.value = false;
