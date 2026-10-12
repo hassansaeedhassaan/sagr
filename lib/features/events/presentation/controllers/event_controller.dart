@@ -375,7 +375,7 @@ class EventController extends GetxController {
       _updateLastUpdateTime();
       _updateStatusMessage();
 
-      // Live-map heartbeat runs only between check-in and check-out.
+      // Remember the check-in; the live-map heartbeat runs while logged in.
       if (wasCheckingIn) {
         SmartTaskManager().markCheckedIn(event?.id);
       } else {

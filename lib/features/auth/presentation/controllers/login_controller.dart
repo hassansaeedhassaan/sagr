@@ -1,3 +1,4 @@
+import 'package:sagr/smart_task_manager_service.dart';
 import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 
@@ -114,6 +115,7 @@ class LoginController extends GetxController {
       GetStorage().write('access_token', token);
       GetStorage().write('accessTypeData', payload['token_type'] ?? tokenField);
       GetStorage().write('userData', payload['user']);
+      SmartTaskManager().initialize();
 
       isLoading.value = false;
 

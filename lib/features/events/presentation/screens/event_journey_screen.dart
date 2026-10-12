@@ -397,7 +397,7 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
     return RefreshIndicator(
       onRefresh: _refresh,
       color: AppTheme.brand,
-      edgeOffset: 110,
+      edgeOffset: 140,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
@@ -444,13 +444,24 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
   }
 
   Widget _header(EventModel event, String status) {
+    final top = MediaQuery.of(context).padding.top;
+    const expanded = 232.0;
+
     return SliverAppBar(
       pinned: true,
-      expandedHeight: 168,
+      expandedHeight: expanded,
       backgroundColor: AppTheme.navy,
       foregroundColor: Colors.white,
+      // The theme's dark iconTheme otherwise wins over foregroundColor and
+      // draws the back arrow navy on navy.
+      iconTheme: const IconThemeData(color: Colors.white),
       surfaceTintColor: Colors.transparent,
       systemOverlayStyle: SystemUiOverlayStyle.light,
+      automaticallyImplyLeading: false,
+      leading: Padding(
+        padding: const EdgeInsetsDirectional.only(start: 8),
+        child: Center(child: _glassButton(const BackButtonIcon(), _goBack)),
+      ),
       actions: [
         Padding(
           padding: const EdgeInsetsDirectional.only(end: 12),
@@ -465,46 +476,193 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
           ),
         ),
       ],
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding:
-            const EdgeInsetsDirectional.only(start: 56, end: 16, bottom: 14),
-        title: Text(
-          event.name ?? '',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-        background: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: AlignmentDirectional.topStart,
-              end: AlignmentDirectional.bottomEnd,
-              colors: [AppTheme.navy, AppTheme.brandDark],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(20, 56, 20, 50),
-              child: Align(
-                alignment: AlignmentDirectional.bottomStart,
-                child: Text(
-                  event.companyName ?? '',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.75),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          // 0 when fully expanded, 1 once only the toolbar is left.
+          final range = expanded - kToolbarHeight;
+          final t = (1 -
+                  (constraints.maxHeight - top - kToolbarHeight) / range)
+              .clamp(0.0, 1.0);
+
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              const _HeaderBackdrop(),
+              // Expanded: logo, name, company and the when/where chips.
+              Opacity(
+                opacity: (1 - t * 1.6).clamp(0.0, 1.0),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                      20, top + kToolbarHeight + 4, 20, 20),
+                  child: _headerDetails(event),
+                ),
+              ),
+              // Collapsed: just the name, next to the back button.
+              Positioned(
+                top: top,
+                height: kToolbarHeight,
+                left: 0,
+                right: 0,
+                child: Opacity(
+                  opacity: ((t - 0.6) / 0.4).clamp(0.0, 1.0),
+                  child: Padding(
+                    padding:
+                        const EdgeInsetsDirectional.only(start: 64, end: 130),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        event.name ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// Back to wherever the event was opened from; when it is the first route
+  /// (opened from a notification) there is nothing to pop, so go home.
+  void _goBack() {
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    } else {
+      Get.offAllNamed('/init_view');
+    }
+  }
+
+  Widget _glassButton(Widget icon, VoidCallback onTap) {
+    return Material(
+      color: Colors.white.withOpacity(0.14),
+      shape: CircleBorder(
+        side: BorderSide(color: Colors.white.withOpacity(0.18)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: IconTheme(
+            data: const IconThemeData(color: Colors.white, size: 20),
+            child: Center(child: icon),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _headerDetails(EventModel event) {
+    final when = [event.date, event.time]
+        .where((v) => (v ?? '').trim().isNotEmpty)
+        .join(' · ');
+    final where = (event.address ?? '').trim();
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _EventLogo(logo: event.logo, name: event.name),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.name ?? '',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      height: 1.25,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if ((event.companyName ?? '').trim().isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.apartment_rounded,
+                            size: 14, color: Colors.white.withOpacity(0.7)),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            event.companyName!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.75),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (when.isNotEmpty || where.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (when.isNotEmpty) _headerChip(Icons.event_rounded, when),
+              if (where.isNotEmpty)
+                _headerChip(Icons.location_on_outlined, where),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _headerChip(IconData icon, String label) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 240),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.16)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.white),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                fontFeatures: _tabular,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1299,6 +1457,112 @@ class _CountdownCardState extends State<_CountdownCard> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Brand gradient with a soft glow and faint rings, so the header reads as
+/// designed rather than as a flat block of colour.
+class _HeaderBackdrop extends StatelessWidget {
+  const _HeaderBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [AppTheme.navy, Color(0xff0b3b4a), AppTheme.brandDark],
+          stops: [0.0, 0.55, 1.0],
+        ),
+      ),
+      child: CustomPaint(painter: _RingsPainter()),
+    );
+  }
+}
+
+class _RingsPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final origin = Offset(size.width, 0);
+
+    canvas.drawCircle(
+      Offset(size.width * 0.15, size.height * 1.05),
+      size.height * 0.75,
+      Paint()
+        ..shader = RadialGradient(colors: [
+          AppTheme.brand.withOpacity(0.35),
+          AppTheme.brand.withOpacity(0),
+        ]).createShader(Rect.fromCircle(
+          center: Offset(size.width * 0.15, size.height * 1.05),
+          radius: size.height * 0.75,
+        )),
+    );
+
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..color = Colors.white.withOpacity(0.07);
+    for (var i = 1; i <= 4; i++) {
+      canvas.drawCircle(origin, size.height * 0.32 * i, ring);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// The event's logo in a white tile, or its first letter when there is no
+/// logo or it fails to load.
+class _EventLogo extends StatelessWidget {
+  const _EventLogo({required this.logo, required this.name});
+
+  final String? logo;
+  final String? name;
+
+  @override
+  Widget build(BuildContext context) {
+    final path = (logo ?? '').trim();
+    final initial = (name ?? '').trim().isEmpty
+        ? '?'
+        : name!.trim().characters.first.toUpperCase();
+    final fallback = Center(
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: AppTheme.navy,
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+
+    return Container(
+      width: 60,
+      height: 60,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: path.isEmpty
+            ? fallback
+            : Image.network(
+                eventLogoUrl(path),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => fallback,
+              ),
       ),
     );
   }

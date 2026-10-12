@@ -32,7 +32,7 @@ void main() async {
 
  await GetStorage.init();
 
-  // Live-location heartbeat: only resumes for a logged-in, checked-in user.
+  // Live-location heartbeat: runs every 15s for a logged-in user.
   SmartTaskManager().initialize();
 
   

@@ -11,6 +11,12 @@ String userImageUrl(String path) {
   return '${HOSTURL}storage/$path';
 }
 
+/// Full URL of an event logo; the API sends a path under public/uploads/images.
+String eventLogoUrl(String path) {
+  if (path.startsWith('http')) return path;
+  return '$APIHOST/uploads/images/${path.startsWith('/') ? path.substring(1) : path}';
+}
+
 // Local realtime testing over LAN: both devices (A52 + iPhone) reach the Mac's
 // `php artisan serve --host=0.0.0.0` at its Wi-Fi IP on the shared network.
 // Swap to one of the commented lines while testing, restore production first.
