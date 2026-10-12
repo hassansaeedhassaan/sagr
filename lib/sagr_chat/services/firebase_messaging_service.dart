@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -28,7 +29,7 @@ class FirebaseMessagingService extends GetxService {
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       // Get FCM token
       String? token = await _firebaseMessaging.getToken();
-      print('FCM Token: $token');
+      appLog('FCM Token: $token');
 
       // Handle foreground messages
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);

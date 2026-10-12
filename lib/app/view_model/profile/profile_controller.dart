@@ -1,3 +1,5 @@
+import 'package:sagr/core/utils/app_log.dart';
+import 'package:sagr/core/services/session_service.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -111,7 +113,7 @@ class ProfileController extends GetxController {
   Future<void> updateProfile(context) async {
     _isLoading.value = true;
     try {
-      // print(GetStorage().read('userData'));
+      // appLog(GetStorage().read('userData'));
 
       final Map<String, dynamic> body = {
         'name': name,
@@ -152,7 +154,7 @@ class ProfileController extends GetxController {
   Future<void> changePassword(context) async {
     _isLoading.value = true;
     try {
-      // print(GetStorage().read('userData'));
+      // appLog(GetStorage().read('userData'));
 
       final Map<String, dynamic> body = {
         'old_password': old_password,
@@ -165,9 +167,7 @@ class ProfileController extends GetxController {
         final response = Map<String, dynamic>.from(data.data['data']);
 
         if (response['code'] == 200) {
-          GetStorage().remove('access_token');
-          GetStorage().remove('userData');
-          Get.offAndToNamed("/login");
+          SessionService.logout();
 
           SharedData().showAlert(context, response['message']);
         }
@@ -181,18 +181,16 @@ class ProfileController extends GetxController {
 
   Future<void> deleteAccount(context) async {
     try {
-      // print(GetStorage().read('userData'));
+      // appLog(GetStorage().read('userData'));
 
       await _authRepository.deleteAccount().then((data) {
         // Map response data to replace stored user data.
         final response = Map<String, dynamic>.from(data.data);
 
-        print(data);
+        appLog(data);
 
         if (response['code'] == 200) {
-          GetStorage().remove('access_token');
-          GetStorage().remove('userData');
-          Get.offAndToNamed("/login");
+          SessionService.logout(revokeOnServer: false);
 
           SharedData().showAlert(context, response['message']);
         }

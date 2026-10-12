@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -756,7 +757,7 @@ class _PhoneNumberInputExampleState extends State<PhoneNumberInputExample> {
                 });
                 
                 // You can perform additional actions here when country changes
-                print('Country changed to: $name ($code)');
+                appLog('Country changed to: $name ($code)');
                 
                 // Show a snackbar when country changes
                 ScaffoldMessenger.of(context).showSnackBar(

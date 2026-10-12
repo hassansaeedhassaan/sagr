@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,7 @@ class ProfileScreen extends StatelessWidget {
     // setState(() {
     index = value;
     // });
-    print(index);
+    appLog(index);
   }
 
   @override

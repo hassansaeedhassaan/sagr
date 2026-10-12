@@ -1,9 +1,9 @@
+import 'package:sagr/core/services/session_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/features/auth/presentation/controllers/auth_controller.dart';
@@ -201,6 +201,9 @@ class _MoreOneScreenState extends State<MoreOneScreen>
   Widget _buildEnhancedProfileSection(BuildContext context) {
     return GetBuilder<AuthController>(
       init: AuthController(),
+      // An already-registered controller may hold the user from before the
+      // profile was completed, so re-read it whenever this tab is built.
+      initState: (state) => state.controller?.getProfile(),
       builder: (AuthController authController) {
         if (authController.isLoading) {
           return _buildProfileShimmer();
@@ -255,7 +258,13 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                           borderRadius: BorderRadius.circular(32.h),
                         ),
 
-                        child: authController.authenticatedUser!['image'] != null ? CachedNetworkImage(imageUrl: "${HOSTURL+ authController.authenticatedUser!['image']}") : Container(),
+                        child: authController.authenticatedUser!['image'] != null
+                            ? CachedNetworkImage(
+                                imageUrl: userImageUrl(authController.authenticatedUser!['image']),
+                                fit: BoxFit.cover,
+                                errorWidget: (_, __, ___) => Image.asset('assets/images/avatar.png', fit: BoxFit.cover),
+                              )
+                            : Image.asset('assets/images/avatar.png', fit: BoxFit.cover),
                         // child: Image.asset(
                         //   'assets/images/avatar.png',
                         //   fit: BoxFit.cover,
@@ -563,13 +572,7 @@ class _MoreOneScreenState extends State<MoreOneScreen>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            GetStorage().remove('access_token');
-            GetStorage().remove('userData');
-            GetStorage().remove('loggedInUserName');
-            GetStorage().remove('loggedInUserPhone');
-            Get.offAndToNamed("/login");
-          },
+          onTap: () => SessionService.logout(),
           borderRadius: BorderRadius.circular(AppTheme.radius),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 14.h, vertical: 12.v),
@@ -704,7 +707,15 @@ class _MoreOneScreenState extends State<MoreOneScreen>
 
   /// Contact Method Item
   Widget _buildContactMethod(IconData icon, String text, Color color) {
-    return Container(
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+      onTap: () async {
+        await Clipboard.setData(ClipboardData(text: text));
+        Get.snackbar('Copied'.tr, text,
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 2));
+      },
+      child: Container(
       padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 10.v),
       decoration: BoxDecoration(
         color: AppTheme.field,
@@ -744,6 +755,7 @@ class _MoreOneScreenState extends State<MoreOneScreen>
           ),
         ],
       ),
+    ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 
 import 'package:get/get.dart';
@@ -78,7 +79,7 @@ class MessagesController extends GetxController {
   void onInit() {
     super.onInit();
 
-    print(Get.arguments);
+    appLog(Get.arguments);
     conversationId = Get.arguments!.id;
 
     ever(_paginationFilter, (_) => _findItems());
@@ -100,9 +101,9 @@ class MessagesController extends GetxController {
         _lastPage.value = true;
       }
 
-      print("Messages @@@@@@ 👏👏  👏👏");
-      print(Get.arguments);
-      print("Messages @@@@@@ 👏👏  👏👏");
+      appLog("Messages @@@@@@ 👏👏  👏👏");
+      appLog(Get.arguments);
+      appLog("Messages @@@@@@ 👏👏  👏👏");
 
       if (receivedMessages.isNotEmpty) _items.addAll(receivedMessages);
 
@@ -142,7 +143,7 @@ class MessagesController extends GetxController {
       // _isLoading.value = false;
       update();
     } catch (e) {
-      print(e);
+      appLog(e);
       Get.snackbar("Error!", 'wrong'.tr);
     }
   }

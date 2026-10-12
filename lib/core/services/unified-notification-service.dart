@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,7 +20,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-  print('🔔 Background message: ${message.messageId}');
+  appLog('🔔 Background message: ${message.messageId}');
 }
 
 class UnifiedNotificationService extends GetxService {
@@ -81,9 +82,9 @@ class UnifiedNotificationService extends GetxService {
       await _initializeFCMToken();
 
       _isInitialized = true;
-      print('✅ Notification service initialized successfully');
+      appLog('✅ Notification service initialized successfully');
     } catch (e) {
-      print('❌ Error initializing notification service: $e');
+      appLog('❌ Error initializing notification service: $e');
     }
 
     return this;
@@ -92,7 +93,7 @@ class UnifiedNotificationService extends GetxService {
   // ✅ New method to set active conversation
   void setActiveConversation(int? conversationId) {
     activeConversationId.value = conversationId;
-    print('📱 Active conversation set to: $conversationId');
+    appLog('📱 Active conversation set to: $conversationId');
   }
 
   Future<void> _requestPermissions() async {
@@ -107,12 +108,12 @@ class UnifiedNotificationService extends GetxService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('✅ User granted notification permission');
+      appLog('✅ User granted notification permission');
     } else if (settings.authorizationStatus ==
         AuthorizationStatus.provisional) {
-      print('⚠️ User granted provisional notification permission');
+      appLog('⚠️ User granted provisional notification permission');
     } else {
-      print('❌ User declined notification permission');
+      appLog('❌ User declined notification permission');
     }
   }
 
@@ -171,37 +172,34 @@ class UnifiedNotificationService extends GetxService {
       try {
         String? apnsToken = await _messaging.getAPNSToken();
         if (apnsToken != null) {
-          print('✅ APNs Token received: ${apnsToken.substring(0, 20)}...');
+          appLog('✅ APNs Token received: ${apnsToken.substring(0, 20)}...');
           return;
         }
       } catch (e) {
-        print('⏳ Waiting for APNs token... attempt ${attempts + 1}');
+        appLog('⏳ Waiting for APNs token... attempt ${attempts + 1}');
       }
 
       await Future.delayed(const Duration(milliseconds: 500));
       attempts++;
     }
 
-    print('⚠️ APNs token not received after $maxAttempts attempts');
+    appLog('⚠️ APNs token not received after $maxAttempts attempts');
   }
 
   Future<void> _initializeFCMToken() async {
     try {
-      // Get current token
-      var token = await _messaging.getToken();
-      if (Platform.isIOS) {
-        token = await _messaging.getAPNSToken();
-      }
-
+      // Always register the FCM token: Firebase cannot deliver to a raw APNs
+      // token. On iOS getToken() only works once the APNs token exists, which
+      // _waitForAPNSToken() has waited for.
+      final token = await _messaging.getToken();
       if (token != null) {
-        print('🔑 FCM Token: ${token.substring(0, 50)}...');
         await _sendTokenToServer(token);
       }
 
       // Listen for token refresh
       _messaging.onTokenRefresh.listen(_sendTokenToServer);
     } catch (e) {
-      print('❌ Error initializing FCM token: $e');
+      appLog('❌ Error initializing FCM token: $e');
     }
   }
 
@@ -210,7 +208,7 @@ class UnifiedNotificationService extends GetxService {
       final accessToken = GetStorage().read('access_token');
 
       if (accessToken == null) {
-        print('⚠️ No access token, skipping FCM token update');
+        appLog('⚠️ No access token, skipping FCM token update');
         return;
       }
 
@@ -226,18 +224,18 @@ class UnifiedNotificationService extends GetxService {
       );
 
       if (response.statusCode == 200) {
-        print('✅ FCM token sent successfully');
+        appLog('✅ FCM token sent successfully');
       } else {
-        print('❌ Failed to send FCM token: ${response.statusMessage}');
+        appLog('❌ Failed to send FCM token: ${response.statusMessage}');
       }
     } catch (e) {
-      print('❌ Error sending FCM token: $e');
+      appLog('❌ Error sending FCM token: $e');
     }
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    print('🔔 Foreground message received: ${message.messageId}');
-    print('📦 Data: ${message.data}');
+    appLog('🔔 Foreground message received: ${message.messageId}');
+    appLog('📦 Data: ${message.data}');
 
     final messageType = message.data['type'];
     final conversationId =
@@ -247,23 +245,23 @@ class UnifiedNotificationService extends GetxService {
     final isActiveConversation =
         conversationId != null && conversationId == activeConversationId.value;
 
-    print('💬 Message for conversation: $conversationId');
-    print('📱 Active conversation: ${activeConversationId.value}');
-    print('🎯 Is active: $isActiveConversation');
+    appLog('💬 Message for conversation: $conversationId');
+    appLog('📱 Active conversation: ${activeConversationId.value}');
+    appLog('🎯 Is active: $isActiveConversation');
 
     if (messageType == 'chat') {
       // ✅ Always notify app for real-time updates
       if (onMessageReceived != null) {
-        print('📲 Calling onMessageReceived callback');
+        appLog('📲 Calling onMessageReceived callback');
         onMessageReceived!(message.data);
       }
 
       // ✅ Only show notification if NOT active conversation
       if (!isActiveConversation) {
-        print('🔔 Showing notification (not active conversation)');
+        appLog('🔔 Showing notification (not active conversation)');
         await _showNotification(message);
       } else {
-        print('🔕 Suppressing notification (active conversation)');
+        appLog('🔕 Suppressing notification (active conversation)');
       }
     } else {
       // Other message types - always show notification
@@ -283,7 +281,7 @@ class UnifiedNotificationService extends GetxService {
         message.data['content'] ??
         '';
 
-    print('🔔 Showing local notification: $title - $body');
+    appLog('🔔 Showing local notification: $title - $body');
 
     await _localNotifications.show(
       message.hashCode,
@@ -309,7 +307,7 @@ class UnifiedNotificationService extends GetxService {
   }
 
   void _handleMessageTap(RemoteMessage message) {
-    print('👆 Notification tapped: ${message.data}');
+    appLog('👆 Notification tapped: ${message.data}');
 
     final conversationId =
         int.tryParse(message.data['conversation_id']?.toString() ?? '');
@@ -331,7 +329,7 @@ class UnifiedNotificationService extends GetxService {
           Get.toNamed('/chat', arguments: conversationId);
         }
       } catch (e) {
-        print('❌ Error parsing notification payload: $e');
+        appLog('❌ Error parsing notification payload: $e');
       }
     }
   }
@@ -340,10 +338,27 @@ class UnifiedNotificationService extends GetxService {
     return await _messaging.getToken();
   }
 
+  /// Registers this device for push with the logged-in user. Call after a
+  /// successful login: the token sent at cold start was skipped (no session).
   Future<void> refreshToken() async {
-    final token = await getToken();
-    if (token != null) {
-      await _sendTokenToServer(token);
+    try {
+      if (Platform.isIOS) await _waitForAPNSToken();
+      final token = await getToken();
+      if (token != null) {
+        await _sendTokenToServer(token);
+      }
+    } catch (e) {
+      appLog('❌ Error refreshing FCM token: $e');
+    }
+  }
+
+  /// Drops this device's FCM token so the next user on it doesn't receive the
+  /// previous user's pushes; a fresh token is issued on the next getToken().
+  Future<void> deleteToken() async {
+    try {
+      await _messaging.deleteToken();
+    } catch (e) {
+      appLog('❌ Error deleting FCM token: $e');
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:io';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:get/get.dart';
@@ -52,7 +53,7 @@ class AudioService extends GetxService {
     await _player!.startPlayer(
       fromURI: audioPath,
       whenFinished: () {
-        print('Audio playback finished');
+        appLog('Audio playback finished');
       },
     );
   }

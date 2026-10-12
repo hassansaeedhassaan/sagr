@@ -1288,7 +1288,7 @@ class CreateAdCountryDropDown extends StatelessWidget {
             init: CountriesController(Get.find()),
             builder: (CountriesController _countryCntr) {
               return CustomDropdownV2<Country?>(
-                // onChange: (int index) => print(_countryCntr.countries[index]),
+                // onChange: (int index) => appLog(_countryCntr.countries[index]),
                 onChange: (int index) => createAdController
                     .setFeaturedSelectedCountry(_countryCntr.countries[index]),
                 dropdownButtonStyle: DropdownButtonStyle(
@@ -1355,7 +1355,7 @@ class CreateAdStateDropDown extends StatelessWidget {
             init: CountriesController(Get.find()),
             builder: (CountriesController _countryCntr) {
               return CustomDropdownV2<StateModel?>(
-                // onChange: (int index) => print(_countryCntr.countries[index]),
+                // onChange: (int index) => appLog(_countryCntr.countries[index]),
                 onChange: (int index) =>
                     createAdController.setFeaturedSelectedState(
                         createAdController.selectedCountry.states![index]),
@@ -1427,7 +1427,7 @@ class CreateAdCityDropDown extends StatelessWidget {
                 init: CountriesController(Get.find()),
                 builder: (CountriesController _countryCntr) {
                   return CustomDropdownV2<CityModel?>(
-                    // onChange: (int index) => print(_countryCntr.countries[index]),
+                    // onChange: (int index) => appLog(_countryCntr.countries[index]),
                     onChange: (int index) =>
                         createAdController.setFeaturedSelectedCity(
                             createAdController.selectedState.cities![index]),

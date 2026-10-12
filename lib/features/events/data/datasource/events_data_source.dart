@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -67,8 +68,8 @@ class EventsDataSourceImpl extends EventsDataSource {
   Map<DateTime, List<EventCalenderModel>> events = {};
   
   try {
-    print("🔍 Raw response data type: ${responseData.runtimeType}");
-    print("🔍 Raw response data: $responseData");
+    appLog("🔍 Raw response data type: ${responseData.runtimeType}");
+    appLog("🔍 Raw response data: $responseData");
     
     // Handle different response formats
     dynamic dataToProcess;
@@ -81,13 +82,13 @@ class EventsDataSourceImpl extends EventsDataSource {
     
     // Case 1: Laravel success response format: {"success": true, "data": {...}}
     if (dataToProcess is Map<String, dynamic> && dataToProcess.containsKey('data')) {
-      print("📦 Detected Laravel success response format");
+      appLog("📦 Detected Laravel success response format");
       dataToProcess = dataToProcess['data'];
     }
     
     // Case 2: Direct array of events [event1, event2, ...]
     if (dataToProcess is List) {
-      print("📋 Detected flat list format with ${dataToProcess.length} events");
+      appLog("📋 Detected flat list format with ${dataToProcess.length} events");
       
       for (var eventJson in dataToProcess) {
         try {
@@ -107,24 +108,24 @@ class EventsDataSourceImpl extends EventsDataSource {
             events[day] = [event];
           }
           
-          print("✅ Successfully parsed event: ${event.id} ${event.name} ${event.startTime} ${event.endTime}");
+          appLog("✅ Successfully parsed event: ${event.id} ${event.name} ${event.startTime} ${event.endTime}");
           
         } catch (e) {
-          print('❌ Error parsing event: $e');
-          print('Event JSON: $eventJson');
+          appLog('❌ Error parsing event: $e');
+          appLog('Event JSON: $eventJson');
         }
       }
     }
     // Case 3: Grouped format {"2025-07-27": [events], "2025-07-30": [events]}
     else if (dataToProcess is Map<String, dynamic>) {
-      print("📅 Detected grouped format with ${dataToProcess.keys.length} date groups");
+      appLog("📅 Detected grouped format with ${dataToProcess.keys.length} date groups");
       
       dataToProcess.forEach((dateKey, eventsList) {
-        print("\n📅 Processing date: $dateKey");
-        print("Events list type: ${eventsList.runtimeType}");
+        appLog("\n📅 Processing date: $dateKey");
+        appLog("Events list type: ${eventsList.runtimeType}");
         
         if (eventsList is List) {
-          print("Found ${eventsList.length} events for $dateKey");
+          appLog("Found ${eventsList.length} events for $dateKey");
           
           for (int i = 0; i < eventsList.length; i++) {
             var eventJson = eventsList[i];
@@ -146,15 +147,15 @@ class EventsDataSourceImpl extends EventsDataSource {
                 events[day] = [event];
               }
               
-              print("✅ Successfully parsed event: ${event.name}");
+              appLog("✅ Successfully parsed event: ${event.name}");
               
             } catch (e) {
-              print('❌ Error parsing event $i: $e');
-              print('Event JSON: $eventJson');
+              appLog('❌ Error parsing event $i: $e');
+              appLog('Event JSON: $eventJson');
             }
           }
         } else {
-          print("❌ Expected List but got ${eventsList.runtimeType} for date $dateKey");
+          appLog("❌ Expected List but got ${eventsList.runtimeType} for date $dateKey");
         }
       });
     }
@@ -162,14 +163,14 @@ class EventsDataSourceImpl extends EventsDataSource {
       throw Exception('Unsupported data format: ${dataToProcess.runtimeType}');
     }
     
-    print("\n✅ Successfully parsed ${events.length} days with events");
-    print("Events map keys: ${events.keys.map((e) => e.toString()).toList()}");
+    appLog("\n✅ Successfully parsed ${events.length} days with events");
+    appLog("Events map keys: ${events.keys.map((e) => e.toString()).toList()}");
     
     return events;
     
   } catch (e, stackTrace) {
-    print('❌ Error parsing calendar events: $e');
-    print('❌ Stack trace: $stackTrace');
+    appLog('❌ Error parsing calendar events: $e');
+    appLog('❌ Stack trace: $stackTrace');
     return {};
   }
 }
@@ -178,8 +179,8 @@ class EventsDataSourceImpl extends EventsDataSource {
 //   Map<DateTime, List<EventCalenderModel>> events = {};
   
 //   try {
-//     print("🔍 Raw response data type: ${responseData.runtimeType}");
-//     print("🔍 Raw response data: $responseData");
+//     appLog("🔍 Raw response data type: ${responseData.runtimeType}");
+//     appLog("🔍 Raw response data: $responseData");
     
 //     // Handle different response formats
 //     dynamic dataToProcess;
@@ -192,13 +193,13 @@ class EventsDataSourceImpl extends EventsDataSource {
     
 //     // Case 1: Laravel success response format: {"success": true, "data": {...}}
 //     if (dataToProcess is Map<String, dynamic> && dataToProcess.containsKey('data')) {
-//       print("📦 Detected Laravel success response format");
+//       appLog("📦 Detected Laravel success response format");
 //       dataToProcess = dataToProcess['data'];
 //     }
     
 //     // Case 2: Direct array of events [event1, event2, ...]
 //     if (dataToProcess is List) {
-//       print("📋 Detected flat list format with ${dataToProcess.length} events");
+//       appLog("📋 Detected flat list format with ${dataToProcess.length} events");
       
 //       for (var eventJson in dataToProcess) {
 //         try {
@@ -218,24 +219,24 @@ class EventsDataSourceImpl extends EventsDataSource {
 //             events[day] = [event];
 //           }
           
-//           print("✅ Successfully parsed event: ${event.name}");
+//           appLog("✅ Successfully parsed event: ${event.name}");
           
 //         } catch (e) {
-//           print('❌ Error parsing event: $e');
-//           print('Event JSON: $eventJson');
+//           appLog('❌ Error parsing event: $e');
+//           appLog('Event JSON: $eventJson');
 //         }
 //       }
 //     }
 //     // Case 3: Grouped format {"2025-07-27": [events], "2025-07-30": [events]}
 //     else if (dataToProcess is Map<String, dynamic>) {
-//       print("📅 Detected grouped format with ${dataToProcess.keys.length} date groups");
+//       appLog("📅 Detected grouped format with ${dataToProcess.keys.length} date groups");
       
 //       dataToProcess.forEach((dateKey, eventsList) {
-//         print("\n📅 Processing date: $dateKey");
-//         print("Events list type: ${eventsList.runtimeType}");
+//         appLog("\n📅 Processing date: $dateKey");
+//         appLog("Events list type: ${eventsList.runtimeType}");
         
 //         if (eventsList is List) {
-//           print("Found ${eventsList.length} events for $dateKey");
+//           appLog("Found ${eventsList.length} events for $dateKey");
           
 //           for (int i = 0; i < eventsList.length; i++) {
 //             var eventJson = eventsList[i];
@@ -257,15 +258,15 @@ class EventsDataSourceImpl extends EventsDataSource {
 //                 events[day] = [event];
 //               }
               
-//               print("✅ Successfully parsed event: ${event.name}");
+//               appLog("✅ Successfully parsed event: ${event.name}");
               
 //             } catch (e) {
-//               print('❌ Error parsing event $i: $e');
-//               print('Event JSON: $eventJson');
+//               appLog('❌ Error parsing event $i: $e');
+//               appLog('Event JSON: $eventJson');
 //             }
 //           }
 //         } else {
-//           print("❌ Expected List but got ${eventsList.runtimeType} for date $dateKey");
+//           appLog("❌ Expected List but got ${eventsList.runtimeType} for date $dateKey");
 //         }
 //       });
 //     }
@@ -273,14 +274,14 @@ class EventsDataSourceImpl extends EventsDataSource {
 //       throw Exception('Unsupported data format: ${dataToProcess.runtimeType}');
 //     }
     
-//     print("\n✅ Successfully parsed ${events.length} days with events");
-//     print("Events map keys: ${events.keys.map((e) => e.toString()).toList()}");
+//     appLog("\n✅ Successfully parsed ${events.length} days with events");
+//     appLog("Events map keys: ${events.keys.map((e) => e.toString()).toList()}");
     
 //     return events;
     
 //   } catch (e, stackTrace) {
-//     print('❌ Error parsing calendar events: $e');
-//     print('❌ Stack trace: $stackTrace');
+//     appLog('❌ Error parsing calendar events: $e');
+//     appLog('❌ Stack trace: $stackTrace');
 //     return {};
 //   }
 // }
@@ -306,14 +307,14 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
           events[day] = [event];
         }
       } catch (e) {
-        print('Error parsing individual event: $e');
+        appLog('Error parsing individual event: $e');
       }
     }
     
     return events;
     
   } catch (e) {
-    print('Error parsing events: $e');
+    appLog('Error parsing events: $e');
     return {};
   }
   
@@ -339,81 +340,43 @@ Map<DateTime, List<EventCalenderModel>> parseCalendarEventsSimple(List<dynamic> 
     //   final response = await dio
     //       .post("https://crowds.sa/api/v1/event/apply", data: body);
 
-    //   print('Response: ${response.data}');
+    //   appLog('Response: ${response.data}');
     // } on DioException catch (e) {
     //   // كل أخطاء Dio بتيجي هنا
     //   if (e.type == DioExceptionType.connectionTimeout) {
-    //     print('Connection Timeout');
+    //     appLog('Connection Timeout');
     //   } else if (e.type == DioExceptionType.sendTimeout) {
-    //     print('Send Timeout');
+    //     appLog('Send Timeout');
     //   } else if (e.type == DioExceptionType.receiveTimeout) {
-    //     print('Receive Timeout');
+    //     appLog('Receive Timeout');
     //   } else if (e.type == DioExceptionType.badResponse) {
     //     // في حالة السيرفر رجّع استجابة بخطأ (مثلاً 400 أو 500)
     //     final statusCode = e.response?.statusCode;
     //     final data = e.response?.data;
-    //     print('Server error: $statusCode - $data');
+    //     appLog('Server error: $statusCode - $data');
     //   } else if (e.type == DioExceptionType.cancel) {
-    //     print('Request was cancelled');
+    //     appLog('Request was cancelled');
     //   } else if (e.type == DioExceptionType.unknown) {
-    //     print('Unknown error: ${e.message}');
+    //     appLog('Unknown error: ${e.message}');
     //   } else {
-    //     print('Other Dio error: ${e.message}');
+    //     appLog('Other Dio error: ${e.message}');
     //   }
     // } catch (e) {
     //   // أي خطأ ثاني غير Dio
-    //   print('Unexpected error: $e');
+    //   appLog('Unexpected error: $e');
     // }
 
 
 
-print(body);
-try {
-      // Pinned explicitly: a Map body must not go out as multipart, or PHP
-      // discards it and the server answers 422 with every field "required".
-      final response = await dio.post(
-        "$BASEURL/event/apply",
-        data: body,
-        options: Options(contentType: Headers.jsonContentType),
-      );
-
-      return response;
-    } on DioException catch (e) {
-      // كل أخطاء Dio بتيجي هنا
-      if (e.type == DioExceptionType.connectionTimeout) {
-        print('Connection Timeout');
-      } else if (e.type == DioExceptionType.sendTimeout) {
-        print('Send Timeout');
-      } else if (e.type == DioExceptionType.receiveTimeout) {
-        print('Receive Timeout');
-      } else if (e.type == DioExceptionType.badResponse) {
-        // في حالة السيرفر رجّع استجابة بخطأ (مثلاً 400 أو 500)
-        final statusCode = e.response?.statusCode;
-        final data = e.response?.data;
-        print('Server error: $statusCode - $data');
-      } else if (e.type == DioExceptionType.cancel) {
-        print('Request was cancelled');
-      } else if (e.type == DioExceptionType.unknown) {
-        print('Unknown error: ${e.message}');
-      } else {
-        print('Other Dio error: ${e.message}');
-      }
-    } catch (e) {
-      // أي خطأ ثاني غير Dio
-      print('Unexpected error: $e');
-      
-    }
-
-        throw ServerException();
-
-    // var response = await dio.post("$BASEURL/event/apply", data: body);
-
-    // if (response.statusCode == 200) {
-    //   return response;
-    // } else {
-    //   throw ServerException();
-    // }
-  
+    // Pinned explicitly: a Map body must not go out as multipart, or PHP
+    // discards it and the server answers 422 with every field "required".
+    // Errors propagate as DioException; the repository turns them into a
+    // Failure that keeps the server's reason ("already applied", ...).
+    return dio.post(
+      "$BASEURL/event/apply",
+      data: body,
+      options: Options(contentType: Headers.jsonContentType),
+    );
   }
 
 
@@ -441,46 +404,8 @@ try {
   }
 
   @override
-  Future<Response> applicationStatus(Map<String, dynamic> body) async {
-    try {
-      final response = await dio
-          .post("$BASEURL/application/status/event", data: body);
-
-      return response;
-    } on DioException catch (e) {
-      // كل أخطاء Dio بتيجي هنا
-      if (e.type == DioExceptionType.connectionTimeout) {
-        print('Connection Timeout');
-      } else if (e.type == DioExceptionType.sendTimeout) {
-        print('Send Timeout');
-      } else if (e.type == DioExceptionType.receiveTimeout) {
-        print('Receive Timeout');
-      } else if (e.type == DioExceptionType.badResponse) {
-        // في حالة السيرفر رجّع استجابة بخطأ (مثلاً 400 أو 500)
-        final statusCode = e.response?.statusCode;
-        final data = e.response?.data;
-        print('Server error: $statusCode - $data');
-      } else if (e.type == DioExceptionType.cancel) {
-        print('Request was cancelled');
-      } else if (e.type == DioExceptionType.unknown) {
-        print('Unknown error: ${e.message}');
-      } else {
-        print('Other Dio error: ${e.message}');
-      }
-    } catch (e) {
-      // أي خطأ ثاني غير Dio
-      print('Unexpected error: $e');
-    }
-
-    // var response = await dio.post("$BASEURL/attendance/records", data: body);
-
-    // if (response.statusCode == 200) {
-    //   return response;
-    // } else {
-    //   throw ServerException();
-    // }
-
-      throw ServerException();
-
+  Future<Response> applicationStatus(Map<String, dynamic> body) {
+    // Errors propagate as DioException; see apply().
+    return dio.post("$BASEURL/application/status/event", data: body);
   }
 }

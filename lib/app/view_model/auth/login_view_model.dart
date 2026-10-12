@@ -62,13 +62,13 @@ class LoginViewModel extends GetxController {
     //   // }
     // } on dioPc.DioError catch (e) {
     //   Get.snackbar("Error!", e.response.data['error']);
-    //   print(e.response.data);
-    //   print(e.response.headers);
-    //   print(e.response.request);
+    //   appLog(e.response.data);
+    //   appLog(e.response.headers);
+    //   appLog(e.response.request);
 
     //   // Something happened in setting up or sending the request that triggered an Error
-    //   print(e.request);
-    //   print(e.message);
+    //   appLog(e.request);
+    //   appLog(e.message);
     // }
   }
 }

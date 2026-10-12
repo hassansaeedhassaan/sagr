@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:io';
 
 import 'package:animated_custom_dropdown/custom_dropdown.dart';
@@ -593,8 +594,8 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                               .toList(),
                                           onListChanged: (value) {
                                             // accountController.setSelectedLanguages(value);
-                                            print(value);
-                                            print(
+                                            appLog(value);
+                                            appLog(
                                                 'SimpleDropdown onChanged value: $value');
                                           },
                                         ),
@@ -1001,7 +1002,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                       children: [
                                         ModernFileUpload(
                                           "إرفاق السيرة الذاتية",
-                                          accountController.ibanFilePath == ''
+                                          accountController.cvEmpPath == ''
                                               ? Icon(
                                                   Icons.picture_as_pdf_rounded,
                                                   size: 20,
@@ -1011,7 +1012,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                               .handleFileSelection(),
                                           9,
                                         ),
-                                        accountController.ibanFilePath != ''
+                                        accountController.cvEmpPath != ''
                                             ? Row(
                                                 children: [
                                                   Icon(
@@ -1033,7 +1034,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen>
                                                     size: 12,
                                                   ),
                                                   Text(
-                                                    "Iban File Required".tr,
+                                                    "Cv File Required".tr,
                                                     style:
                                                         TextStyle(fontSize: 12),
                                                   )

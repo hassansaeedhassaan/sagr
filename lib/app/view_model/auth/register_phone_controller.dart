@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 
 import 'package:get/get.dart';
 
@@ -87,7 +88,7 @@ void reg(){
         final response = new Map<String, dynamic>.from(data);
 
 
-        print(response);
+        appLog(response);
         if (response['status'] == 200) {
           // _open_confirm_dialog.value = true;
 

@@ -93,19 +93,19 @@ class CategoriesController extends GetxController {
 //     CategoryModel cat =
 //         subCategories.firstWhere((element) => element.id == subCategoryId);
 
-// // print(cat);
+// // appLog(cat);
 //     // cat.childs!.clear();
 //     // cat.childs!.addAll(subCategories);
 
 //     categoriesList.add({subCategoryId: cat.childs!});
 
-//     print("🤌");
-//     print(categoriesList);
+//     appLog("🤌");
+//     appLog(categoriesList);
 
 //     var logger = Logger();
 
 //     logger.d(categoriesList);
-//     print("😋");
+//     appLog("😋");
 
     update();
   }
@@ -123,19 +123,19 @@ class CategoriesController extends GetxController {
 //     CategoryModel cat =
 //         subCategories.firstWhere((element) => element.id == subCategoryId);
 
-// // print(cat);
+// // appLog(cat);
 //     // cat.childs!.clear();
 //     // cat.childs!.addAll(subCategories);
 
 //     categoriesList.add({subCategoryId: cat.childs!});
 
-//     print("🤌");
-//     print(categoriesList);
+//     appLog("🤌");
+//     appLog(categoriesList);
 
 //     var logger = Logger();
 
 //     logger.d(categoriesList);
-//     print("😋");
+//     appLog("😋");
 
     update();
   }
@@ -182,13 +182,13 @@ class CategoriesController extends GetxController {
 
         // categoriesList.add({receivedCategories[0].id!: receivedCategories});
 
-        // print("🙄Start 01");
+        // appLog("🙄Start 01");
 
         // var logger = Logger( printer: PrettyPrinter());
 
         // logger.d(categoriesList[0]);
 
-        // print("End 01");
+        // appLog("End 01");
       }
 
       _productsLoading.value = false;
@@ -230,13 +230,13 @@ class CategoriesController extends GetxController {
 
         // categoriesList.add({categoryId!: receivedCategories});
 
-        // print("🙄Start 01");
-        // print(categoriesList.reversed);
+        // appLog("🙄Start 01");
+        // appLog(categoriesList.reversed);
 
         //  var logger = Logger( printer: PrettyPrinter());
 
         // logger.d(categoriesList.reversed);
-        // print("End 01");
+        // appLog("End 01");
 
         // _findSubCategories(receivedCategories[0].id);
       }
@@ -265,13 +265,13 @@ class CategoriesController extends GetxController {
 
         // categoriesList.add({categoryId!: receivedCategories});
 
-        // print("🙄Start 01");
-        // print(categoriesList.reversed);
+        // appLog("🙄Start 01");
+        // appLog(categoriesList.reversed);
 
         //  var logger = Logger( printer: PrettyPrinter());
 
         // logger.d(categoriesList.reversed);
-        // print("End 01");
+        // appLog("End 01");
 
         // _findSubCategories(receivedCategories[0].id);
       }

@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
@@ -19,6 +20,8 @@ class EducationRepositoryImpl implements EducationRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 }

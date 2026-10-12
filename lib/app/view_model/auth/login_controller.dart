@@ -1,6 +1,9 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sagr/core/services/unified-notification-service.dart';
+import 'package:sagr/exceptions/rest_exception.dart';
 import 'package:sagr/repositories/auth_repository.dart';
+import 'package:sagr/smart_task_manager_service.dart';
 
 class LoginController extends GetxController {
   final AuthRepository _authRepository;
@@ -90,15 +93,23 @@ class LoginController extends GetxController {
         GetStorage().write('accessTypeData', response['access_token']);
 
         if (response['access_token']['token'] != "") {
-          
+          // Register this device for push now: the token sent at cold start
+          // was skipped because nobody was logged in yet.
+          if (Get.isRegistered<UnifiedNotificationService>()) {
+            UnifiedNotificationService.instance.refreshToken();
+          }
+          SmartTaskManager().initialize();
+
           Get.snackbar("Success Message".tr, "");
 
           Future.delayed(const Duration(milliseconds: 1500)).then((value) =>  Get.offAllNamed('/home_screen'));
         }
       });
       isLoading.value = false;
+    } on RestException catch (e) {
+      Get.snackbar("Error!", e.message.tr);
+      isLoading.value = false;
     } catch (e) {
-      print(e);
       Get.snackbar("Error!", 'wrong'.tr);
       isLoading.value = false;
     }

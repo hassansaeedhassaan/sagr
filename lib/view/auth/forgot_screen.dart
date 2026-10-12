@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sagr/view/auth/widgets/Forms/label_text_form_field.dart';
@@ -370,14 +371,14 @@ class ForgotScreen extends StatelessWidget {
                                                             _controller
                                                                 .setConfirmCode(
                                                                     value);
-                                                            print(value);
+                                                            appLog(value);
                                                             // setState(() {
                                                             //   currentText = value;
                                                             // });
                                                           },
                                                           beforeTextPaste:
                                                               (text) {
-                                                            print(
+                                                            appLog(
                                                                 "Allowing to paste $text");
                                                             //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
                                                             //but you can show anything you want here, like your pop up saying wrong paste format or etc
@@ -407,7 +408,7 @@ class ForgotScreen extends StatelessWidget {
                                                                               BLACK_COLOR)),
                                                               GestureDetector(
                                                                 onTap: () =>
-                                                                    print(
+                                                                    appLog(
                                                                         "sadsad"),
                                                                 child: Text(
                                                                     "اضغط هنا",

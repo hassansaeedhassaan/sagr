@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -112,9 +113,10 @@ class EventsController extends GetxController {
       }
     }
 
-    final failureOrEvents = await eventsUsecase(_paginationFilter.value);
-
-    _fetching = false;
+    // whenComplete: a thrown error must not leave _fetching stuck true, or
+    // the list never loads again.
+    final failureOrEvents = await eventsUsecase(_paginationFilter.value)
+        .whenComplete(() => _fetching = false);
 
     // A newer request started while this one was in flight — its results are
     // the ones on screen now, so this response is stale.
@@ -191,7 +193,7 @@ void _showErrorToUser(String message) {
 }
 
   Future<void> getEventDetails() async {
-    print(Get.arguments);
+    appLog(Get.arguments);
     return Get.arguments;
     final failureOrEvent = await eventsUsecase.getEventDetails(Get.arguments);
 
@@ -203,7 +205,7 @@ void _showErrorToUser(String message) {
 
       event = receivedEvent;
 
-      print(receivedEvent);
+      appLog(receivedEvent);
 
       update();
     });

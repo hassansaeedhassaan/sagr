@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/features/comments/data/models/comment_model.dart';
 import 'package:sagr/helper/base_url.dart';
@@ -47,7 +48,7 @@ class CommentDataSourceImpl extends CommentDataSource {
         return response;
       }
     } on DioException catch (e) {
-      print(e.response?.statusCode);
+      appLog(e.response?.statusCode);
 
       throw ServerException();
     }
@@ -58,9 +59,9 @@ class CommentDataSourceImpl extends CommentDataSource {
   @override
   Future<Response> updateComment(Map<String, dynamic> body) async {
 
-    print("👇👇👇👇👇👇👇👇👇👇");
-    print(body);
-    print("👆👆👆👆👆👆👆👆👆👆");
+    appLog("👇👇👇👇👇👇👇👇👇👇");
+    appLog(body);
+    appLog("👆👆👆👆👆👆👆👆👆👆");
     try {
       var response = await dio.put(BASEURL + '/users/advertisement/${body['adId']}/comments/${body['commentId']}',
           data: body);
@@ -69,8 +70,8 @@ class CommentDataSourceImpl extends CommentDataSource {
       }
     } on DioException catch (e) {
 
-      print(e);
-      print(e.response?.statusCode);
+      appLog(e);
+      appLog(e.response?.statusCode);
 
       throw ServerException();
     }
@@ -90,8 +91,8 @@ class CommentDataSourceImpl extends CommentDataSource {
         return response;
       }
     } on DioException catch (e) {
-      print(e.response?.data['error']);
-      print(e.response?.statusCode);
+      appLog(e.response?.data['error']);
+      appLog(e.response?.statusCode);
 
       throw ServerException();
     }

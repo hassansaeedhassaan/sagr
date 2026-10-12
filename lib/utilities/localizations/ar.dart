@@ -437,6 +437,7 @@ const Map<String, String> ar = {
   "Connected Users": "المتصلون",
   "Connecting...": "جارٍ الاتصال...",
   "Continue": "متابعة",
+  "Cv File Required": "السيرة الذاتية مطلوبة",
   "Cv File Uploaded": "تم رفع السيرة الذاتية",
   "Description": "الوصف",
   "Disconnected": "غير متصل",
@@ -581,4 +582,5 @@ const Map<String, String> ar = {
   "Only this event's supervisors can listen to its recordings.": "يمكن لمشرفي هذه الفعالية فقط الاستماع إلى تسجيلاتها.",
   "Team channel": "قناة الفريق",
   "Could not play this recording.": "تعذّر تشغيل هذا التسجيل.",
+  "Copied": "تم النسخ",
 };

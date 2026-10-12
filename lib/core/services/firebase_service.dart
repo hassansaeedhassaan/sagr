@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
@@ -40,9 +41,9 @@ class FirebaseService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted notification permission');
+      appLog('User granted notification permission');
     } else {
-      print('User declined or has not accepted notification permission');
+      appLog('User declined or has not accepted notification permission');
     }
 
     // Initialize local notifications
@@ -75,7 +76,7 @@ class FirebaseService {
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
 //     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-//   print('Message data: ${message.data}');
+//   appLog('Message data: ${message.data}');
   
 //   // Access custom data
 //   String? type = message.data['type'];
@@ -122,7 +123,7 @@ class FirebaseService {
           // TODO: Navigate to conversation
         }
       } catch (e) {
-        print('Error parsing notification payload: $e');
+        appLog('Error parsing notification payload: $e');
       }
     }
   }
@@ -135,18 +136,18 @@ class FirebaseService {
       try {
         String? apnsToken = await _messaging.getToken();
         if (apnsToken != null) {
-          print('APNs Token received: $apnsToken');
+          appLog('APNs Token received: $apnsToken');
           return;
         }
       } catch (e) {
-        print('Waiting for APNs token... attempt ${attempts + 1}');
+        appLog('Waiting for APNs token... attempt ${attempts + 1}');
       }
       
       await Future.delayed(Duration(milliseconds: 500));
       attempts++;
     }
     
-    print('Warning: APNs token not received after $maxAttempts attempts');
+    appLog('Warning: APNs token not received after $maxAttempts attempts');
   }
   
   
@@ -155,7 +156,7 @@ class FirebaseService {
 
 
 
-// print("🤔🤔🤔🤔🤔🤔🤔🤔");
+// appLog("🤔🤔🤔🤔🤔🤔🤔🤔");
 // if ( message.data['type'] != 'chat_message'){
 //         return;
 //       }
@@ -236,7 +237,7 @@ class FirebaseService {
 //       } else {
 //         // showNotification(message);
 //       }
-print("🤔🤔🤔🤔🤔🤔🤔🤔");
+appLog("🤔🤔🤔🤔🤔🤔🤔🤔");
 
 
     // RemoteNotification? notification = message.notification;
@@ -301,12 +302,12 @@ print("🤔🤔🤔🤔🤔🤔🤔🤔");
 
 
   //     if (response.statusCode == 200) {
-  //       print('Location sent successfully');
+  //       appLog('Location sent successfully');
   //     } else {
-  //       print('Failed to send location _sendToServer: ${response.body}');
+  //       appLog('Failed to send location _sendToServer: ${response.body}');
   //     }
   //   } catch (e) {
-  //     print('Error sending location to server: $e');
+  //     appLog('Error sending location to server: $e');
   //   }
   
   //   // if (await _authService.isLoggedIn()) {
@@ -321,7 +322,7 @@ Future<void> _updateFcmToken(String token) async {
       // final AuthController authController = Get.put(AuthController());
 
 
-// print(authController.authenticatedUser.toString());
+// appLog(authController.authenticatedUser.toString());
 
 
     
@@ -340,12 +341,12 @@ Future<void> _updateFcmToken(String token) async {
     // ).timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
-      print('FCM token sent successfully');
+      appLog('FCM token sent successfully');
     } else {
-      print('Failed to send FCM token: ${response.body}');
+      appLog('Failed to send FCM token: ${response.body}');
     }
   } catch (e) {
-    print('Error sending FCM token to server: $e');
+    appLog('Error sending FCM token to server: $e');
   }
 }
 
@@ -361,5 +362,5 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-  print('Handling a background message: ${message.messageId}');
+  appLog('Handling a background message: ${message.messageId}');
 }

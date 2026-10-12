@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:sagr/helper/base_url.dart';
 
 import 'message_status.dart';
@@ -120,25 +121,25 @@ class Message {
 
 
    void dump() {
-    print('═══════════════════════════════════════');
-    print('MESSAGE DUMP');
-    print('═══════════════════════════════════════');
-    print('ID: $id');
-    print('Conversation ID: $conversationId');
-    print('Sender ID: $senderId');
-    print('Type: $type');
-    print('Content: $content');
-    print('Media URL: $mediaUrl');
-    print('Reply To ID: $replyToId');
-    print('Created At: $createdAt');
-    print('Duration: $duration');
-    print('File Name: $fileName');
-    print('File Size: $fileSize');
-    print('Display Content: $displayContent');
-    print('Sender: ${sender?.toJson()}');
-    // print('Reply To: ${replyTo?.toJson()}');
-    // print('Statuses: ${statuses.map((s) => s.toJson()).toList()}');
-    print('═══════════════════════════════════════');
+    appLog('═══════════════════════════════════════');
+    appLog('MESSAGE DUMP');
+    appLog('═══════════════════════════════════════');
+    appLog('ID: $id');
+    appLog('Conversation ID: $conversationId');
+    appLog('Sender ID: $senderId');
+    appLog('Type: $type');
+    appLog('Content: $content');
+    appLog('Media URL: $mediaUrl');
+    appLog('Reply To ID: $replyToId');
+    appLog('Created At: $createdAt');
+    appLog('Duration: $duration');
+    appLog('File Name: $fileName');
+    appLog('File Size: $fileSize');
+    appLog('Display Content: $displayContent');
+    appLog('Sender: ${sender?.toJson()}');
+    // appLog('Reply To: ${replyTo?.toJson()}');
+    // appLog('Statuses: ${statuses.map((s) => s.toJson()).toList()}');
+    appLog('═══════════════════════════════════════');
   }
 
 

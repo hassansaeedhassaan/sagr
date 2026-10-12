@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/features/myfavorites/domain/repositories/favorite_products_repository.dart';
 import 'package:sagr/features/products/domain/entities/product.dart';
@@ -21,6 +22,8 @@ class FavoriteProductsRepositoryImpl implements FavoriteProductsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 

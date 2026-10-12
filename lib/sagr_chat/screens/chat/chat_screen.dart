@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -28,7 +29,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final ScrollController scrollController = ScrollController();
   final TextEditingController messageController = TextEditingController();
   
-  late Conversation conversation;
+  // Resolved in initState: callers pass a Conversation, notification taps
+  // pass only its id, which is looked up (or fetched) before showing the chat.
+  Conversation? _conversation;
+  Conversation get conversation => _conversation!;
   bool isRecording = false;
   Message? replyToMessage;
   int currentPage = 1;
@@ -63,25 +67,43 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     // ✅ Add lifecycle observer
     WidgetsBinding.instance.addObserver(this);
     
-    // Get conversation from arguments
-    conversation = Get.arguments as Conversation;
-    
-    // ✅ Set this as the active conversation
-    chatController.setCurrentConversation(conversation.id);
-    
-    // Load initial messages
-    chatController.loadMessages(conversation.id);
-    
-    // Setup scroll listener for pagination
     scrollController.addListener(_onScroll);
-    
-    print('✅ Chat screen initialized for conversation: ${conversation.id}');
+
+    final args = Get.arguments;
+    if (args is Conversation) {
+      _open(args);
+    } else {
+      final id = args is int ? args : int.tryParse('${args ?? ''}');
+      _resolveById(id);
+    }
+  }
+
+  void _open(Conversation c) {
+    _conversation = c;
+    chatController.setCurrentConversation(c.id);
+    chatController.loadMessages(c.id);
+  }
+
+  Future<void> _resolveById(int? id) async {
+    if (id == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => Get.back());
+      return;
+    }
+    var found = chatController.conversations.firstWhereOrNull((c) => c.id == id);
+    if (found == null) {
+      await chatController.loadConversations();
+      found = chatController.conversations.firstWhereOrNull((c) => c.id == id);
+    }
+    if (!mounted) return;
+    if (found == null) {
+      Get.offNamed('/sagr_chat');
+      return;
+    }
+    setState(() => _open(found!));
   }
 
   @override
   void dispose() {
-    print('🔴 Chat screen disposing for conversation: ${conversation.id}');
-
     _typingTimer?.cancel();
 
     // ✅ Clear active conversation
@@ -101,13 +123,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+    if (_conversation == null) return;
     
-    print('📱 App lifecycle state changed: $state');
+    appLog('📱 App lifecycle state changed: $state');
     
     switch (state) {
       case AppLifecycleState.resumed:
         // ✅ App came to foreground - set active conversation
-        print('✅ App resumed - setting active conversation: ${conversation.id}');
+        appLog('✅ App resumed - setting active conversation: ${conversation.id}');
         chatController.setCurrentConversation(conversation.id);
         
         // Reload messages to get any new ones
@@ -116,23 +139,23 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         
       case AppLifecycleState.paused:
         // ✅ App went to background - clear active conversation
-        print('⏸️ App paused - clearing active conversation');
+        appLog('⏸️ App paused - clearing active conversation');
         chatController.setCurrentConversation(null);
         break;
         
       case AppLifecycleState.inactive:
         // App is inactive (e.g., taking a call)
-        print('⏸️ App inactive');
+        appLog('⏸️ App inactive');
         break;
         
       case AppLifecycleState.detached:
         // App is detached
-        print('🔴 App detached');
+        appLog('🔴 App detached');
         break;
         
       case AppLifecycleState.hidden:
         // App is hidden
-        print('🔴 App hidden');
+        appLog('🔴 App hidden');
         break;
     }
   }
@@ -148,6 +171,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    if (_conversation == null) {
+      return Scaffold(
+        backgroundColor: ChatTheme.of(context).scaffold,
+        appBar: AppBar(),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final currentUserId = authController.currentUser.value!.id;
     final otherParticipant = conversation.getOtherParticipant(currentUserId);
 
@@ -609,7 +639,7 @@ Widget _buildChatInput() {
     setState(() => isLoadingMore = true);
     currentPage++;
     
-    print('📄 Loading page $currentPage');
+    appLog('📄 Loading page $currentPage');
     
     await chatController.loadMessages(conversation.id, page: currentPage);
     

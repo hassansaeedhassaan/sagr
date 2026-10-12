@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sagr/view/profile/Total/totalWidgets.dart';
@@ -280,7 +281,7 @@ class _TotalPageState extends State<TotalPage> {
                                                             .bottomCenter,
                                                         child: InkWell(
                                                           onTap: () =>
-                                                              print("Submit"),
+                                                              appLog("Submit"),
                                                           child: Container(
                                                             alignment: Alignment
                                                                 .center,
@@ -362,7 +363,7 @@ class _TotalPageState extends State<TotalPage> {
                           isChecked: true),
                       SizedBox(width: 10),
                       checkoutBox(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           icon: Icons.attach_money_outlined,
                           image: "assets/images/logo.png",
                           title: Text("نقداً للمرسل",
@@ -384,7 +385,7 @@ class _TotalPageState extends State<TotalPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       checkoutBox(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           image: "assets/images/logo.png",
                           icon: Icons.place,
                           title: Text("بيت حماي",
@@ -395,7 +396,7 @@ class _TotalPageState extends State<TotalPage> {
                           isChecked: true),
                       SizedBox(width: 10),
                       checkoutBox(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           image: "assets/images/logo.png",
                           icon: Icons.clean_hands,
                           title: Text("إستلام ذاتي",
@@ -414,7 +415,7 @@ class _TotalPageState extends State<TotalPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       checkoutBox(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           image: "assets/images/logo.png",
                           icon: Icons.delivery_dining,
                           title: Column(
@@ -436,7 +437,7 @@ class _TotalPageState extends State<TotalPage> {
                           isChecked: true),
                       SizedBox(width: 10),
                       checkoutBox(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           image: "assets/images/logo.png",
                           icon: Icons.headset_mic,
                           title: Text("إستلام ذاتي",
@@ -456,7 +457,7 @@ class _TotalPageState extends State<TotalPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       checkoutBoxWrap(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           image: "assets/images/logo.png",
                           icon: Icons.card_giftcard,
                           title: Text("بدون تغليف",
@@ -466,7 +467,7 @@ class _TotalPageState extends State<TotalPage> {
                           isChecked: true),
                       SizedBox(width: 10),
                       checkoutBoxWrap(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           image: "assets/images/logo.png",
                           icon: Icons.card_giftcard,
                           title: Text("تغليف بريميوم",
@@ -476,7 +477,7 @@ class _TotalPageState extends State<TotalPage> {
                           isChecked: false),
                       SizedBox(width: 10),
                       checkoutBoxWrap(
-                          onPress: () => print("PRINT FORM VISA WIDGET"),
+                          onPress: () => appLog("PRINT FORM VISA WIDGET"),
                           image: "assets/images/logo.png",
                           icon: Icons.card_giftcard,
                           price: "60",

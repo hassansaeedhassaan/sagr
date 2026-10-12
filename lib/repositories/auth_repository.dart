@@ -27,13 +27,22 @@ class AuthRepository {
 
       return response;
     } on DioException catch (e) {
-      print(e);
-      String message = 'phone_or_password_incorrect';
-
-      if (e.response?.statusCode == 403) {
-        message = e.response?.data;
+      // Only a real rejection means wrong credentials; a dropped connection
+      // or a server error used to show the same "wrong password" message.
+      final status = e.response?.statusCode;
+      final data = e.response?.data;
+      String message;
+      if (e.response == null) {
+        message = 'No internet connection. Please check your network.';
+      } else if (status == 401 || status == 422 || status == 400) {
+        message = 'phone_or_password_incorrect';
+      } else if (status == 403) {
+        message = data is Map
+            ? '${data['message'] ?? data['error'] ?? 'phone_or_password_incorrect'}'
+            : '${data ?? 'phone_or_password_incorrect'}';
+      } else {
+        message = 'Server error occurred. Please try again later.';
       }
-
       throw RestException(message);
     }
   }

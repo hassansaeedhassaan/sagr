@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import '../models/chat.dart';
@@ -41,7 +42,7 @@ class ChatRepositoryImpl implements ChatRepository {
         try {
           return Chat.fromJson(json as Map<String, dynamic>);
         } catch (e) {
-          print('Error parsing chat: $e');
+          appLog('Error parsing chat: $e');
           return null;
         }
       }).where((chat) => chat != null).cast<Chat>().toList();
@@ -257,7 +258,7 @@ class ChatRepositoryImpl implements ChatRepository {
         try {
           return Message.fromJson(json as Map<String, dynamic>);
         } catch (e) {
-          print('Error parsing message: $e');
+          appLog('Error parsing message: $e');
           return null;
         }
       }).where((message) => message != null).cast<Message>().toList();

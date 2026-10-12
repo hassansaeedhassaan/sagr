@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 import 'dart:ui';
 
@@ -1142,7 +1143,7 @@ class SagrLocationService {
       );
     } catch (e) {
       // ignore: avoid_print
-      print('Error getting location: $e');
+      appLog('Error getting location: $e');
       return null;
     }
   }
@@ -1164,7 +1165,7 @@ class SagrLocationService {
       );
     } catch (e) {
       // ignore: avoid_print
-      print('Error: $e');
+      appLog('Error: $e');
       return null;
     }
   }

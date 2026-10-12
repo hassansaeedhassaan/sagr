@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:sagr/core/error/exceptions.dart';
@@ -25,6 +26,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -35,6 +38,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -45,6 +50,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -54,6 +61,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -64,6 +73,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -74,6 +85,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 }

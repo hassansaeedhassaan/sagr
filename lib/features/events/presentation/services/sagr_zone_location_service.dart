@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math' as math;
 import '../../data/models/zone_coordinate_model.dart';
@@ -53,7 +54,7 @@ class SagrZoneLocationService {
       );
 
     } catch (e) {
-      print('Error checking location: $e');
+      appLog('Error checking location: $e');
       return null;
     }
   }

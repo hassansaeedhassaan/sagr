@@ -20,8 +20,15 @@ class JobModel {
   String toJson() => json.encode(toMap());
 
     factory JobModel.fromJson(Map<String, dynamic> json) {
+    // Null-safe: one job without a name used to throw and fail the whole
+    // event's parsing.
     return JobModel(
-        id: json['id'], name: json['name'], quantity: json['quantity'], displayName: json['display_name']);
+        id: json['id'] is int ? json['id'] : int.tryParse('${json['id']}'),
+        name: json['name']?.toString() ?? '',
+        quantity: json['quantity'] is int
+            ? json['quantity']
+            : int.tryParse('${json['quantity']}'),
+        displayName: json['display_name']?.toString());
   }
 
 }

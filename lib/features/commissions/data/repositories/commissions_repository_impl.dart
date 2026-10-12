@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:dio/src/response.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/core/error/failures.dart';
@@ -18,6 +19,8 @@ class CommissionsRepositoryImpl implements CommissionsRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 

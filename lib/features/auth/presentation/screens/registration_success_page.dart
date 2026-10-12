@@ -1,8 +1,8 @@
+import 'package:sagr/core/services/session_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:sagr/data/colors.dart';
 
 class RegistrationSuccessPage extends StatefulWidget {
@@ -364,11 +364,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                   onPressed: () {
                                     // Navigate back to login
                                    
-                                        GetStorage().remove('access_token');
-            GetStorage().remove('userData');
-            // GetStorage().remove('loggedInUserName');
-            // GetStorage().remove('loggedInUserPhone');
-            Get.offAndToNamed("/login");
+            SessionService.logout();
 
             //  Navigator.of(context).pushNamedAndRemoveUntil(
             //                           '/login',

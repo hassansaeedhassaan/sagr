@@ -83,7 +83,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
                 //     type: StepperType.horizontal,
                 //     physics: ScrollPhysics(),
                 //     currentStep: 1,
-                //     onStepTapped: (step) => print(step),
+                //     onStepTapped: (step) => appLog(step),
                 //     onStepContinue: () {},
                 //     onStepCancel: () {},
                 //     steps: <Step>[

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/features/products/data/models/product_model.dart';
 import 'package:sagr/helper/base_url.dart';
@@ -25,7 +26,7 @@ class FavoriteDataSourceImpl extends FavoriteDataSource {
     });
 
 
-    print(response.data['data']['favourites']);
+    appLog(response.data['data']['favourites']);
     if (response.statusCode == 200) {
       final List<ProductModel> products = response.data['data']['favourites']
           .map<ProductModel>(

@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
@@ -49,7 +50,7 @@ class ChatController extends GetxController {
     _reverb.onMessageRead = _onRealtimeRead;
     _reverb.onUserTyping = _onRealtimeTyping;
 
-    print('✅ ChatController initialized');
+    appLog('✅ ChatController initialized');
   }
 
   // ✅ Set current conversation when entering chat screen
@@ -66,7 +67,7 @@ class ChatController extends GetxController {
     if (conversationId != null) {
       _reverb.subscribeConversation(conversationId);
     }
-    print('💬 Current conversation set to: $conversationId');
+    appLog('💬 Current conversation set to: $conversationId');
   }
 
   // ── Realtime (Reverb) handlers ───────────────────────────────────────────
@@ -90,7 +91,7 @@ class ChatController extends GetxController {
         _markMessageAsReadAsync(message.id);
       }
     } catch (e) {
-      print('❌ Reverb message.sent handler error: $e');
+      appLog('❌ Reverb message.sent handler error: $e');
     }
   }
 
@@ -166,9 +167,9 @@ class ChatController extends GetxController {
       isLoading.value = true;
       final convs = await _apiService.getConversations();
       conversations.value = convs;
-      print('✅ Loaded ${convs.length} conversations');
+      appLog('✅ Loaded ${convs.length} conversations');
     } catch (e) {
-      print('❌ Error loading conversations: $e');
+      appLog('❌ Error loading conversations: $e');
       Get.snackbar('Error', 'Failed to load conversations');
     } finally {
       isLoading.value = false;
@@ -179,7 +180,7 @@ class ChatController extends GetxController {
     try {
       if (page == 1) isLoadingMessages.value = true;
       
-      print('📥 Loading messages for conversation $conversationId, page $page');
+      appLog('📥 Loading messages for conversation $conversationId, page $page');
       
       final messages = await _apiService.getMessages(conversationId, page: page);
       
@@ -189,7 +190,7 @@ class ChatController extends GetxController {
         conversationMessages[conversationId]?.addAll(messages);
       }
       
-      print('✅ Loaded ${messages.length} messages');
+      appLog('✅ Loaded ${messages.length} messages');
       
       // Mark messages as read
       final currentUserId = Get.find<SagrAuthController>().currentUser.value?.id;
@@ -202,7 +203,7 @@ class ChatController extends GetxController {
       }
       
     } catch (e) {
-      print('❌ Error loading messages: $e');
+      appLog('❌ Error loading messages: $e');
       Get.snackbar('Error', 'Failed to load messages');
     } finally {
       if (page == 1) isLoadingMessages.value = false;
@@ -216,12 +217,12 @@ class ChatController extends GetxController {
   }) async {
     // ✅ Prevent duplicate sends
     if (isSendingMessage.value) {
-      print('⚠️ Already sending a message, ignoring duplicate request');
+      appLog('⚠️ Already sending a message, ignoring duplicate request');
       return;
     }
     
-    print('📤 Sending text message to conversation $conversationId');
-    print('📝 Content: $content');
+    appLog('📤 Sending text message to conversation $conversationId');
+    appLog('📝 Content: $content');
     
     try {
       isSendingMessage.value = true;
@@ -232,7 +233,7 @@ class ChatController extends GetxController {
         replyToId: replyToId,
       );
       
-      print('✅ Message sent successfully: ${message.id}');
+      appLog('✅ Message sent successfully: ${message.id}');
       
       // ✅ Add message to conversation (this is the ONLY place we add sent messages)
       _addMessageToConversation(conversationId, message);
@@ -252,10 +253,10 @@ class ChatController extends GetxController {
           errorMessage = responseData;
         }
         
-        print('❌ Backend error: ${e.response!.statusCode} - $errorMessage');
+        appLog('❌ Backend error: ${e.response!.statusCode} - $errorMessage');
       } else {
         errorMessage = e.message ?? 'Network error occurred';
-        print('❌ Network error: $errorMessage');
+        appLog('❌ Network error: $errorMessage');
       }
       
       Get.snackbar(
@@ -266,12 +267,12 @@ class ChatController extends GetxController {
       );
       
     } catch (e) {
-      print('❌ Unexpected error: $e');
+      appLog('❌ Unexpected error: $e');
       Get.snackbar('Error', 'An unexpected error occurred');
     } finally {
       // ✅ CRITICAL: Always reset the flag
       isSendingMessage.value = false;
-      print('✅ Send complete, flag reset');
+      appLog('✅ Send complete, flag reset');
     }
   }
 
@@ -286,17 +287,17 @@ class ChatController extends GetxController {
       );
       
       if (image == null) {
-        print('⚠️ No image selected');
+        appLog('⚠️ No image selected');
         return;
       }
 
       if (isSendingMessage.value) {
-        print('⚠️ Already sending a message');
+        appLog('⚠️ Already sending a message');
         return;
       }
 
       isSendingMessage.value = true;
-      print('📤 Sending image message');
+      appLog('📤 Sending image message');
       
       final message = await _apiService.sendMediaMessage(
         conversationId: conversationId,
@@ -305,7 +306,7 @@ class ChatController extends GetxController {
         replyToId: replyToId,
       );
 
-      print('✅ Image sent successfully: ${message.id}');
+      appLog('✅ Image sent successfully: ${message.id}');
       
       _addMessageToConversation(conversationId, message);
       _updateConversationLastMessage(conversationId, message);
@@ -327,7 +328,7 @@ class ChatController extends GetxController {
         errorMessage = e.message ?? 'Network error occurred';
       }
       
-      print('❌ Error sending image: $errorMessage');
+      appLog('❌ Error sending image: $errorMessage');
       
       Get.snackbar(
         'Error', 
@@ -337,11 +338,11 @@ class ChatController extends GetxController {
       );
       
     } catch (e) {
-      print('❌ Error sending image: $e');
+      appLog('❌ Error sending image: $e');
       Get.snackbar('Error', 'Failed to send image');
     } finally {
       isSendingMessage.value = false;
-      print('✅ Image send complete, flag reset');
+      appLog('✅ Image send complete, flag reset');
     }
   }
 
@@ -355,17 +356,17 @@ class ChatController extends GetxController {
       );
       
       if (video == null) {
-        print('⚠️ No video selected');
+        appLog('⚠️ No video selected');
         return;
       }
 
       if (isSendingMessage.value) {
-        print('⚠️ Already sending a message');
+        appLog('⚠️ Already sending a message');
         return;
       }
 
       isSendingMessage.value = true;
-      print('📤 Sending video message');
+      appLog('📤 Sending video message');
       
       final message = await _apiService.sendMediaMessage(
         conversationId: conversationId,
@@ -374,7 +375,7 @@ class ChatController extends GetxController {
         replyToId: replyToId,
       );
 
-      print('✅ Video sent successfully: ${message.id}');
+      appLog('✅ Video sent successfully: ${message.id}');
       
       _addMessageToConversation(conversationId, message);
       _updateConversationLastMessage(conversationId, message);
@@ -396,7 +397,7 @@ class ChatController extends GetxController {
         errorMessage = e.message ?? 'Network error occurred';
       }
       
-      print('❌ Error sending video: $errorMessage');
+      appLog('❌ Error sending video: $errorMessage');
       
       Get.snackbar(
         'Error', 
@@ -406,11 +407,11 @@ class ChatController extends GetxController {
       );
       
     } catch (e) {
-      print('❌ Error sending video: $e');
+      appLog('❌ Error sending video: $e');
       Get.snackbar('Error', 'Failed to send video');
     } finally {
       isSendingMessage.value = false;
-      print('✅ Video send complete, flag reset');
+      appLog('✅ Video send complete, flag reset');
     }
   }
 
@@ -425,23 +426,23 @@ class ChatController extends GetxController {
       );
 
       if (result == null || result.files.isEmpty) {
-        print('⚠️ No document selected');
+        appLog('⚠️ No document selected');
         return;
       }
 
       final file = result.files.first;
       if (file.path == null) {
-        print('⚠️ Invalid file path');
+        appLog('⚠️ Invalid file path');
         return;
       }
 
       if (isSendingMessage.value) {
-        print('⚠️ Already sending a message');
+        appLog('⚠️ Already sending a message');
         return;
       }
 
       isSendingMessage.value = true;
-      print('📤 Sending document message');
+      appLog('📤 Sending document message');
       
       final message = await _apiService.sendMediaMessage(
         conversationId: conversationId,
@@ -450,7 +451,7 @@ class ChatController extends GetxController {
         replyToId: replyToId,
       );
 
-      print('✅ Document sent successfully: ${message.id}');
+      appLog('✅ Document sent successfully: ${message.id}');
       
       _addMessageToConversation(conversationId, message);
       _updateConversationLastMessage(conversationId, message);
@@ -472,7 +473,7 @@ class ChatController extends GetxController {
         errorMessage = e.message ?? 'Network error occurred';
       }
       
-      print('❌ Error sending document: $errorMessage');
+      appLog('❌ Error sending document: $errorMessage');
       
       Get.snackbar(
         'Error', 
@@ -482,11 +483,11 @@ class ChatController extends GetxController {
       );
       
     } catch (e) {
-      print('❌ Error sending document: $e');
+      appLog('❌ Error sending document: $e');
       Get.snackbar('Error', 'Failed to send document');
     } finally {
       isSendingMessage.value = false;
-      print('✅ Document send complete, flag reset');
+      appLog('✅ Document send complete, flag reset');
     }
   }
 
@@ -498,12 +499,12 @@ class ChatController extends GetxController {
   }) async {
     try {
       if (isSendingMessage.value) {
-        print('⚠️ Already sending a message');
+        appLog('⚠️ Already sending a message');
         return;
       }
 
       isSendingMessage.value = true;
-      print('📤 Sending voice message');
+      appLog('📤 Sending voice message');
       
       final message = await _apiService.sendMediaMessage(
         conversationId: conversationId,
@@ -513,7 +514,7 @@ class ChatController extends GetxController {
         duration: duration,
       );
 
-      print('✅ Voice message sent successfully: ${message.id}');
+      appLog('✅ Voice message sent successfully: ${message.id}');
       
       _addMessageToConversation(conversationId, message);
       _updateConversationLastMessage(conversationId, message);
@@ -535,7 +536,7 @@ class ChatController extends GetxController {
         errorMessage = e.message ?? 'Network error occurred';
       }
       
-      print('❌ Error sending voice message: $errorMessage');
+      appLog('❌ Error sending voice message: $errorMessage');
       
       Get.snackbar(
         'Error', 
@@ -545,11 +546,11 @@ class ChatController extends GetxController {
       );
       
     } catch (e) {
-      print('❌ Error sending voice message: $e');
+      appLog('❌ Error sending voice message: $e');
       Get.snackbar('Error', 'Failed to send voice message');
     } finally {
       isSendingMessage.value = false;
-      print('✅ Voice send complete, flag reset');
+      appLog('✅ Voice send complete, flag reset');
     }
   }
 
@@ -567,7 +568,7 @@ class ChatController extends GetxController {
       Get.toNamed('/chat', arguments: conversation);
       
     } catch (e) {
-      print('❌ Error creating conversation: $e');
+      appLog('❌ Error creating conversation: $e');
       Get.snackbar('Error', 'Failed to create conversation');
     } finally {
       isLoading.value = false;
@@ -591,7 +592,7 @@ class ChatController extends GetxController {
       Get.toNamed('/chat', arguments: conversation);
       
     } catch (e) {
-      print('❌ Error creating group: $e');
+      appLog('❌ Error creating group: $e');
       Get.snackbar('Error', 'Failed to create group');
     } finally {
       isLoading.value = false;
@@ -608,16 +609,16 @@ class ChatController extends GetxController {
         conversationMessages[conversationId] = List.from(messages);
       }
       
-      print('✅ Message deleted: $messageId');
+      appLog('✅ Message deleted: $messageId');
       
     } catch (e) {
-      print('❌ Error deleting message: $e');
+      appLog('❌ Error deleting message: $e');
       Get.snackbar('Error', 'Failed to delete message');
     }
   }
 
   void _addMessageToConversation(int conversationId, Message message) {
-    print('➕ Adding message ${message.id} to conversation $conversationId');
+    appLog('➕ Adding message ${message.id} to conversation $conversationId');
     
     if (conversationMessages[conversationId] == null) {
       conversationMessages[conversationId] = [];
@@ -628,10 +629,10 @@ class ChatController extends GetxController {
         .indexWhere((m) => m.id == message.id);
     
     if (existingIndex != -1) {
-      print('⚠️ Message ${message.id} already exists, updating');
+      appLog('⚠️ Message ${message.id} already exists, updating');
       conversationMessages[conversationId]![existingIndex] = message;
     } else {
-      print('✅ Adding new message ${message.id}');
+      appLog('✅ Adding new message ${message.id}');
       conversationMessages[conversationId]!.insert(0, message);
     }
     
@@ -639,7 +640,7 @@ class ChatController extends GetxController {
   }
 
   void _updateConversationLastMessage(int conversationId, Message message) {
-    print('🔄 Updating last message for conversation $conversationId');
+    appLog('🔄 Updating last message for conversation $conversationId');
     
     final index = conversations.indexWhere((c) => c.id == conversationId);
     if (index != -1) {
@@ -662,21 +663,21 @@ class ChatController extends GetxController {
       conversations.removeAt(index);
       conversations.insert(0, updatedConversation);
       
-      print('✅ Conversation updated and moved to top');
+      appLog('✅ Conversation updated and moved to top');
     }
   }
 
   // ✅ FIXED: Handle incoming Firebase messages
   void _handleNewMessage(Map<String, dynamic> data) {
     try {
-      print('🔔 ========================================');
-      print('🔔 Received notification data: $data');
+      appLog('🔔 ========================================');
+      appLog('🔔 Received notification data: $data');
       
       final messageType = data['type']?.toString();
-      print('🔔 Notification type: $messageType');
+      appLog('🔔 Notification type: $messageType');
 
       if (messageType != 'chat') {
-        print('ℹ️ Non-chat notification type, ignoring');
+        appLog('ℹ️ Non-chat notification type, ignoring');
         return;
       }
 
@@ -684,10 +685,10 @@ class ChatController extends GetxController {
         data['conversation_id']?.toString() ?? ''
       );
       
-      print('💬 Chat notification for conversation: $conversationId');
+      appLog('💬 Chat notification for conversation: $conversationId');
       
       if (conversationId == null) {
-        print('❌ Invalid conversation ID');
+        appLog('❌ Invalid conversation ID');
         return;
       }
 
@@ -695,19 +696,19 @@ class ChatController extends GetxController {
       final message = _createMessageFromFirebaseData(data);
 
       if (message == null) {
-        print('❌ Failed to create message from data');
+        appLog('❌ Failed to create message from data');
         return;
       }
 
-      print('✅ Message created successfully: ${message.id}');
-      print('👤 Sender ID: ${message.senderId}');
-      print('👤 Current User ID: ${Get.find<SagrAuthController>().currentUser.value?.id}');
+      appLog('✅ Message created successfully: ${message.id}');
+      appLog('👤 Sender ID: ${message.senderId}');
+      appLog('👤 Current User ID: ${Get.find<SagrAuthController>().currentUser.value?.id}');
 
       // ✅ CRITICAL: Only add messages from OTHER users
       final currentUserId = Get.find<SagrAuthController>().currentUser.value?.id;
       
       if (currentUserId != null && message.senderId == currentUserId) {
-        print('⚠️ This is my own message, ignoring (already added when sent)');
+        appLog('⚠️ This is my own message, ignoring (already added when sent)');
         return;
       }
 
@@ -716,32 +717,32 @@ class ChatController extends GetxController {
       final messageExists = existingMessages.any((msg) => msg.id == message.id);
 
       if (messageExists) {
-        print('⚠️ Message ${message.id} already exists, skipping');
+        appLog('⚠️ Message ${message.id} already exists, skipping');
         return;
       }
 
       // ✅ Check if we're already processing this message
       if (processingMessageIds.contains(message.id)) {
-        print('⚠️ Already processing message ${message.id}, skipping');
+        appLog('⚠️ Already processing message ${message.id}, skipping');
         return;
       }
 
       // Mark as processing
       processingMessageIds.add(message.id);
 
-      print('➕ Adding new message ${message.id} to conversation $conversationId');
+      appLog('➕ Adding new message ${message.id} to conversation $conversationId');
       
       _addMessageToConversation(conversationId, message);
       _updateConversationLastMessage(conversationId, message);
       
-      print('✅ Message added and conversation updated');
+      appLog('✅ Message added and conversation updated');
       
       // Mark as read if it's the active conversation
       if (conversationId == currentConversationId.value) {
-        print('📖 Marking message as read (active conversation)');
+        appLog('📖 Marking message as read (active conversation)');
         _markMessageAsReadAsync(message.id);
       } else {
-        print('🔕 Not marking as read (inactive conversation)');
+        appLog('🔕 Not marking as read (inactive conversation)');
       }
 
       // Remove from processing after a short delay
@@ -749,19 +750,19 @@ class ChatController extends GetxController {
         processingMessageIds.remove(message.id);
       });
 
-      print('🔔 ========================================');
+      appLog('🔔 ========================================');
       
     } catch (e, stackTrace) {
-      print('❌ Error handling new message: $e');
-      print('❌ Stack trace: $stackTrace');
-      print('❌ Data: $data');
+      appLog('❌ Error handling new message: $e');
+      appLog('❌ Stack trace: $stackTrace');
+      appLog('❌ Data: $data');
     }
   }
 
   Message? _createMessageFromFirebaseData(Map<String, dynamic> data) {
     try {
-      print('📨 Creating message from Firebase data');
-      print('📨 Raw data: $data');
+      appLog('📨 Creating message from Firebase data');
+      appLog('📨 Raw data: $data');
       
       String messageType = data['msg_type']?.toString() ?? 
                           data['type']?.toString() ?? 
@@ -776,7 +777,7 @@ class ChatController extends GetxController {
       if (messageType == 'photo') messageType = 'image';
       if (messageType == 'voice') messageType = 'voice_note';
       
-      print('📝 Normalized message type: $messageType');
+      appLog('📝 Normalized message type: $messageType');
       
       String? messageContent = data['content']?.toString();
       
@@ -784,7 +785,7 @@ class ChatController extends GetxController {
         messageContent = data['message']?.toString() ?? data['text']?.toString();
       }
       
-      print('💬 Message content: $messageContent');
+      appLog('💬 Message content: $messageContent');
       
       String? mediaUrl;
       final rawMediaUrl = data['media_url']?.toString();
@@ -801,7 +802,7 @@ class ChatController extends GetxController {
         }
       }
       
-      print('🖼️ Media URL: $mediaUrl');
+      appLog('🖼️ Media URL: $mediaUrl');
       
       int? replyToId;
       final rawReplyToId = data['reply_to_id']?.toString();
@@ -815,11 +816,11 @@ class ChatController extends GetxController {
         createdAt = DateTime.tryParse(rawCreatedAt) ?? DateTime.now();
       }
       
-      print('⏰ Created at: $createdAt');
+      appLog('⏰ Created at: $createdAt');
       
       final messageId = int.tryParse(data['message_id']?.toString() ?? '');
       if (messageId == null || messageId == 0) {
-        print('❌ Invalid message ID');
+        appLog('❌ Invalid message ID');
         return null;
       }
       
@@ -836,13 +837,13 @@ class ChatController extends GetxController {
         statuses: [],
       );
       
-      print('✅ Successfully created message: ${message.id} - Type: ${message.type}');
+      appLog('✅ Successfully created message: ${message.id} - Type: ${message.type}');
       return message;
       
     } catch (e, stackTrace) {
-      print('❌ Error creating message from Firebase data: $e');
-      print('❌ Stack trace: $stackTrace');
-      print('❌ Failed data: $data');
+      appLog('❌ Error creating message from Firebase data: $e');
+      appLog('❌ Stack trace: $stackTrace');
+      appLog('❌ Failed data: $data');
       return null;
     }
   }
@@ -851,9 +852,9 @@ class ChatController extends GetxController {
     Future.microtask(() async {
       try {
         await _apiService.markMessageAsRead(messageId);
-        print('✅ Message $messageId marked as read');
+        appLog('✅ Message $messageId marked as read');
       } catch (e) {
-        print('❌ Error marking message as read: $e');
+        appLog('❌ Error marking message as read: $e');
       }
     });
   }
@@ -865,7 +866,7 @@ class ChatController extends GetxController {
   @override
   void onClose() {
     setCurrentConversation(null);
-    print('🔴 ChatController disposed');
+    appLog('🔴 ChatController disposed');
     super.onClose();
   }
 }

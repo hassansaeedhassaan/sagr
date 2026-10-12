@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sagr/helper/base_url.dart';
@@ -77,17 +78,17 @@ class LocationService {
   }
 
   static Future<void> sendLocationUpdate() async {
-    print("🔥🔥🔥🔥🔥🔥🔥");
-    print("00990099SSSS");
-    print("🔥🔥🔥🔥🔥🔥🔥");
+    appLog("🔥🔥🔥🔥🔥🔥🔥");
+    appLog("00990099SSSS");
+    appLog("🔥🔥🔥🔥🔥🔥🔥");
     try {
       // Check if tracking is still enabled
       SharedPreferences prefs = await SharedPreferences.getInstance();
       bool trackingEnabled = prefs.getBool(_trackingKey) ?? false;
 
-      print("🔥🔥🔥🔥🔥🔥🔥");
-      print("00990099");
-      print("🔥🔥🔥🔥🔥🔥🔥");
+      appLog("🔥🔥🔥🔥🔥🔥🔥");
+      appLog("00990099");
+      appLog("🔥🔥🔥🔥🔥🔥🔥");
       if (!trackingEnabled) return;
 
       // Get current position
@@ -107,9 +108,9 @@ class LocationService {
         'speed': position.speed,
       };
 
-      print("🔥🔥🔥🔥🔥🔥🔥");
-      print(locationData);
-      print("🔥🔥🔥🔥🔥🔥🔥");
+      appLog("🔥🔥🔥🔥🔥🔥🔥");
+      appLog(locationData);
+      appLog("🔥🔥🔥🔥🔥🔥🔥");
 
       await _getCurrentUsersFromServer();
       // Send to server
@@ -119,7 +120,7 @@ class LocationService {
       await prefs.setString(
           'last_location_update', DateTime.now().toIso8601String());
     } catch (e) {
-      print('Error getting location: $e');
+      appLog('Error getting location: $e');
     }
   }
 
@@ -137,12 +138,12 @@ class LocationService {
       // ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
-        print('Location sent successfully');
+        appLog('Location sent successfully');
       } else {
-        print('Failed to send location: ${response.statusCode}');
+        appLog('Failed to send location: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error sending location to server: $e');
+      appLog('Error sending location to server: $e');
     }
   }
 
@@ -158,17 +159,17 @@ class LocationService {
       );
       // ).timeout(const Duration(seconds: 30));
 
-      print("🔥🛑🔥");
-      print(response.toString());
-      print("🔥🛑🔥");
+      appLog("🔥🛑🔥");
+      appLog(response.toString());
+      appLog("🔥🛑🔥");
 
       if (response.statusCode == 200) {
-        print('User Fetch Success fully successfully');
+        appLog('User Fetch Success fully successfully');
       } else {
-        print('Failed to send location: ${response.statusCode}');
+        appLog('Failed to send location: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error sending location to server: $e');
+      appLog('Error sending location to server: $e');
     }
   }
 }

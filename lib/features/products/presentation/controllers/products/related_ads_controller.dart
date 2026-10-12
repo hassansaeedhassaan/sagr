@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:sagr/features/products/domain/entities/product.dart';
 import 'package:sagr/features/products/domain/usecases/get_products.dart';
 import 'package:get/get.dart';
@@ -67,9 +68,9 @@ _findItems();
 
     final failureOrProducts = await productUsecase.getRelatedAds(adId);
     
-      print("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
-      print(failureOrProducts);
-    print("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
+      appLog("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
+      appLog(failureOrProducts);
+    appLog("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
 
 
     failureOrProducts.fold((failure) {
@@ -81,9 +82,9 @@ _findItems();
         _hasMore.value = false;
       }
 
-      print("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
-      print(receivedProducts);
-    print("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
+      appLog("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
+      appLog(receivedProducts);
+    appLog("🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌🤌");
 
       if (receivedProducts.isNotEmpty) {
         _items.addAll(receivedProducts);

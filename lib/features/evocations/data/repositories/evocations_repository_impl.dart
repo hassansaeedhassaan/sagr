@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/core/error/failures.dart';
@@ -19,6 +20,8 @@ class EvocationsRepositoryImpl implements EvocationRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -33,6 +36,8 @@ class EvocationsRepositoryImpl implements EvocationRepository {
       return Left(ValidationFailure(message: e.message));
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   

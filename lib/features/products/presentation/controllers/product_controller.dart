@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sagr/features/countries/data/models/country_model.dart';
 import 'package:sagr/features/products/domain/entities/product.dart';
@@ -344,7 +345,7 @@ class ProductController extends GetxController {
 
 
 
-// print(body);
+// appLog(body);
 //     return;
 
     try {
@@ -353,7 +354,7 @@ class ProductController extends GetxController {
       failureOrCustomer.fold((failure) {
         // _isLoading.value = false;
       }, (receivedData) {
-        print(receivedData);
+        appLog(receivedData);
         // Future.delayed(Duration(milliseconds: 1000))
         //     .then((value) => Get.offAllNamed('/login'));
 
@@ -370,7 +371,7 @@ class ProductController extends GetxController {
       // _isLoading.value = false;
       update();
     } catch (e) {
-      print(e);
+      appLog(e);
       Get.snackbar("Error!", 'wrong'.tr);
     }
   }
@@ -379,10 +380,10 @@ class ProductController extends GetxController {
     final failureOrDeleted = await productUsecase.deleteAd(adId, mediaId);
 
     failureOrDeleted.fold((failure) {
-      print(failure);
+      appLog(failure);
     }, (receivedData) {
       if (receivedData.data['code'] == 200) {
-        print(receivedData);
+        appLog(receivedData);
 
         Get.snackbar("Success", receivedData.data['message']);
       }
@@ -421,7 +422,7 @@ class ProductController extends GetxController {
 
       }
 
-      // print(images);
+      // appLog(images);
 
       update();
     } catch (e) {}

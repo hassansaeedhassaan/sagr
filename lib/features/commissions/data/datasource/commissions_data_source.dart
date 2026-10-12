@@ -53,9 +53,9 @@ class CommissionDataSourceImpl extends CommissionsDataSource {
 
 
 // if(response.statusCode == 400){
-//   print("lkjaskd");
+//   appLog("lkjaskd");
 // }
-// print(response.statusCode == 400);
+// appLog(response.statusCode == 400);
 //     return  response.data;
     // if (response.statusCode == 200) {
     //   final List<CommissionModel> customers = response.data['data']['wallet']

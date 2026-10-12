@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 
@@ -51,7 +52,7 @@ class NotificationService extends GetxService {
     final payload = notificationResponse.payload;
     if (payload != null) {
       // Parse payload and navigate accordingly
-      print('Notification tapped with payload: $payload');
+      appLog('Notification tapped with payload: $payload');
     }
   }
 

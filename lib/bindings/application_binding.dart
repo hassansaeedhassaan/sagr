@@ -1,3 +1,4 @@
+import 'package:sagr/core/services/session_service.dart';
 // import 'package:dio/dio.dart';
 // import 'package:get/get.dart';
 
@@ -101,12 +102,14 @@ class ApplicationBinding implements Bindings {
       InterceptorsWrapper(
         onRequest: (options, handler) {
           // Add token to every request if it exists
+          // The token is read per request: a header baked into BaseOptions
+          // would keep sending the previous user's token after logout.
           final token = GetStorage().read("access_token");
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = "Bearer $token";
+          } else {
+            options.headers.remove('Authorization');
           }
-
-          print("Hello, Hassan From interceptors 😍");
           // Add language header
           final language = GetStorage().read("lang");
           if (language != null) {
@@ -117,12 +120,13 @@ class ApplicationBinding implements Bindings {
         },
         onError: (error, handler) {
           // Handle 401 errors (token expired/invalid)
-          if (error.response?.statusCode == 401) {
-            // Clear stored token and redirect to login
-            GetStorage().remove("access_token");
-            GetStorage().remove("userData");
-            // You might want to redirect to login page here
-            // Get.offAllNamed('/login');
+          // An expired or revoked token: end the session and go to login.
+          // Only when a token was sent, so a failed login attempt (no token)
+          // doesn't bounce the login screen.
+          final sentToken =
+              error.requestOptions.headers['Authorization'] != null;
+          if (error.response?.statusCode == 401 && sentToken) {
+            SessionService.logout(revokeOnServer: false);
           }
           handler.next(error);
         },
@@ -269,25 +273,15 @@ class ApplicationBinding implements Bindings {
   }
 
   headers() {
-    LocaleStorage localeStorage = LocaleStorage();
-
     var headers = {
       "Content-Type": "application/json",
       "Accept": "application/json",
-      'Accepted-Language':
-          localeStorage.selectedLanguage.then((value) => value),
     };
     // if user looged in append api token to header.
     // if (GetStorage().read('accessToken') != null) {
     //   headers['Authorization'] = "Bearer " + GetStorage().read('accessToken');
     // }
-    if (GetStorage().read('access_token') != null) {
-      headers['Authorization'] = "Bearer " + GetStorage().read('access_token');
-      // headers['app_type'] = ;
-
-      print(localeStorage.appType.then((value) => value));
-      // headers['Authorization'] =  "Bearer 5e9833a090ee5df4aeeff5ead93f3bb38cc8aa19";
-    }
+    // Authorization is added per request by the interceptor in _dio().
 
     return headers;
   }

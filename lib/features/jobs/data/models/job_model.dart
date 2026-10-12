@@ -9,7 +9,9 @@ class JobModel extends Job {
   const JobModel({ this.id, this.name }) : super( id: id,name: name);
   
   factory JobModel.fromJson(Map<String, dynamic> json) {
-    return JobModel( id: json['id'], name: json['name']);
+    return JobModel(
+        id: json['id'] is int ? json['id'] : int.tryParse('${json['id']}'),
+        name: json['name']?.toString());
   }
 
   @override

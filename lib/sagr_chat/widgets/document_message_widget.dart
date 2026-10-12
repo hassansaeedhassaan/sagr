@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
@@ -67,7 +68,7 @@ class _DocumentMessageWidgetState extends State<DocumentMessageWidget>
         setState(() => _localFilePath = filePath);
       }
     } catch (e) {
-      print('Error checking file: $e');
+      appLog('Error checking file: $e');
     }
   }
 

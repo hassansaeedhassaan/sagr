@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/features/products/data/models/product_model.dart';
 import 'package:sagr/helper/base_url.dart';
@@ -59,7 +60,7 @@ class LatestAdsDataSourceImpl extends LatestAdsDataSource {
 
 
     if (response.statusCode == 200) {
-      print(response.data['data']);
+      appLog(response.data['data']);
       final List<ProductModel> customers = response.data['data']
           .map<ProductModel>(
               (jsonPostModel) => ProductModel.fromJson(jsonPostModel))

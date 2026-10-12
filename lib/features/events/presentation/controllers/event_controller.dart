@@ -1,3 +1,5 @@
+import 'package:sagr/core/utils/app_log.dart';
+import 'package:sagr/smart_task_manager_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sagr/features/events/data/models/event_access.dart';
@@ -176,7 +178,7 @@ class EventController extends GetxController {
     _attendanceStatus.value = AttendanceStatus.error;
     _updateStatusMessage();
     if (kDebugMode) {
-      print('EventController Error: $error');
+      appLog('EventController Error: $error');
     }
   }
 
@@ -365,6 +367,13 @@ class EventController extends GetxController {
       _updateLastUpdateTime();
       _updateStatusMessage();
 
+      // Live-map heartbeat runs only between check-in and check-out.
+      if (wasCheckingIn) {
+        SmartTaskManager().markCheckedIn(event?.id);
+      } else {
+        SmartTaskManager().markCheckedOut();
+      }
+
       // Show success message
       MessageHelper.showSuccessDialog(
         title: 'Success'.tr,
@@ -399,7 +408,7 @@ class EventController extends GetxController {
       };
 
       if (kDebugMode) {
-        print('Creating evocation with body: $body');
+        appLog('Creating evocation with body: $body');
       }
 
       // Add your evocation creation logic here
@@ -428,7 +437,7 @@ class EventController extends GetxController {
     //     return formattedTime;
     //   } catch (e) {
     //     if (kDebugMode) {
-    //       print('Error formatting time: $e');
+    //       appLog('Error formatting time: $e');
     //     }
     //   }
     // }

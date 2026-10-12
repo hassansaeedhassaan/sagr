@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 
 
 import 'dart:convert';
@@ -20,7 +21,7 @@ class FirebaseMessagingService extends GetxService {
   Stream<app_models.Message> get onMessageReceived => _messageStreamController.stream;
 
   Future<FirebaseMessagingService> init() async {
-    print('🔥 Initializing Firebase Messaging...');
+    appLog('🔥 Initializing Firebase Messaging...');
     
     // 1️⃣ طلب الإذن من المستخدم
     await _requestPermission();
@@ -45,7 +46,7 @@ class FirebaseMessagingService extends GetxService {
 
   /// 📋 1. طلب إذن الإشعارات
   Future<void> _requestPermission() async {
-    print('📱 Requesting notification permissions...');
+    appLog('📱 Requesting notification permissions...');
     
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,     // إشعارات عادية
@@ -57,14 +58,14 @@ class FirebaseMessagingService extends GetxService {
       sound: true,     // صوت الإشعار
     );
 
-    print('✅ Permission status: ${settings.authorizationStatus}');
+    appLog('✅ Permission status: ${settings.authorizationStatus}');
     
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('🎉 User granted permissions');
+      appLog('🎉 User granted permissions');
     } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-      print('⚠️ User granted provisional permissions');
+      appLog('⚠️ User granted provisional permissions');
     } else {
-      print('❌ User declined or has not accepted permissions');
+      appLog('❌ User declined or has not accepted permissions');
     }
   }
 
@@ -73,7 +74,7 @@ class FirebaseMessagingService extends GetxService {
     try {
       final token = await _firebaseMessaging.getToken();
       fcmToken.value = token ?? '';
-      print('🔑 FCM Token: $token');
+      appLog('🔑 FCM Token: $token');
       
       // إرسال التوكن للسيرفر
       if (token != null) {
@@ -82,12 +83,12 @@ class FirebaseMessagingService extends GetxService {
       
       // الاستماع لتحديث التوكن
       _firebaseMessaging.onTokenRefresh.listen((String newToken) {
-        print('🔄 Token refreshed: $newToken');
+        appLog('🔄 Token refreshed: $newToken');
         fcmToken.value = newToken;
         _sendTokenToServer(newToken);
       });
     } catch (e) {
-      print('❌ Error getting FCM token: $e');
+      appLog('❌ Error getting FCM token: $e');
     }
   }
 
@@ -95,9 +96,9 @@ class FirebaseMessagingService extends GetxService {
   Future<void> _sendTokenToServer(String token) async {
     try {
       // هنا تقوم بإرسال التوكن لـ Laravel backend
-      print('📤 Sending token to server: $token');
+      appLog('📤 Sending token to server: $token');
       
-       print('✅✅✅✅✅✅✅✅✅✅✅✅✅ HETEE');
+       appLog('✅✅✅✅✅✅✅✅✅✅✅✅✅ HETEE');
       // Example API call:
       // await _dio.post('/auth/fcm-token',data:  {'fcm_token': token});
        try {
@@ -109,26 +110,26 @@ class FirebaseMessagingService extends GetxService {
 
 
       // if (response.statusCode == 200) {
-      //   print('✅ FCM token sent successfully');
+      //   appLog('✅ FCM token sent successfully');
       // } else {
-      //   print('❌ Failed to send FCM token: ${response.statusMessage}');
+      //   appLog('❌ Failed to send FCM token: ${response.statusMessage}');
       // }
     } catch (e) {
-      print('❌ Error sending FCM token: $e');
+      appLog('❌ Error sending FCM token: $e');
     }
       
     } catch (e) {
-      print('❌ Error sending token to server: $e');
+      appLog('❌ Error sending token to server: $e');
     }
   }
 
   /// 🎯 3. معالجة الرسائل في المقدمة (Foreground)
   void _handleForegroundMessage(RemoteMessage message) {
-    print('📱 FOREGROUND MESSAGE RECEIVED:');
-    print('📨 Message ID: ${message.messageId}');
-    print('📋 Title: ${message.notification?.title}');
-    print('📝 Body: ${message.notification?.body}');
-    print('📊 Data: ${message.data}');
+    appLog('📱 FOREGROUND MESSAGE RECEIVED:');
+    appLog('📨 Message ID: ${message.messageId}');
+    appLog('📋 Title: ${message.notification?.title}');
+    appLog('📝 Body: ${message.notification?.body}');
+    appLog('📊 Data: ${message.data}');
     
     // 🔔 عرض إشعار محلي (لأن التطبيق مفتوح)
     try {
@@ -139,7 +140,7 @@ class FirebaseMessagingService extends GetxService {
         payload: jsonEncode(message.data),
       );
     } catch (e) {
-      print('❌ Error showing notification: $e');
+      appLog('❌ Error showing notification: $e');
     }
 
     // 📱 تحديث واجهة المستخدم
@@ -148,9 +149,9 @@ class FirebaseMessagingService extends GetxService {
 
   /// 🔄 4. معالجة النقر على الإشعار (Message Opened App)
   void _handleMessageOpenedApp(RemoteMessage message) {
-    print('👆 USER TAPPED NOTIFICATION:');
-    print('📨 Message ID: ${message.messageId}');
-    print('📊 Data: ${message.data}');
+    appLog('👆 USER TAPPED NOTIFICATION:');
+    appLog('📨 Message ID: ${message.messageId}');
+    appLog('📊 Data: ${message.data}');
     
     lastMessage.value = message;
     
@@ -165,15 +166,15 @@ class FirebaseMessagingService extends GetxService {
       RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
       
       if (initialMessage != null) {
-        print('🎬 App opened from notification:');
-        print('📨 Message ID: ${initialMessage.messageId}');
+        appLog('🎬 App opened from notification:');
+        appLog('📨 Message ID: ${initialMessage.messageId}');
         
         // تأخير صغير للتأكد من تحميل التطبيق
         await Future.delayed(const Duration(seconds: 2));
         _navigateToChat(initialMessage);
       }
     } catch (e) {
-      print('❌ Error handling initial message: $e');
+      appLog('❌ Error handling initial message: $e');
     }
   }
 
@@ -187,12 +188,12 @@ class FirebaseMessagingService extends GetxService {
         final appMessage = _convertRemoteMessageToAppMessage(remoteMessage);
         
         if (appMessage != null) {
-          print('✅ Message converted successfully');
+          appLog('✅ Message converted successfully');
           _messageStreamController.add(appMessage);
         }
       }
     } catch (e) {
-      print('❌ Error processing message data: $e');
+      appLog('❌ Error processing message data: $e');
     }
   }
 
@@ -230,7 +231,7 @@ class FirebaseMessagingService extends GetxService {
         );
       }
     } catch (e) {
-      print('❌ Error converting RemoteMessage: $e');
+      appLog('❌ Error converting RemoteMessage: $e');
     }
     return null;
   }
@@ -242,7 +243,7 @@ class FirebaseMessagingService extends GetxService {
       
       if (data.containsKey('chat_id')) {
         final chatId = data['chat_id'];
-        print('🧭 Navigating to chat: $chatId');
+        appLog('🧭 Navigating to chat: $chatId');
         
         // الانتقال لشاشة المحادثة
         Get.toNamed('/chat', arguments: {
@@ -258,11 +259,11 @@ class FirebaseMessagingService extends GetxService {
             _handleGroupInvitationNotification(data);
             break;
           default:
-            print('🤷‍♂️ Unknown notification type: ${data['type']}');
+            appLog('🤷‍♂️ Unknown notification type: ${data['type']}');
         }
       }
     } catch (e) {
-      print('❌ Error navigating from notification: $e');
+      appLog('❌ Error navigating from notification: $e');
     }
   }
 
@@ -317,9 +318,9 @@ class FirebaseMessagingService extends GetxService {
   Future<void> subscribeToTopic(String topic) async {
     try {
       await _firebaseMessaging.subscribeToTopic(topic);
-      print('✅ Subscribed to topic: $topic');
+      appLog('✅ Subscribed to topic: $topic');
     } catch (e) {
-      print('❌ Error subscribing to topic: $e');
+      appLog('❌ Error subscribing to topic: $e');
     }
   }
 
@@ -327,9 +328,9 @@ class FirebaseMessagingService extends GetxService {
   Future<void> unsubscribeFromTopic(String topic) async {
     try {
       await _firebaseMessaging.unsubscribeFromTopic(topic);
-      print('✅ Unsubscribed from topic: $topic');
+      appLog('✅ Unsubscribed from topic: $topic');
     } catch (e) {
-      print('❌ Error unsubscribing from topic: $e');
+      appLog('❌ Error unsubscribing from topic: $e');
     }
   }
 
@@ -359,11 +360,11 @@ class FirebaseMessagingService extends GetxService {
 /// ⚠️ يجب أن يكون top-level function (خارج أي class)
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('🌙 BACKGROUND MESSAGE RECEIVED:');
-  print('📨 Message ID: ${message.messageId}');
-  print('📋 Title: ${message.notification?.title}');
-  print('📝 Body: ${message.notification?.body}');
-  print('📊 Data: ${message.data}');
+  appLog('🌙 BACKGROUND MESSAGE RECEIVED:');
+  appLog('📨 Message ID: ${message.messageId}');
+  appLog('📋 Title: ${message.notification?.title}');
+  appLog('📝 Body: ${message.notification?.body}');
+  appLog('📊 Data: ${message.data}');
   
   // يمكنك هنا:
   // - حفظ الرسالة في قاعدة بيانات محلية

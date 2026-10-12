@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -185,7 +186,7 @@ class EvocationsController extends GetxController {
       //             title: 'تم بنجاح',
       //             message: 'تم إرسال الرسالة بنجاح',
       //             onTap: () {
-      //               print('تم الضغط على الرسالة');
+      //               appLog('تم الضغط على الرسالة');
       //             },
       //           );
     } catch (error) {
@@ -222,7 +223,7 @@ class EvocationsController extends GetxController {
   /// Handles errors during the filtering process
   void _handleFilterError(dynamic error) {
     // Log error for debugging
-    debugPrint('Error filtering events by job: $error');
+    appLog('Error filtering events by job: $error');
 
     // Reset loading state
     _setLoadingState(isLoading: false, hasMore: false);
@@ -246,7 +247,7 @@ class EvocationsController extends GetxController {
   }
 
   void onLoading() async {
-    print(_paginationFilter.value);
+    appLog(_paginationFilter.value);
     // monitor network fetch
     await Future.delayed(Duration(milliseconds: 1000));
     // if failed,use loadFailed(),if no data return,use LoadNodata()

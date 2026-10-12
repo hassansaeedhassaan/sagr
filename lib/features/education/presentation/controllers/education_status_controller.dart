@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
 import 'package:sagr/features/education/domain/usecases/get_education.dart';
@@ -23,9 +24,9 @@ class EducationsController extends GetxController {
   void onInit() {
     super.onInit();
     _findItems();
-    print("🎉");
-    print(educations);
-        print("🎉");
+    appLog("🎉");
+    appLog(educations);
+        appLog("🎉");
   }
 
   // Get List Of Marital Status

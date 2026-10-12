@@ -12,7 +12,8 @@ import 'package:equatable/equatable.dart';
 //  }
 
 class Notification extends Equatable {
-  final int? id;
+  // Kept as a string so both numeric and UUID ids parse.
+  final String? id;
   final String? title;
   final String? content;
   final String? image;

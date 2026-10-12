@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_verification_code/flutter_verification_code.dart';
 import 'package:get/get.dart';
@@ -96,7 +97,7 @@ class VerificationScreen extends StatelessWidget {
                           // setState(() {
                           _controller.code = value;
 
-                          print("completed");
+                          appLog("completed");
                           if (_controller.code.isNotEmpty) {
                             _controller.checkVerificationCode();
                           }

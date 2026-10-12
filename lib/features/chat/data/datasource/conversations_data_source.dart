@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:sagr/features/chat/data/models/conversation_model.dart';
@@ -96,8 +97,8 @@ class ConversationDataSourceImpl extends ConversationDataSource {
 
       return response;
     } on dioHttp.DioException catch (e) {
-      print(e.response?.statusCode);
-      // print(e.response?.data);
+      appLog(e.response?.statusCode);
+      // appLog(e.response?.data);
 
       throw ValidationException(e.response?.data);
     }
@@ -112,8 +113,8 @@ class ConversationDataSourceImpl extends ConversationDataSource {
 
       return response;
     } on dioHttp.DioException catch (e) {
-      print(e.response?.statusCode);
-      print(e.response?.data);
+      appLog(e.response?.statusCode);
+      appLog(e.response?.data);
 
       throw ServerException();
       // throw ValidationException(e.response?.data);
@@ -133,8 +134,8 @@ class ConversationDataSourceImpl extends ConversationDataSource {
 
       return response;
     } on dioHttp.DioException catch (e) {
-      print(e.response?.statusCode);
-      print(e.response?.data);
+      appLog(e.response?.statusCode);
+      appLog(e.response?.data);
 
       throw ServerException();
       // throw ValidationException(e.response?.data);

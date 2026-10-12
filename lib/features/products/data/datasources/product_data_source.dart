@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart' as dioHttp;
 import 'package:flutter/material.dart';
 import 'package:sagr/features/products/data/models/product_model.dart';
@@ -37,7 +38,7 @@ class ProductDataSourceImpl extends ProductDataSource {
       'limit': filter.limit,
     });
 
-    print(response);
+    appLog(response);
     if (response.statusCode == 200) {
       final List<ProductModel> products = response.data['data']
           .map<ProductModel>(
@@ -83,7 +84,7 @@ class ProductDataSourceImpl extends ProductDataSource {
   Future<List<ProductModel>> getRelatedAds(filter) async {
     var response = await dio.get(BASEURL + '/advertisement/1/related');
 
-    print(response);
+    appLog(response);
     if (response.statusCode == 200) {
       final List<ProductModel> products = response.data['data']
           .map<ProductModel>(
@@ -135,7 +136,7 @@ class ProductDataSourceImpl extends ProductDataSource {
 //         );
 //        }
 
-// print(body['images'].map((item)  =>  dioHttp.MultipartFile.fromFile(item,
+// appLog(body['images'].map((item)  =>  dioHttp.MultipartFile.fromFile(item,
 //           filename: item.split('/').last))
 //       .toList());
 
@@ -161,7 +162,7 @@ class ProductDataSourceImpl extends ProductDataSource {
         'is_negotiable': 0
       });
 
-      // print(preparedFormData.files);
+      // appLog(preparedFormData.files);
 
       // final response = await _dio.post(BASEURL + "/v1/settings", data: f);
       // return response;
@@ -177,11 +178,11 @@ class ProductDataSourceImpl extends ProductDataSource {
 
         //     onReceiveProgress: (int sentBytes, int totalBytes) {
 
-        //       print(int.tryParse((sentBytes / totalBytes).toString()));
+        //       appLog(int.tryParse((sentBytes / totalBytes).toString()));
         //   double progressPercent = sentBytes / totalBytes * 100;
-        //   print(progressPercent);
+        //   appLog(progressPercent);
         //   // pd.update(value: int.tryParse(progressPercent.toString()));
-        //   print("Progress: $progressPercent %");
+        //   appLog("Progress: $progressPercent %");
         // pd.update(value: int.tryParse(progressPercent.toString()));
 
         //   // SharedData().showMessage(context, message: progressPercent.toString());
@@ -195,8 +196,8 @@ class ProductDataSourceImpl extends ProductDataSource {
 
           // SharedData().showMessage(context, message: progressPercent.toString());
           pd.update(value: progressPercent);
-          print("Progress: $progressPercent %");
-          print(progressPercent);
+          appLog("Progress: $progressPercent %");
+          appLog(progressPercent);
           if (progressPercent == 100) {
             pd.close();
 
@@ -205,7 +206,7 @@ class ProductDataSourceImpl extends ProductDataSource {
         },
 
         //    onSendProgress: (int sent, int total) {
-        //   print('$sent $total');
+        //   appLog('$sent $total');
         // },
       );
 
@@ -215,8 +216,8 @@ class ProductDataSourceImpl extends ProductDataSource {
         return ProductModel.fromJson(response.data['data']['advertisement']);
       }
     } on dioHttp.DioException catch (e) {
-      print(e.response?.statusCode);
-      // print(e.response?.data);
+      appLog(e.response?.statusCode);
+      // appLog(e.response?.data);
 
       throw ValidationException(e.response?.data);
     }
@@ -234,7 +235,7 @@ class ProductDataSourceImpl extends ProductDataSource {
   @override
   Future<ProductModel> updateAd(Map<String, dynamic> body) async {
     try {
-// print(body);
+// appLog(body);
 // throw ServerException();
 
       // prepare to upload form
@@ -301,8 +302,8 @@ class ProductDataSourceImpl extends ProductDataSource {
 
       return ProductModel.fromJson(response.data['data']['advertisement']);
     } on dioHttp.DioException catch (e) {
-      print(e.response?.statusCode);
-      // print(e.response?.data);
+      appLog(e.response?.statusCode);
+      // appLog(e.response?.data);
 
       throw ValidationException(e.response?.data);
     }

@@ -24,12 +24,12 @@ class NotificationDataSourceImpl extends NotificationsDataSource {
           'name': filter.name
         });
 
-    if (response.statusCode == 200) {
-      final List<NotificationModel> notifications = response.data['data']
-          .map<NotificationModel>(
-              (jsonPostModel) => NotificationModel.fromJson(jsonPostModel))
+    final data = response.data is Map ? response.data['data'] : null;
+    if (response.statusCode == 200 && data is List) {
+      return data
+          .whereType<Map>()
+          .map((json) => NotificationModel.fromJson(Map<String, dynamic>.from(json)))
           .toList();
-      return notifications;
     } else {
       throw ServerException();
     }
@@ -50,9 +50,9 @@ class NotificationDataSourceImpl extends NotificationsDataSource {
 
 
 // // if(response.statusCode == 400){
-// //   print("lkjaskd");
+// //   appLog("lkjaskd");
 // // }
-// // print(response.statusCode == 400);
+// // appLog(response.statusCode == 400);
 // //     return  response.data;
 //     // if (response.statusCode == 200) {
 //     //   final List<CommissionModel> customers = response.data['data']['wallet']

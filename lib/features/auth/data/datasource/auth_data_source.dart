@@ -1,7 +1,9 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/dio.dart' as dioHttp;
 import 'package:dio/src/form_data.dart' as formData;
 import 'package:flutter/foundation.dart';
+import 'package:get_storage/get_storage.dart';
 
 import 'package:sagr/helper/base_url.dart';
 import '../../../../core/error/exceptions.dart';
@@ -73,8 +75,8 @@ class AuthDataSourceImpl extends AuthDataSource {
       return CustomerModel.fromJson(response.data['data']);
       // }
     } on DioException catch (e) {
-      // print(e.response?.statusCode);
-      // print(e.response?.data);
+      // appLog(e.response?.statusCode);
+      // appLog(e.response?.data);
 
       throw ValidationException(e.response?.data);
     }
@@ -130,14 +132,21 @@ class AuthDataSourceImpl extends AuthDataSource {
       var response = await dio.post('$BASEURL/auth/complete-account',
           data: preparedFormData);
 
-      print("Here Data Source Auth Complete Account 🔥🔥🔥🔥🔥");
+      appLog("Here Data Source Auth Complete Account 🔥🔥🔥🔥🔥");
       // if (response.data['status'] == 200) {
+
+      // The response is the same profile payload login stores, so keep the
+      // saved user in step - otherwise the new photo and ID only show after
+      // logging out and back in.
+      if (response.data['data'] is Map) {
+        GetStorage().write('userData', response.data['data']);
+      }
 
       return CustomerModel.fromJson(response.data['data']);
       // }
     } on DioException catch (e) {
-      // print(e.response?.statusCode);
-      // print(e.response?.data);
+      // appLog(e.response?.statusCode);
+      // appLog(e.response?.data);
 
       // throw ValidationException(e.response?.data);
 
@@ -252,14 +261,21 @@ if (body.containsKey('emp_cv') && body['emp_cv'] != null) {
       var response = await dio.post('$BASEURL/auth/update-account',
           data: preparedFormData);
 
-      print("Here Data Source Auth Complete Account 🔥🔥🔥🔥🔥");
+      appLog("Here Data Source Auth Complete Account 🔥🔥🔥🔥🔥");
       // if (response.data['status'] == 200) {
+
+      // The response is the same profile payload login stores, so keep the
+      // saved user in step - otherwise the new photo and ID only show after
+      // logging out and back in.
+      if (response.data['data'] is Map) {
+        GetStorage().write('userData', response.data['data']);
+      }
 
       return CustomerModel.fromJson(response.data['data']);
       // }
     } on DioException catch (e) {
-      // print(e.response?.statusCode);
-      // print(e.response?.data);
+      // appLog(e.response?.statusCode);
+      // appLog(e.response?.data);
 
       // throw ValidationException(e.response?.data);
 
@@ -296,7 +312,7 @@ extension ValidationExceptionLogging on ValidationException {
 
     // Also print to debug console in debug mode
     if (kDebugMode) {
-      debugPrint('\n${getFormattedDebugInfo()}');
+      appLog('\n${getFormattedDebugInfo()}');
     }
   }
 }

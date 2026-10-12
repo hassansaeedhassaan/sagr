@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:sagr/data/colors.dart';
@@ -622,7 +623,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                         accountController
                                             .selectedCountryCode(code);
                                         // Called when country changes
-                                        print(
+                                        appLog(
                                             'Country changed to: $name ($code)');
                                         // You can update your UI, save to database, etc.
                                       },

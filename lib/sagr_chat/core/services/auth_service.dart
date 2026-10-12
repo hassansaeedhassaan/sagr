@@ -36,7 +36,7 @@ class AuthService extends GetxService {
     //     isLoggedIn.value = true;
     //   } catch (e) {
     //     if (kDebugMode) {
-    //       print('Error loading user data: $e');
+    //       appLog('Error loading user data: $e');
     //     }
     //   }
     // }

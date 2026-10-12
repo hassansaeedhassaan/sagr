@@ -57,7 +57,7 @@ class FeaturedAdsDataSourceImpl extends FeaturedAdsDataSource {
         queryParameters: queryParameters);
 
     if (response.statusCode == 200) {
-      // print(response.data['data']);
+      // appLog(response.data['data']);
       final List<ProductModel> customers = response.data['data']
           .map<ProductModel>(
               (jsonPostModel) => ProductModel.fromJson(jsonPostModel))

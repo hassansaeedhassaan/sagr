@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -260,7 +261,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void _sendVoiceMessage() {
     // Implement voice message functionality here
-    print("Voice message sent");
+    appLog("Voice message sent");
   }
 
    @override

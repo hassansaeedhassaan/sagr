@@ -1,3 +1,4 @@
+import 'package:sagr/core/error/failure_mapper.dart';
 import 'package:dio/dio.dart';
 import 'package:sagr/core/error/exceptions.dart';
 import 'package:sagr/core/error/failures.dart';
@@ -20,6 +21,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -31,6 +34,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -41,6 +46,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(productsData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 
@@ -51,6 +58,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(eventData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   
@@ -67,6 +76,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Left(ValidationFailure(message: e.message));
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
   @override
@@ -76,6 +87,8 @@ class EventsRepositoryImpl implements EventRepository {
       return Right(eventData);
     } on ServerException {
       return Left(ServerFailure());
+    } catch (e) {
+      return Left(failureFromException(e));
     }
   }
 

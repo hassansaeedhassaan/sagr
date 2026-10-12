@@ -1,3 +1,4 @@
+import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -79,7 +80,7 @@ class BannerController extends GetxController {
   //     final error =
   //         ErrorMessage.fromJson(l.props.single as Map<String, dynamic>);
 
-  //     print(error);
+  //     appLog(error);
 
   //     // Get.snackbar("Error!", error.error.toString());
 
@@ -144,20 +145,20 @@ class BannerController extends GetxController {
       _banner.value = receivedData;
 
 
-     print("🙄Start 01");
-      print(receivedData);
-     print("End 01");
+     appLog("🙄Start 01");
+      appLog(receivedData);
+     appLog("End 01");
       // _items.addAll(receivedCategories);
 
       // categoriesList.add({receivedCategories[0].id!: receivedCategories});
 
-      // print("🙄Start 01");
+      // appLog("🙄Start 01");
 
       // var logger = Logger( printer: PrettyPrinter());
 
       // logger.d(categoriesList[0]);
 
-      // print("End 01");
+      // appLog("End 01");
       // }
 
       _isLoadingList.value = false;
