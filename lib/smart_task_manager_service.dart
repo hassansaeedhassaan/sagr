@@ -7,12 +7,12 @@ import 'package:http/http.dart' as http;
 import 'package:sagr/helper/base_url.dart';
 import 'package:sagr/core/utils/app_log.dart';
 
-/// Sends the user's position every 30 seconds while they are checked in to an
-/// event, so supervisors can see them on the live map.
+/// Sends the signed-in user's position every 15 seconds while the app is
+/// open, so the admin and company dashboards can track them live.
 ///
-/// It used to start at launch for everyone (even on the login screen), sent
-/// no auth header and never stopped. Now it runs only for a logged-in user who
-/// checked in from this device, and stops on check-out or logout.
+/// It runs for any logged-in user (not only between check-in and check-out),
+/// starts at launch or login, and stops on logout or a rejected token. The
+/// check-in record is still kept for the attendance screens.
 class SmartTaskManager {
   SmartTaskManager._();
   static final SmartTaskManager _instance = SmartTaskManager._();
@@ -23,13 +23,13 @@ class SmartTaskManager {
   /// Storage key holding {event_id, at} while checked in.
   static const String checkInKey = 'checked_in_event';
 
-  // A forgotten check-out shouldn't keep tracking the user forever.
-  static const Duration _maxShift = Duration(hours: 18);
+  static const Duration interval = Duration(seconds: 15);
 
   Timer? _timer;
   bool _sending = false;
+  bool _askedPermission = false;
 
-  /// Starts the heartbeat if the stored session and check-in allow it.
+  /// Starts the heartbeat if someone is logged in.
   void initialize() {
     if (_shouldRun()) _start();
   }
@@ -44,7 +44,6 @@ class SmartTaskManager {
 
   void markCheckedOut() {
     GetStorage().remove(checkInKey);
-    stop();
   }
 
   void stop() {
@@ -52,22 +51,13 @@ class SmartTaskManager {
     _timer = null;
   }
 
-  bool _shouldRun() {
-    final storage = GetStorage();
-    if (storage.read('access_token') == null) return false;
-    final checkIn = storage.read(checkInKey);
-    if (checkIn is! Map) return false;
-    final at = DateTime.tryParse('${checkIn['at']}');
-    if (at == null || DateTime.now().difference(at) > _maxShift) {
-      storage.remove(checkInKey);
-      return false;
-    }
-    return true;
-  }
+  bool _shouldRun() => GetStorage().read('access_token') != null;
 
   void _start() {
     if (_timer != null) return;
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) => _tick());
+    _timer = Timer.periodic(interval, (_) => _tick());
+    // Send one fix straight away rather than waiting a full interval.
+    _tick();
   }
 
   Future<void> _tick() async {
@@ -78,14 +68,19 @@ class SmartTaskManager {
     if (_sending) return;
     _sending = true;
     try {
-      final permission = await Geolocator.checkPermission();
+      var permission = await Geolocator.checkPermission();
+      // Ask once per launch; a refusal is respected until the next launch.
+      if (permission == LocationPermission.denied && !_askedPermission) {
+        _askedPermission = true;
+        permission = await Geolocator.requestPermission();
+      }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
         return;
       }
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 20),
+        timeLimit: const Duration(seconds: 12),
       );
       final heading = position.heading;
       final response = await http
@@ -105,7 +100,7 @@ class SmartTaskManager {
               if (position.speed >= 0) 'speed': position.speed,
             }),
           )
-          .timeout(const Duration(seconds: 20));
+          .timeout(const Duration(seconds: 12));
       if (response.statusCode == 401) {
         stop();
       } else if (response.statusCode != 200) {
