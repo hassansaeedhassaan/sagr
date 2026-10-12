@@ -9,6 +9,7 @@ import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/data/models/job_model.dart';
 import 'package:sagr/features/events/data/models/start_date_time_model.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
+import 'package:sagr/features/events/presentation/widgets/event_load_error_view.dart';
 import 'package:sagr/features/events/presentation/widgets/event_status_pill.dart';
 import 'package:sagr/theme/app_theme.dart';
 import 'package:sagr/utilities/map.dart';
@@ -69,9 +70,11 @@ class _EventAcceptScreenState extends State<EventAcceptScreen>
           ),
           body: FadeTransition(
             opacity: CurvedAnimation(parent: _fade, curve: Curves.easeOut),
-            child: loading || event == null
-                ? _buildLoading()
-                : _buildContent(context, event),
+            child: !loading && event == null && eventController.loadError != null
+                ? EventLoadErrorView(onRetry: eventController.getEventInfo)
+                : loading || event == null
+                    ? _buildLoading()
+                    : _buildContent(context, event),
           ),
           bottomNavigationBar: loading || event == null
               ? null

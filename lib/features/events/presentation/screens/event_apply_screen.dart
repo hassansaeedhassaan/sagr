@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sagr/theme/app_theme.dart';
 import 'package:sagr/features/events/presentation/controllers/event_apply_controller.dart';
+import 'package:sagr/features/events/presentation/widgets/event_load_error_view.dart';
 import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 
 import '../../../../view/widgets/Forms/easy_app_text_form_field.dart';
@@ -111,7 +112,7 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
           // A failed load leaves nothing to fill in — offer a retry instead of
           // an empty form the user can only fail to submit.
           if (controller.loadError != null && controller.event == null) {
-            return _LoadErrorView(onRetry: controller.getEventInfo);
+            return EventLoadErrorView(onRetry: controller.getEventInfo);
           }
           return Column(
             children: [
@@ -695,45 +696,6 @@ class _ErrorLine extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Shown when the event behind this form could not be loaded.
-class _LoadErrorView extends StatelessWidget {
-  final Future<void> Function() onRetry;
-
-  const _LoadErrorView({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.wifi_off_rounded,
-                size: 48, color: AppTheme.textHint),
-            const SizedBox(height: 14),
-            Text(
-              'Could not load this event. Please try again.'.tr,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppTheme.textMuted,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 18),
-            OutlinedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: Text('Retry'.tr),
             ),
           ],
         ),
