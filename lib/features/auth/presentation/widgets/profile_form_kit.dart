@@ -863,7 +863,11 @@ Future<PhotoSource?> showPhotoSourceSheet(BuildContext context,
 
 /// Circular profile photo with a camera badge; validates like a form field.
 class AvatarFormField extends StatelessWidget {
+  /// A photo just picked on the phone.
   final String path;
+
+  /// The saved photo, shown until a new one is picked.
+  final String? networkUrl;
   final VoidCallback onTap;
   final String requiredMessage;
 
@@ -872,15 +876,24 @@ class AvatarFormField extends StatelessWidget {
     required this.path,
     required this.onTap,
     required this.requiredMessage,
+    this.networkUrl,
   });
+
+  ImageProvider? get _image {
+    if (path.isNotEmpty) return FileImage(File(path));
+    final url = networkUrl;
+    if (url != null && url.isNotEmpty) return NetworkImage(url);
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final image = _image;
     return FormField<String>(
       initialValue: path,
-      validator: (_) => path.isEmpty ? requiredMessage : null,
+      validator: (_) => image == null ? requiredMessage : null,
       builder: (field) {
-        final hasPhoto = path.isNotEmpty;
+        final hasPhoto = image != null;
         final hasError = field.hasError && !hasPhoto;
         return Column(
           children: [
@@ -909,8 +922,10 @@ class AvatarFormField extends StatelessWidget {
                       ],
                       image: hasPhoto
                           ? DecorationImage(
-                              image: FileImage(File(path)),
+                              image: image,
                               fit: BoxFit.cover,
+                              // A broken saved URL falls back to the icon.
+                              onError: (_, __) {},
                             )
                           : null,
                     ),
@@ -965,10 +980,20 @@ class AvatarFormField extends StatelessWidget {
 class DocumentFormField extends StatelessWidget {
   final String title;
   final String hint;
+
+  /// A file just picked on the phone.
   final String path;
   final IconData icon;
   final VoidCallback onTap;
-  final String requiredMessage;
+
+  /// Null when the document is optional.
+  final String? requiredMessage;
+
+  /// Whether a file is already saved on the account.
+  final bool saved;
+
+  /// Opens the saved file; shown as a "View" link when set.
+  final VoidCallback? onView;
 
   const DocumentFormField({
     super.key,
@@ -977,16 +1002,22 @@ class DocumentFormField extends StatelessWidget {
     required this.path,
     required this.icon,
     required this.onTap,
-    required this.requiredMessage,
+    this.requiredMessage,
+    this.saved = false,
+    this.onView,
   });
 
   @override
   Widget build(BuildContext context) {
     return FormField<String>(
       initialValue: path,
-      validator: (_) => path.isEmpty ? requiredMessage : null,
+      validator: (_) =>
+          requiredMessage != null && path.isEmpty && !saved
+              ? requiredMessage
+              : null,
       builder: (field) {
-        final done = path.isNotEmpty;
+        final picked = path.isNotEmpty;
+        final done = picked || saved;
         final hasError = field.hasError && !done;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1035,7 +1066,11 @@ class DocumentFormField extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            done ? path.split('/').last : hint,
+                            picked
+                                ? path.split('/').last
+                                : saved
+                                    ? 'Uploaded'.tr
+                                    : hint,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -1046,7 +1081,15 @@ class DocumentFormField extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    if (saved && !picked && onView != null)
+                      IconButton(
+                        tooltip: 'View'.tr,
+                        onPressed: onView,
+                        icon: const Icon(Icons.visibility_outlined,
+                            size: 20, color: AppTheme.textMuted),
+                      )
+                    else
+                      const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
@@ -1072,7 +1115,7 @@ class DocumentFormField extends StatelessWidget {
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 12, 0),
                 child: Text(
-                  requiredMessage,
+                  field.errorText!,
                   style: const TextStyle(fontSize: 12, color: AppTheme.danger),
                 ),
               ),
@@ -1084,8 +1127,152 @@ class DocumentFormField extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// Count
+// ---------------------------------------------------------------------------
+
+/// A whole number with − / + buttons; the number itself can also be typed.
+class CountStepperField extends StatefulWidget {
+  final int? value;
+  final int max;
+  final ValueChanged<int?> onChanged;
+
+  const CountStepperField({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.max = 999,
+  });
+
+  @override
+  State<CountStepperField> createState() => _CountStepperFieldState();
+}
+
+class _CountStepperFieldState extends State<CountStepperField> {
+  late final _text = TextEditingController(text: widget.value?.toString());
+
+  int? get _current => int.tryParse(_text.text);
+
+  void _set(int? v) {
+    final text = v?.toString() ?? '';
+    _text.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+    widget.onChanged(v);
+  }
+
+  void _step(int delta) {
+    HapticFeedback.selectionClick();
+    _set(((_current ?? 0) + delta).clamp(0, widget.max));
+  }
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  Widget _button(IconData icon, VoidCallback? onTap) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: IconButton.filledTonal(
+        onPressed: onTap,
+        style: IconButton.styleFrom(
+          backgroundColor: AppTheme.surface,
+          disabledBackgroundColor: AppTheme.surface,
+          foregroundColor: AppTheme.brand,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+            side: const BorderSide(color: AppTheme.line),
+          ),
+        ),
+        icon: Icon(icon, size: 20),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = _current ?? 0;
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: AppTheme.field,
+        borderRadius: BorderRadius.circular(AppTheme.radius),
+      ),
+      child: Row(
+        children: [
+          _button(Icons.remove_rounded, current > 0 ? () => _step(-1) : null),
+          Expanded(
+            child: TextField(
+              controller: _text,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
+              inputFormatters: [
+                LatinDigitsFormatter(),
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter('${widget.max}'.length),
+              ],
+              onChanged: (v) {
+                final n = int.tryParse(v);
+                widget.onChanged(n == null ? null : n.clamp(0, widget.max));
+                setState(() {});
+              },
+              cursorColor: AppTheme.brand,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textTitle,
+              ),
+              decoration: const InputDecoration(
+                hintText: '0',
+                hintStyle: TextStyle(color: AppTheme.textHint),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+            ),
+          ),
+          _button(Icons.add_rounded,
+              current < widget.max ? () => _step(1) : null),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Formatters
 // ---------------------------------------------------------------------------
+
+/// Turns Arabic-Indic and Persian digits (٠١٢ / ۰۱۲) into 0-9. Arabic
+/// keyboards type those, and [FilteringTextInputFormatter.digitsOnly] would
+/// otherwise drop every key press, so the field seems not to take input.
+class LatinDigitsFormatter extends TextInputFormatter {
+  static String convert(String input) {
+    final buffer = StringBuffer();
+    for (final rune in input.runes) {
+      if (rune >= 0x0660 && rune <= 0x0669) {
+        buffer.writeCharCode(0x30 + rune - 0x0660);
+      } else if (rune >= 0x06F0 && rune <= 0x06F9) {
+        buffer.writeCharCode(0x30 + rune - 0x06F0);
+      } else {
+        buffer.writeCharCode(rune);
+      }
+    }
+    return buffer.toString();
+  }
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = convert(newValue.text);
+    if (text == newValue.text) return newValue;
+    // Each converted digit stays one UTF-16 unit, so offsets still hold.
+    return newValue.copyWith(text: text);
+  }
+}
 
 /// Uppercases, strips anything but letters/digits, caps at 24 chars (Saudi
 /// IBAN length) and groups by four for readability: "SA03 8000 0000 …".
@@ -1093,7 +1280,9 @@ class IbanInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
-    var raw = newValue.text.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    var raw = LatinDigitsFormatter.convert(newValue.text)
+        .toUpperCase()
+        .replaceAll(RegExp(r'[^A-Z0-9]'), '');
     if (raw.length > 24) raw = raw.substring(0, 24);
     final buffer = StringBuffer();
     for (var i = 0; i < raw.length; i++) {

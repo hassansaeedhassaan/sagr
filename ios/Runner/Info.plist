@@ -38,7 +38,7 @@
 		<string></string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera access lets you attach photos and video to chats.</string>
+	<string>Camera access lets you take your profile photo, photograph your documents and attach photos to chats.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Local network access is used to establish real-time voice connections for the walkie-talkie.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
@@ -48,7 +48,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone access is required for the walkie-talkie and voice messages. Your voice is only transmitted while you hold the talk button.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo library access lets you attach images to chats.</string>
+	<string>Photo library access lets you choose your profile photo and documents and attach images to chats.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

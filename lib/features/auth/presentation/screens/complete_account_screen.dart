@@ -62,14 +62,17 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
   final _nationalId = TextEditingController();
   final _iban = TextEditingController();
   final _bankName = TextEditingController();
-  final _previousEvents = TextEditingController();
   final _experts = TextEditingController();
   final _chronic = TextEditingController();
+  int? _previousEvents;
 
   @override
   void initState() {
     super.initState();
     _prefill();
+    c.recoverLostPhoto().then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   /// Seeds fields from what the account already has. New accounts only carry
@@ -97,8 +100,10 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
       _iban.value = IbanInputFormatter()
           .formatEditUpdate(TextEditingValue.empty, TextEditingValue(text: iban));
     }
-    final previous = user['previous_events_past'];
-    if (previous != null) _previousEvents.text = '$previous';
+    // Older profiles may hold free text here; only a number pre-fills.
+    _previousEvents = int.tryParse(
+        LatinDigitsFormatter.convert('${user['previous_events_past'] ?? ''}')
+            .trim());
   }
 
   @override
@@ -110,7 +115,6 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
       _nationalId,
       _iban,
       _bankName,
-      _previousEvents,
       _experts,
       _chronic,
     ]) {
@@ -164,10 +168,10 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
       ..firstName = _first.text.trim()
       ..middleName = _middle.text.trim()
       ..lastName = _last.text.trim()
-      ..nationalNo = _nationalId.text.trim()
+      ..nationalNo = LatinDigitsFormatter.convert(_nationalId.text).trim()
       ..ibanNumber = _iban.text.replaceAll(' ', '')
       ..bankAccountName = _bankName.text.trim()
-      ..previousEvents = _previousEvents.text.trim()
+      ..previousEvents = _previousEvents?.toString() ?? ''
       ..experts = _experts.text.trim()
       ..chronicDiseases = _chronic.text.trim();
 
@@ -224,7 +228,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
   }
 
   String? _nationalIdRule(String? v) =>
-      RegExp(r'^\d{10}$').hasMatch(v?.trim() ?? '')
+      RegExp(r'^\d{10}$').hasMatch(LatinDigitsFormatter.convert(v ?? '').trim())
           ? null
           : 'National ID must be 10 digits'.tr;
 
@@ -264,7 +268,11 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
               ),
             ),
           ),
-          body: Column(
+          body: GestureDetector(
+            // Tapping outside a field closes the keyboard.
+            behavior: HitTestBehavior.translucent,
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Column(
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
@@ -310,6 +318,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
                   )),
             ],
           ),
+          ),
         ),
       ),
     );
@@ -328,8 +337,10 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
       autovalidateMode: _attempted.contains(step)
           ? AutovalidateMode.onUserInteraction
           : AutovalidateMode.disabled,
+      // Dragging must not close the keyboard: a tap that slides a little,
+      // or the scroll that brings a lower field above the keyboard, would
+      // dismiss it as soon as it opens (seen on the National ID field).
       child: SingleChildScrollView(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -420,6 +431,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
               keyboard: TextInputType.number,
               action: TextInputAction.done,
               formatters: [
+                LatinDigitsFormatter(),
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(10),
               ],
@@ -552,14 +564,9 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
           LabeledField(
             label: 'Previous Events Past'.tr,
             optional: true,
-            child: _text(
-              _previousEvents,
-              hint: '0',
-              keyboard: TextInputType.number,
-              formatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(3),
-              ],
+            child: CountStepperField(
+              value: _previousEvents,
+              onChanged: (v) => _previousEvents = v,
             ),
           ),
           LabeledField(

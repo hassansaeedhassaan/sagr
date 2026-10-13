@@ -32,6 +32,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
   TextEditingController passwordController1 = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  // Re-checked whenever the password changes, so "do not match" clears as
+  // soon as both fields agree, whichever one was edited last.
+  final _confirmFieldKey = GlobalKey<FormFieldState<String>>();
+  String _password = '';
+  String _confirmation = '';
 
   late AnimationController _slideController;
   late AnimationController _fadeController;
@@ -671,6 +676,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                       accountController.changeObscureText,
                                   onSave: (value) =>
                                       accountController.password = value!,
+                                  onChanged: (value) {
+                                    _password = value;
+                                    accountController.password = value;
+                                    if (_confirmation.isNotEmpty) {
+                                      _confirmFieldKey.currentState?.validate();
+                                    }
+                                  },
                                   labelText: "Password".tr,
                                   hintText: "",
                                   onValidate: (value) {
@@ -718,22 +730,21 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                       .obscureTextConfirm.value,
                                   onChangeTextSecure: accountController
                                       .changeObscureTextConfirm,
+                                  fieldKey: _confirmFieldKey,
                                   onSave: (value) => accountController
                                       .confirmationPassword = value!,
+                                  onChanged: (value) => _confirmation = value,
                                   labelText: "Confirm Password".tr,
                                   hintText: "",
                                   onValidate: (value) {
-
-                                    if (value?.length == 0) {
+                                    if (value == null || value.isEmpty) {
                                       return "Confirm Password Required!".tr;
                                     }
-
-                                    if (value != accountController.password){
+                                    // Compare with what is typed now, not the
+                                    // value saved on the last submit.
+                                    if (value != _password) {
                                       return "Passwords do not match".tr;
                                     }
-
-
-
                                     return null;
                                   },
                                 ),

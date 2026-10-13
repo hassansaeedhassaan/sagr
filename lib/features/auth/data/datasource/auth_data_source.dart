@@ -10,6 +10,12 @@ import '../../../../core/error/exceptions.dart';
 import '../../../../models/customer_model.dart';
 import 'dart:developer' as developer;
 
+/// Multipart body for signup / complete-account / update-account. Lists go
+/// out as `langs[]`: dio's default repeats a bare `langs` key, and PHP keeps
+/// only the last one as a string (422 "langs must be an array").
+formData.FormData buildProfileFormData(Map<String, dynamic> body) =>
+    formData.FormData.fromMap(body, ListFormat.multiCompatible);
+
 abstract class AuthDataSource {
   Future<CustomerModel> createAccount(Map<String, dynamic> body);
   Future<CustomerModel> completeAccount(Map<String, dynamic> body);
@@ -65,7 +71,7 @@ class AuthDataSourceImpl extends AuthDataSource {
 
       // body['iban_file'] = ibanMultiPartFile;
 
-      formData.FormData preparedFormData = formData.FormData.fromMap(body);
+      formData.FormData preparedFormData = buildProfileFormData(body);
 
       var response =
           await dio.post('$BASEURL/auth/signup', data: preparedFormData);
@@ -127,7 +133,7 @@ class AuthDataSourceImpl extends AuthDataSource {
 
       body['iban_file'] = ibanMultiPartFile;
 
-      formData.FormData preparedFormData = formData.FormData.fromMap(body);
+      formData.FormData preparedFormData = buildProfileFormData(body);
 
       var response = await dio.post('$BASEURL/auth/complete-account',
           data: preparedFormData);
@@ -256,7 +262,7 @@ if (body.containsKey('emp_cv') && body['emp_cv'] != null) {
         body.remove('iban_file');
       }
 
-      formData.FormData preparedFormData = formData.FormData.fromMap(body);
+      formData.FormData preparedFormData = buildProfileFormData(body);
 
       var response = await dio.post('$BASEURL/auth/update-account',
           data: preparedFormData);

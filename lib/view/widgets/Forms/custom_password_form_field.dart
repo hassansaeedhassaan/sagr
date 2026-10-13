@@ -10,6 +10,8 @@ class CustomPasswordFormField extends StatelessWidget {
   final bool obscureText;
   final Function(String? val)? onSave;
   final String? Function(String? val)? onValidate;
+  final ValueChanged<String>? onChanged;
+  final Key? fieldKey;
 
    CustomPasswordFormField(
       {Key? key,
@@ -18,7 +20,9 @@ class CustomPasswordFormField extends StatelessWidget {
       this.labelText,
       this.hintText,
       this.obscureText = true,
-      this.onChangeTextSecure})
+      this.onChangeTextSecure,
+      this.onChanged,
+      this.fieldKey})
       : super(key: key);
 
   @override
@@ -27,6 +31,8 @@ class CustomPasswordFormField extends StatelessWidget {
       
       
             child: TextFormField(
+              key: fieldKey,
+              onChanged: onChanged,
 autovalidateMode: AutovalidateMode.onUserInteraction,
               onSaved: onSave,
               validator: onValidate,
