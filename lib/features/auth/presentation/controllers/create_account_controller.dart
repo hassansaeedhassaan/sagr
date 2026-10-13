@@ -4,9 +4,11 @@ import 'dart:math';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sagr/core/error/exceptions.dart';
+import 'package:sagr/core/error/failures.dart';
 import 'package:sagr/features/auth/domain/usecases/auth.dart';
 import 'package:get/get.dart';
 import 'package:sagr/features/education/data/models/education_model.dart';
@@ -128,17 +130,31 @@ class CreateAccountController extends GetxController {
     final user = authController.authenticatedUser;
     if (user == null) return;
 
-    if (user['job'] != null) {
-      _selectedJobs.value = JobModel.fromJson(user['job']);
+    T? model<T>(String key, T Function(Map<String, dynamic>) fromJson) {
+      final v = user[key];
+      // Missing relations come back as {id: null, name: null}.
+      return v is Map && v['id'] != null
+          ? fromJson(Map<String, dynamic>.from(v))
+          : null;
     }
 
-    if (user['maritalStatus'] != null) {
-      _selectedMaritalStatus.value =
-          MaritalStatusModel.fromJson(user['maritalStatus']);
-    }
+    final job = model('job', JobModel.fromJson);
+    if (job != null) _selectedJobs.value = job;
 
-    if (user['education'] != null) {
-      _selectedEducation.value = EducationModel.fromJson(user['education']);
+    final marital = model('maritalStatus', MaritalStatusModel.fromJson);
+    if (marital != null) _selectedMaritalStatus.value = marital;
+
+    final education = model('education', EducationModel.fromJson);
+    if (education != null) _selectedEducation.value = education;
+
+    final region = model('region', RegionModel.fromJson);
+    if (region != null) _selectedRegion.value = region;
+
+    final nationality = model('nationality', NationalityModel.fromJson);
+    if (nationality != null) _selectedNationality.value = nationality;
+
+    if (user['gender'] is String && (user['gender'] as String).isNotEmpty) {
+      _gender.value = user['gender'];
     }
 
     if (user['birthdate'] is String) {
@@ -150,6 +166,18 @@ class CreateAccountController extends GetxController {
           .map((lang) => LanguageModel.fromJson(lang))
           .toList();
     }
+  }
+
+  /// Seeds the selections from the saved profile and forgets files picked
+  /// on an earlier visit, so the edit screen starts from what is saved.
+  void loadSavedProfile() {
+    _imagePath.value = '';
+    _imageFile.value = XFile('');
+    _cvEmpPath.value = '';
+    _ibanFilePath.value = '';
+    _imagePathRequired.value = false;
+    _loadAuthenticatedUserData();
+    update();
   }
 
   // ========== Setters ==========
@@ -314,45 +342,79 @@ class CreateAccountController extends GetxController {
   }
 
   /// Picks a profile image from gallery
-  Future<void> pickImage() async {
+  Future<void> pickImage() => _pickProfileImage(ImageSource.gallery);
+
+  /// Takes a profile image with the camera
+  Future<void> takePhoto() => _pickProfileImage(ImageSource.camera);
+
+  Future<void> _pickProfileImage(ImageSource source) async {
     try {
       final image = await _picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
+        preferredCameraDevice: CameraDevice.front,
         maxWidth: 1024,
         maxHeight: 1024,
         imageQuality: 85,
+        // EXIF/location isn't needed, and asking for it adds a photo-library
+        // permission prompt on iOS.
+        requestFullMetadata: false,
       );
-
-      if (image != null) {
-        _imagePath.value = image.path;
-        _imageFile.value = image;
-        _imagePathRequired.value = false;
-        update();
-      }
+      if (image != null) _setProfileImage(image);
+    } on PlatformException catch (e) {
+      _logError('Profile photo picker failed', e);
+      _handleError(_pickerErrorMessage(e, source));
     } catch (e) {
-      _handleError('Failed to pick image: ${e.toString()}');
+      _logError('Profile photo picker failed', e);
+      _handleError(source == ImageSource.camera
+          ? "Couldn't take the photo, please try again".tr
+          : "Couldn't open the photo, please try again".tr);
     }
   }
 
-  /// Picks a profile image from camera
-  Future<void> takePhoto() async {
+  /// Android may kill the app while the camera app is in front (low-memory
+  /// phones do this often). The picker then has no one to return to and the
+  /// photo is lost unless it is fetched here once the screen is back.
+  Future<void> recoverLostPhoto() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
     try {
-      final image = await _picker.pickImage(
-        source: ImageSource.camera,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        _imagePath.value = image.path;
-        _imageFile.value = image;
-        _imagePathRequired.value = false;
-        update();
+      final response = await _picker.retrieveLostData();
+      if (response.isEmpty) return;
+      final file = response.file;
+      if (file != null) {
+        _setProfileImage(file);
+      } else if (response.exception != null) {
+        _handleError(
+            _pickerErrorMessage(response.exception!, ImageSource.camera));
       }
     } catch (e) {
-      _handleError('Failed to take photo: ${e.toString()}');
+      _logError('Recovering lost photo failed', e);
     }
+  }
+
+  void _setProfileImage(XFile image) {
+    _imagePath.value = image.path;
+    _imageFile.value = image;
+    _imagePathRequired.value = false;
+    update();
+  }
+
+  String _pickerErrorMessage(PlatformException e, ImageSource source) {
+    switch (e.code) {
+      case 'camera_access_denied':
+      case 'camera_access_denied_without_prompt':
+      case 'camera_access_restricted':
+        return 'Camera access is off. Allow it for Sagr in your phone settings.'
+            .tr;
+      case 'photo_access_denied':
+      case 'photo_access_restricted':
+        return 'Photo access is off. Allow it for Sagr in your phone settings.'
+            .tr;
+      case 'no_available_camera':
+        return 'No camera app was found on this phone'.tr;
+    }
+    return source == ImageSource.camera
+        ? "Couldn't take the photo, please try again".tr
+        : "Couldn't open the photo, please try again".tr;
   }
 
   Future<void> takenPhoto(image) async {
@@ -477,7 +539,9 @@ class CreateAccountController extends GetxController {
 
       return failureOrCustomer.fold(
         (failure) {
-          _handleError("Couldn't complete your profile".tr);
+          _handleError(failure is ValidationFailure
+              ? (failure.firstError ?? failure.message)
+              : "Couldn't complete your profile".tr);
           return false;
         },
         (receivedData) {
@@ -533,8 +597,8 @@ class CreateAccountController extends GetxController {
     authController.update();
   }
 
-  /// Updates user profile information
-  Future<void> updateProfile({bool showSuccessMessage = true}) async {
+  /// Updates user profile information. Returns true once saved.
+  Future<bool> updateProfile({bool showSuccessMessage = true}) async {
     _setLoadingState(true);
 
     final Map<String, dynamic> body = {};
@@ -553,12 +617,11 @@ class CreateAccountController extends GetxController {
     if (bankAccountName != null && bankAccountName!.isNotEmpty) {
       body['bankAccountName'] = bankAccountName;
     }
-    if (experts != null && experts!.isNotEmpty) body['experts'] = experts;
+    // Sent even when empty, so these optional notes can be cleared.
+    if (experts != null) body['experts'] = experts;
+    if (chronicDiseases != null) body['chronic_diseases'] = chronicDiseases;
     if (previousEvents != null && previousEvents!.isNotEmpty) {
       body['previous_events_past'] = previousEvents;
-    }
-    if (chronicDiseases != null && chronicDiseases!.isNotEmpty) {
-      body['chronic_diseases'] = chronicDiseases;
     }
 
     body['countryCode'] = countryCode;
@@ -591,10 +654,14 @@ class CreateAccountController extends GetxController {
     try {
       final failureOrCustomer = await authUsecase.updateProfile(body);
 
-      failureOrCustomer.fold(
+      return failureOrCustomer.fold(
         (failure) {
           _setLoadingState(false);
-          _handleError('Failed to update profile');
+          // A 422 names the field that failed; show that, not a generic line.
+          _handleError(failure is ValidationFailure
+              ? (failure.firstError ?? failure.message)
+              : "Couldn't save your profile".tr);
+          return false;
         },
         (receivedData) {
           // The data source has stored the returned profile; reload it.
@@ -610,14 +677,18 @@ class CreateAccountController extends GetxController {
           }
 
           _setLoadingState(false);
+          return true;
         },
       );
     } on ValidationException catch (e) {
       _logError('Validation error during profile update', e);
-      _handleError(e.data['message'] ?? 'Validation failed');
+      _handleError(
+          _firstServerError(e.data) ?? "Couldn't save your profile".tr);
+      return false;
     } catch (e) {
       _logError('Unexpected error during profile update', e);
-      _handleError('Failed to update profile. Please try again.');
+      _handleError("Couldn't save your profile".tr);
+      return false;
     } finally {
       _setLoadingState(false);
     }
@@ -659,7 +730,12 @@ class CreateAccountController extends GetxController {
     update();
   }
 
+  /// The last message shown by [_handleError]; read by tests.
+  @visibleForTesting
+  String? lastErrorMessage;
+
   void _handleError(String message) {
+    lastErrorMessage = message;
     Get.snackbar(
       "Error",
       message,

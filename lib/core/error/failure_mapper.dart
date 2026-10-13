@@ -7,7 +7,16 @@ import 'package:sagr/core/error/failures.dart';
 /// flag gets cleared) instead of escaping as an uncaught DioException.
 Failure failureFromException(Object error) {
   if (error is ValidationException) {
-    return ValidationFailure(message: error.message);
+    // Data sources wrap every DioException in this, so sort by status: no
+    // response is a network problem, and a 5xx body has no field errors.
+    final status = error.statusCode;
+    if (status == null) return const NetworkFailure();
+    if (status == 401) return const UnauthorizedFailure();
+    if (status >= 500) return const ServerFailure();
+    return ValidationFailure(
+      message: serverMessage(error.data) ?? error.message,
+      errors: fieldErrors(error.data),
+    );
   }
   if (error is ServerException) return const ServerFailure();
   if (error is DioException) {
