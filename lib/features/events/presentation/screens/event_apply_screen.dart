@@ -8,7 +8,6 @@ import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import '../../../../view/widgets/Forms/easy_app_text_form_field.dart';
 import '../../../../widgets/Common/custom_dropdown.dart';
 import '../../../jobs/data/models/job_model.dart';
-import '../../../jobs/presentation/controllers/marital_status_controller.dart';
 
 /// Tabular figures: keeps numbers (dates, times, counts) aligned on the same
 /// width so the layout never jitters as values change.
@@ -191,86 +190,99 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
   }
 
   Widget _buildJobField(EventApplyController controller) {
-    final bool hasError = controller.errors.containsKey('job');
-    return GetBuilder<JobsController>(
-      init: JobsController(Get.find()),
-      builder: (jobsController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppTheme.field,
-            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-            border: Border.all(
-              color: hasError ? AppTheme.danger : Colors.transparent,
-              width: 1.2,
-            ),
+    if (controller.isLoading || controller.event == null) {
+      return AppLoader.list(items: 1, showTrailing: false);
+    }
+
+    // Only the roles this event is hiring for, not the global job catalogue.
+    final jobs = controller.eventJobs;
+    if (jobs.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Text(
+          'No roles are open for this event'.tr,
+          style: const TextStyle(
+            fontSize: 13,
+            color: AppTheme.textMuted,
+            fontWeight: FontWeight.w500,
           ),
-          child: CustomDropdownV2<JobModel?>(
-            leadingIcon: true,
-            onChange: (int index) => controller.setSelectedJob(
-              jobsController.jobs.elementAt(index),
-            ),
-            dropdownButtonStyle: DropdownButtonStyle(
-              width: double.infinity,
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppTheme.radiusSm),
-              ),
-              height: 48,
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              primaryColor: AppTheme.textMuted,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            ),
-            dropdownStyle: DropdownStyle(
-              color: AppTheme.surface,
-              elevation: 6,
-              padding: EdgeInsets.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppTheme.radiusSm),
-              ),
-            ),
-            items: jobsController.jobs
-                .asMap()
-                .entries
-                .map(
-                  (item) => DropdownItem<JobModel?>(
-                    value: item.value,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      child: Text(
-                        item.value.name ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.textBody,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+        ),
+      );
+    }
+
+    final bool hasError = controller.errors.containsKey('job');
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.field,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(
+          color: hasError ? AppTheme.danger : Colors.transparent,
+          width: 1.2,
+        ),
+      ),
+      child: CustomDropdownV2<JobModel?>(
+        leadingIcon: true,
+        onChange: (int index) => controller.setSelectedJob(
+          jobs.elementAt(index),
+        ),
+        dropdownButtonStyle: DropdownButtonStyle(
+          width: double.infinity,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          ),
+          height: 48,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          primaryColor: AppTheme.textMuted,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ),
+        dropdownStyle: DropdownStyle(
+          color: AppTheme.surface,
+          elevation: 6,
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+          ),
+        ),
+        items: jobs
+            .asMap()
+            .entries
+            .map(
+              (item) => DropdownItem<JobModel?>(
+                value: item.value,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Text(
+                    item.value.name ?? '',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.textBody,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                )
-                .toList(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Text(
-                controller.selectedJob.id != 0
-                    ? controller.selectedJob.name.toString()
-                    : 'Select the role'.tr,
-                style: TextStyle(
-                  color: controller.selectedJob.id != 0
-                      ? AppTheme.textTitle
-                      : AppTheme.textHint,
-                  fontSize: 14,
-                  fontWeight: controller.selectedJob.id != 0
-                      ? FontWeight.w600
-                      : FontWeight.w500,
                 ),
               ),
+            )
+            .toList(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Text(
+            controller.selectedJob.id != 0
+                ? controller.selectedJob.name.toString()
+                : 'Select the role'.tr,
+            style: TextStyle(
+              color: controller.selectedJob.id != 0
+                  ? AppTheme.textTitle
+                  : AppTheme.textHint,
+              fontSize: 14,
+              fontWeight: controller.selectedJob.id != 0
+                  ? FontWeight.w600
+                  : FontWeight.w500,
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -304,8 +316,7 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
             borderRadius: BorderRadius.circular(AppTheme.radiusSm),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 color: selected
                     ? AppTheme.brand.withOpacity(0.08)
@@ -327,9 +338,8 @@ class _EventApplyScreenState extends State<EventApplyScreen> {
                         fontSize: 14,
                         fontWeight:
                             selected ? FontWeight.w700 : FontWeight.w500,
-                        color: selected
-                            ? AppTheme.brandDark
-                            : AppTheme.textBody,
+                        color:
+                            selected ? AppTheme.brandDark : AppTheme.textBody,
                         fontFeatures: _tabular,
                       ),
                     ),
@@ -656,8 +666,7 @@ class _CheckRow extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: value ? FontWeight.w700 : FontWeight.w500,
                     color: value ? AppTheme.textTitle : AppTheme.textBody,
-                    decoration:
-                        underline ? TextDecoration.underline : null,
+                    decoration: underline ? TextDecoration.underline : null,
                   ),
                 ),
               ),

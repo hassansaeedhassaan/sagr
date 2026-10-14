@@ -659,4 +659,5 @@ const Map<String, String> ar = {
   "Could not load notifications": "تعذّر تحميل الإشعارات",
   "New notifications will appear here": "ستظهر الإشعارات الجديدة هنا",
   "Application applied to this event.": "تم تحديث حالة طلبك لهذه الفعالية.",
+  "No roles are open for this event": "لا توجد وظائف متاحة في هذه الفعالية",
 };
