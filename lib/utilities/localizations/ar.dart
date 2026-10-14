@@ -655,4 +655,8 @@ const Map<String, String> ar = {
   "Your changes have been saved": "تم حفظ تغييراتك",
   "Camera access is off. Allow it for Sagr in your phone settings.": "الوصول إلى الكاميرا متوقف. اسمح به لتطبيق صقر من إعدادات الهاتف.",
   "Photo access is off. Allow it for Sagr in your phone settings.": "الوصول إلى الصور متوقف. اسمح به لتطبيق صقر من إعدادات الهاتف.",
+  "Mark all as read": "تحديد الكل كمقروء",
+  "Could not load notifications": "تعذّر تحميل الإشعارات",
+  "New notifications will appear here": "ستظهر الإشعارات الجديدة هنا",
+  "Application applied to this event.": "تم تحديث حالة طلبك لهذه الفعالية.",
 };

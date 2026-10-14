@@ -21,6 +21,8 @@ class NotificationDataSourceImpl extends NotificationsDataSource {
         queryParameters: {
           'page': filter.page,
           'limit': filter.limit,
+          // The API paginates on `per_page`.
+          'per_page': filter.limit,
           'name': filter.name
         });
 

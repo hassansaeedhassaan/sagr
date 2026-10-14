@@ -3,6 +3,7 @@ import 'package:sagr/helper/base_url.dart';
 import 'dart:async';
 import 'package:get/get.dart';
 import 'package:sagr/features/notifications/data/models/notification_model.dart';
+import 'package:sagr/features/events/presentation/widgets/event_status_pill.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../../../models/pagination_filter.dart';
@@ -16,142 +17,77 @@ class NotificationsController extends GetxController {
   RefreshController refreshController =
       RefreshController(initialRefresh: false);
 
-/**
- * Rx Filters  Setter
- */
   final _paginationFilter = PaginationFilter().obs;
-  final RxBool _lastPage = false.obs;
   final RxBool _hasMore = true.obs;
   final RxBool _isLoadingList = false.obs;
-  final RxBool _isLoadingPay = false.obs;
-  final RxString _paymentMethod = "wallet".obs;
 
-  /**
- * Rx Filters  Getter
- */
+  /// Surfaced by the screen so a failed first page can offer a retry.
+  final RxnString _loadError = RxnString();
+
+  bool _fetching = false;
+  int _requestToken = 0;
+
   int get limit => _paginationFilter.value.limit;
   int get page => _paginationFilter.value.page;
-  bool get lastPage => _lastPage.value;
   bool get hasMore => _hasMore.value;
-  String get paymentMethod => _paymentMethod.value;
-    bool get isLoadingList => _isLoadingList.value;
-    bool get isLoadingPay => _isLoadingPay.value;
+  bool get isLoadingList => _isLoadingList.value;
+  String? get loadError => _loadError.value;
 
-  /**
-   * List of products 
-   * @Setter
-   */
   final _items = <NotificationModel>[].obs;
 
-  /**
-   * List of products 
-   * @ Getter
-   */
   List<NotificationModel> get notifications => _items.toList();
 
-  void setFeaturedSelectedCategory(category) {
-    // _selected_category.value = category;
-    update();
-  }
-
-  void setPaymentMethod(paymentMethod) {
-    _paymentMethod.value = paymentMethod;
-    update();
-  }
-
-  // Future<void> payAllCommissions(context) async {
-  //   _isLoadingPay.value = true;
-   
-  //      update();
-  //   final failureOrPayCommissions =
-  //       await notificationsUsecase.getNotificationsList(paymentMethod);
-
-  //   failureOrPayCommissions.fold((l) {
-
-  //     // Get Failure and catch exception then show erro message.
-  //     final error =
-  //         ErrorMessage.fromJson(l.props.single as Map<String, dynamic>);
-
-  //     Get.snackbar("Error!", error.error.toString());
-
-  //     Navigator.pop(context);
-     
-
-  //   }, (r) {});
-
-  //   _isLoadingPay.value = false;
-
-  //   update();
-  // }
-
-  /**
-   * Products Loading 
-   * @Setter
-   */
-  RxBool _productsLoading = false.obs;
-
-  /**
-   * List of products 
-   * @ Getter
-   */
-  bool get productsLoading => _productsLoading.value;
+  int get unreadCount => _items.where((n) => n.is_read != true).length;
 
   @override
   void onInit() {
     super.onInit();
     ever(_paginationFilter, (_) => _findItems());
-
     _changePaginationFilter(1, 20);
   }
 
-  Future<void> _findItems() async {
-_isLoadingList.value = true;
-
-    final failureOrCategories =
-        await notificationsUsecase(_paginationFilter.value);
-
-    failureOrCategories.fold((failure) {
-      // Clear the loader on failure too, or the screen spins forever.
-      _productsLoading.value = false;
-      _isLoadingList.value = false;
-      _hasMore.value = false;
-      update();
-    }, (receivedCategories) {
-      if (receivedCategories.length < limit) {
-        _hasMore.value = false;
-      }
-
-      // Page 1 replaces the list (first load or pull-to-refresh).
-      if (page <= 1) {
-        _items.clear();
-        _markAllRead();
-      }
-
-      if (receivedCategories.isNotEmpty) {
-        _items.addAll(receivedCategories);
-
-        // categoriesList.add({receivedCategories[0].id!: receivedCategories});
-
-        // appLog("🙄Start 01");
-
-        // var logger = Logger( printer: PrettyPrinter());
-
-        // logger.d(categoriesList[0]);
-
-        // appLog("End 01");
-      }
-
-      _isLoadingList.value = false;
-      update();
-    });
+  @override
+  void onClose() {
+    refreshController.dispose();
+    super.onClose();
   }
 
-  /// Opening the list counts as reading it; best effort.
-  Future<void> _markAllRead() async {
-    if (!Get.isRegistered<Dio>()) return;
-    try {
-      await Get.find<Dio>().post('$BASEURL/notifications/read');
-    } catch (_) {}
+  Future<void> _findItems() async {
+    if (_fetching) return;
+    _fetching = true;
+
+    final token = ++_requestToken;
+    final requestedPage = page;
+
+    _isLoadingList.value = true;
+    if (requestedPage <= 1) _loadError.value = null;
+    update();
+
+    final result = await notificationsUsecase(_paginationFilter.value);
+
+    _fetching = false;
+    if (token != _requestToken) return;
+
+    result.fold((failure) {
+      if (requestedPage <= 1) {
+        _loadError.value = failure.message;
+      } else {
+        _hasMore.value = false;
+      }
+    }, (received) {
+      // Page 1 is a fresh list (first load or refresh), never an append.
+      if (requestedPage <= 1) _items.clear();
+
+      final seen = _items.map((e) => e.id).toSet();
+      for (final n in received) {
+        if (n.id == null || seen.add(n.id)) _items.add(n);
+      }
+
+      _hasMore.value = received.length >= limit;
+    });
+
+    _isLoadingList.value = false;
+    update();
   }
 
   void _changePaginationFilter(int page, int limit) {
@@ -162,8 +98,9 @@ _isLoadingList.value = true;
     });
   }
 
-  void onRefresh() async {
-    // monitor network fetch
+  Future<void> retry() => _findItems();
+
+  Future<void> onRefresh() async {
     _hasMore.value = true;
     if (page == 1) {
       await _findItems();
@@ -171,21 +108,54 @@ _isLoadingList.value = true;
       _changePaginationFilter(1, limit);
     }
     refreshController.refreshCompleted();
+    refreshController.resetNoData();
   }
 
-  nextPage() {
-    if (_hasMore.isFalse) return;
+  void nextPage() {
+    if (_hasMore.isFalse || _fetching) return;
     _changePaginationFilter(page + 1, limit);
+  }
+
+  void onLoading() {
+    nextPage();
+    if (_hasMore.isFalse) {
+      refreshController.loadNoData();
+    } else {
+      refreshController.loadComplete();
+    }
+  }
+
+  /// Tap: mark it read (optimistically) and open what it points at.
+  void open(NotificationModel notification) {
+    if (notification.is_read != true) {
+      _setRead((n) => n.id == notification.id);
+      _post('/notifications/${notification.id}/read');
+    }
+
+    final eventId = notification.eventId;
+    if (eventId != null) openEventByStatus(eventId, null);
+  }
+
+  void markAllRead() {
+    if (unreadCount == 0) return;
+    _setRead((_) => true);
+    _post('/notifications/read-all');
+  }
+
+  void _setRead(bool Function(NotificationModel) test) {
+    for (var i = 0; i < _items.length; i++) {
+      final n = _items[i];
+      if (n.is_read != true && test(n)) _items[i] = n.copyWith(is_read: true);
+    }
     update();
   }
 
-  void onLoading() async {
-    // monitor network fetch
-    await Future.delayed(Duration(milliseconds: 1000));
-    // if failed,use loadFailed(),if no data return,use LoadNodata()
-    nextPage();
-    refreshController.loadComplete();
-    update();
+  /// Best effort: the list already shows it read; next refresh re-syncs.
+  Future<void> _post(String path) async {
+    if (!Get.isRegistered<Dio>()) return;
+    try {
+      await Get.find<Dio>().post('$BASEURL$path');
+    } catch (_) {}
   }
 }
 
