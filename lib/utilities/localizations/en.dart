@@ -391,4 +391,5 @@ const Map<String, String> en = {
   "Could not load notifications": "Could not load notifications",
   "New notifications will appear here": "New notifications will appear here",
   "Application applied to this event.": "Your application for this event was updated.",
+  "No roles are open for this event": "No roles are open for this event",
 };

@@ -74,6 +74,12 @@ class EventApplyController extends GetxController {
 
   EventModel? get event => eventModel;
 
+  /// Roles this event is hiring for, as the dropdown's job type.
+  List<JobModel> get eventJobs => (eventModel?.jobs ?? [])
+      .where((j) => j.id != null && j.id != 0)
+      .map((j) => JobModel(id: j.id, name: j.name))
+      .toList();
+
   @override
   void onInit() {
     super.onInit();
@@ -118,6 +124,11 @@ class EventApplyController extends GetxController {
       update();
     }, (receivedEvent) {
       eventModel = receivedEvent;
+      // Drop a role that isn't part of this event; pre-pick the only one.
+      final jobs = eventJobs;
+      if (!jobs.any((j) => j.id == selectedJob.id)) {
+        _selectedJob.value = jobs.length == 1 ? jobs.first : JobModel(id: 0);
+      }
       _isLoading.value = false;
       update();
     });
