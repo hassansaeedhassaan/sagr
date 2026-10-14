@@ -387,4 +387,8 @@ const Map<String, String> en = {
   "Team channel": "Team channel",
   "Could not play this recording.": "Could not play this recording.",
   "Copied": "Copied",
+  "Mark all as read": "Mark all as read",
+  "Could not load notifications": "Could not load notifications",
+  "New notifications will appear here": "New notifications will appear here",
+  "Application applied to this event.": "Your application for this event was updated.",
 };
