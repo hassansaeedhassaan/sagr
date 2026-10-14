@@ -1,4 +1,5 @@
 import 'package:sagr/core/utils/app_log.dart';
+import 'package:sagr/core/services/precise_location.dart';
 import 'package:sagr/smart_task_manager_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
@@ -306,16 +307,25 @@ class EventController extends GetxController {
       'type': type,
       'latitude': position.latitude,
       'longitude': position.longitude,
+      'accuracy': position.accuracy,
       'timestamp': DateTime.now().toIso8601String(),
     };
 
     try {
-      // Check location if zone coordinates are available
-      if (event?.zoneCoordinates != null && event!.zoneCoordinates!.isNotEmpty) {
-        final locationResult = await checkCurrentLocation(event!.zoneCoordinates!);
-        
-        if (locationResult?.isInside != true) {
-          final distance = locationResult?.distanceToZone ?? 0;
+      // Checking in needs the user in their zone, judged on this same fix
+      // (a second fix used to be taken for the test) and allowing for its
+      // accuracy at the edge. Checking out is allowed from anywhere: someone
+      // who walked out must still be able to end their shift.
+      final zonePoints = event?.zoneCoordinates;
+      if (type == 'attendance' && zonePoints != null && zonePoints.isNotEmpty) {
+        final distance = SagrZoneLocationService.calculateDistanceToZone(
+          latitude: position.latitude,
+          longitude: position.longitude,
+          zonePoints: zonePoints,
+        );
+        _distanceToZone.value = distance;
+
+        if (distance > PreciseLocation.tolerance(position.accuracy)) {
           MessageHelper.showErrorDialog(
             title: 'Location Restricted'.tr,
             // Interpolating before .tr built a key that can never exist in
@@ -346,6 +356,15 @@ class EventController extends GetxController {
         message: 'An unexpected error occurred. Please try again.'.tr,
       );
     }
+  }
+
+  /// The server checked the user out after a minute outside their zone
+  /// (SmartTaskManager.onZoneEvent).
+  void onAutoCheckedOut() {
+    _isCheckedIn.value = false;
+    _attendanceStatus.value = AttendanceStatus.notCheckedIn;
+    _updateLastUpdateTime();
+    _updateStatusMessage();
   }
 
   // Handle attendance failure

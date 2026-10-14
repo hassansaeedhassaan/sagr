@@ -131,11 +131,16 @@ class ZoneCoordinates {
 
 // Extension for List<ZoneCoordinates>
 extension ZoneCoordinatesList on List<ZoneCoordinates> {
-  // Sort by order
+  /// By `order`, keeping the given order between equal values. Older zones
+  /// have every vertex at order 0, and List.sort is not stable, so a plain
+  /// sort could scramble them into a self-crossing shape.
   List<ZoneCoordinates> get sortedByOrder {
-    List<ZoneCoordinates> sorted = List.from(this);
-    sorted.sort((a, b) => a.order.compareTo(b.order));
-    return sorted;
+    final indexed = asMap().entries.toList()
+      ..sort((a, b) {
+        final byOrder = a.value.order.compareTo(b.value.order);
+        return byOrder != 0 ? byOrder : a.key.compareTo(b.key);
+      });
+    return indexed.map((e) => e.value).toList();
   }
 
   // Get center point

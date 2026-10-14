@@ -1,10 +1,15 @@
 import 'package:sagr/core/utils/app_log.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:sagr/core/services/precise_location.dart';
 import 'dart:math' as math;
 import '../../data/models/zone_coordinate_model.dart';
 import 'location_check_result.dart';
 
 class SagrZoneLocationService {
+  /// Vertices in drawing order (see [ZoneCoordinatesList.sortedByOrder]).
+  static List<ZoneCoordinates> sortByOrder(List<ZoneCoordinates> zonePoints) =>
+      zonePoints.sortedByOrder;
+
   // Modified to accept zonePoints as parameter
   static Future<LocationCheckResult?> checkCurrentLocationInZone({
     required List<ZoneCoordinates> zonePoints,
@@ -24,13 +29,10 @@ class SagrZoneLocationService {
         }
       }
 
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      Position currentPosition = await PreciseLocation.current();
 
       // Sort points by order to ensure correct polygon shape
-      List<ZoneCoordinates> sortedPoints = List.from(zonePoints)
-        ..sort((a, b) => a.order.compareTo(b.order));
+      List<ZoneCoordinates> sortedPoints = sortByOrder(zonePoints);
       
       // Check if inside polygon
       bool isInside = _isPointInPolygon(
@@ -65,8 +67,7 @@ class SagrZoneLocationService {
     required double longitude,
     required List<ZoneCoordinates> zonePoints,
   }) {
-    List<ZoneCoordinates> sortedPoints = List.from(zonePoints)
-      ..sort((a, b) => a.order.compareTo(b.order));
+    List<ZoneCoordinates> sortedPoints = sortByOrder(zonePoints);
     
     return _isPointInPolygon(latitude, longitude, sortedPoints);
   }
@@ -77,8 +78,7 @@ class SagrZoneLocationService {
     required double longitude,
     required List<ZoneCoordinates> zonePoints,
   }) {
-    List<ZoneCoordinates> sortedPoints = List.from(zonePoints)
-      ..sort((a, b) => a.order.compareTo(b.order));
+    List<ZoneCoordinates> sortedPoints = sortByOrder(zonePoints);
     
     bool isInside = _isPointInPolygon(latitude, longitude, sortedPoints);
     

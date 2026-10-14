@@ -35,7 +35,7 @@ class EventLocationMap extends StatelessWidget {
 
   List<LatLng> get _points {
     if (zone.isNotEmpty) {
-      final sorted = [...zone]..sort((a, b) => a.order.compareTo(b.order));
+      final sorted = zone.sortedByOrder;
       return sorted.map((c) => LatLng(c.latitude, c.longitude)).toList();
     }
     final single = _pointFromLocationUrl(locationUrl);
