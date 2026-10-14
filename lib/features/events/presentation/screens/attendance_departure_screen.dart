@@ -1,3 +1,4 @@
+import 'package:sagr/core/services/precise_location.dart';
 import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
 import 'dart:ui';
@@ -1137,10 +1138,7 @@ class SagrLocationService {
         throw Exception('Location permissions are permanently denied');
       }
 
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
-      );
+      return await PreciseLocation.current(timeLimit: const Duration(seconds: 15));
     } catch (e) {
       // ignore: avoid_print
       appLog('Error getting location: $e');

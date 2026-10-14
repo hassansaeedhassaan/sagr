@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/helper/base_url.dart';
+import 'package:sagr/smart_task_manager_service.dart';
 import 'package:sagr/firebase_options.dart';
 import 'dart:io';
 
@@ -263,6 +264,9 @@ class UnifiedNotificationService extends GetxService {
       } else {
         appLog('🔕 Suppressing notification (active conversation)');
       }
+    } else if (messageType == 'zone_exit' || messageType == 'auto_checkout') {
+      // Shown inside the app instead, once (the heartbeat reports it too).
+      SmartTaskManager().onZoneEvent(messageType);
     } else {
       // Other message types - always show notification
       await _showNotification(message);
@@ -308,6 +312,11 @@ class UnifiedNotificationService extends GetxService {
 
   void _handleMessageTap(RemoteMessage message) {
     appLog('👆 Notification tapped: ${message.data}');
+
+    if (message.data['type'] == 'auto_checkout') {
+      SmartTaskManager().onZoneEvent('auto_checkout');
+      return;
+    }
 
     final conversationId =
         int.tryParse(message.data['conversation_id']?.toString() ?? '');
