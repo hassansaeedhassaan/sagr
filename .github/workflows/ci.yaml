@@ -12,9 +12,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pinned to the SDK the app is built with. Latest stable breaks the
+      # build: livekit_client 2.4.3 no longer compiles there, and
+      # flutter_webrtc is held at 0.12.x for the 3.27 embedding API (see the
+      # dependency_overrides in pubspec.yaml). Move both together.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.27.4
           cache: true
 
       - name: Install dependencies
