@@ -1,3 +1,4 @@
+import 'package:sagr/features/notifications/live/live_notifications.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -62,6 +63,9 @@ class SessionService {
 
       if (Get.isRegistered<UnifiedNotificationService>()) {
         await UnifiedNotificationService.instance.deleteToken();
+      }
+      if (Get.isRegistered<LiveNotifications>()) {
+        LiveNotifications.to.stop();
       }
       if (Get.isRegistered<ReverbService>()) {
         await Get.delete<ReverbService>(force: true);

@@ -1,3 +1,4 @@
+import 'package:sagr/features/notifications/live/live_notifications.dart';
 import 'package:sagr/core/utils/app_log.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,8 @@ void main() async {
   // final firebaseService = FirebaseService();
   // await firebaseService.initialize();
   Get.put(UnifiedNotificationService()).init();
+  // Live unread count (Reverb), when a session already exists.
+  LiveNotifications.to.start();
 
 
   initializeDateFormatting().then((_) => runApp(MyApp()));
