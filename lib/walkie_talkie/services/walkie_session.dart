@@ -7,6 +7,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sagr/walkie_talkie/services/livekit_token_service.dart';
+import 'package:sagr/walkie_talkie/services/walkie_history_service.dart';
 
 /// Lifecycle state of a walkie-talkie session.
 enum WalkieState {
@@ -65,7 +66,9 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
     required this.channelName,
     this.eventId,
     LiveKitTokenService? tokenService,
-  }) : _tokenService = tokenService ?? LiveKitTokenService();
+    WalkieHistoryService? historyService,
+  })  : _tokenService = tokenService ?? LiveKitTokenService(),
+        _historyService = historyService ?? WalkieHistoryService();
 
   /// Walkie channel name for the event → maps 1:1 to a LiveKit room.
   final String channelName;
@@ -75,6 +78,13 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
   final int? eventId;
 
   final LiveKitTokenService _tokenService;
+  final WalkieHistoryService _historyService;
+
+  /// Times the talk button while it is held, for the message history.
+  final Stopwatch _talkWatch = Stopwatch();
+
+  /// The LiveKit room the token was issued for.
+  String? _roomName;
 
   Room? _room;
   EventsListener<RoomEvent>? _listener;
@@ -138,6 +148,8 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
     if (_disposed) return;
+
+    _roomName = tk.room.isNotEmpty ? tk.room : channelName;
 
     if (tk.token.isEmpty || tk.url.isEmpty) {
       _fail('Channel token is missing.');
@@ -238,10 +250,14 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
     if (!canTalk || lp == null || _isTalking) return;
     _isTalking = true;
     _notify();
+    _talkWatch
+      ..reset()
+      ..start();
     try {
       await lp.setMicrophoneEnabled(true);
     } catch (_) {
       _isTalking = false;
+      _talkWatch.stop();
       _notify();
     }
   }
@@ -251,9 +267,21 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
     if (!_isTalking) return;
     _isTalking = false;
     _notify();
+    _talkWatch.stop();
+    _reportTransmission(_talkWatch.elapsed);
     try {
       await lp?.setMicrophoneEnabled(false);
     } catch (_) {}
+  }
+
+  /// Logs the message for the channel history; taps too short to say
+  /// anything are skipped. Fire-and-forget, so releasing the button never
+  /// waits on the network.
+  void _reportTransmission(Duration held) {
+    final event = eventId;
+    final room = _roomName;
+    if (event == null || room == null || held.inMilliseconds < 300) return;
+    unawaited(_historyService.report(eventId: event, channel: room, held: held));
   }
 
   @override

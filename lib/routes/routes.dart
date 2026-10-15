@@ -1,4 +1,5 @@
 
+import 'package:sagr/features/payroll/my_dues_screen.dart';
 import 'package:get/get.dart';
 import 'package:sagr/features/ads/presentation/bindings/ads_bindings.dart';
 import 'package:sagr/features/ads/presentation/screens/ad_details_screen.dart';
@@ -29,6 +30,7 @@ import 'package:sagr/features/regions/presentation/bindings/region_bindings.dart
 import 'package:sagr/sagr_chat/screens/home/home_screen.dart';
 import 'package:sagr/walkie_talkie/screens/livekit_walkie_screen.dart';
 import 'package:sagr/walkie_talkie/screens/walkie_recordings_screen.dart';
+import 'package:sagr/walkie_talkie/screens/walkie_history_screen.dart';
 import '../bindings/application_binding.dart';
 import '../bindings/auth_bindings.dart';
 import '../bindings/change_password_bindings.dart';
@@ -223,6 +225,12 @@ final List<GetPage> routes = [
       page: () => const WalkieRecordingsScreen(),
       bindings: [ApplicationBinding(), EventsBindings()]),
 
+      // Who said what on the user's walkie-talkie channels.
+      GetPage(
+      name: '/event_walkie_history',
+      page: () => const WalkieHistoryScreen(),
+      bindings: [ApplicationBinding(), EventsBindings()]),
+
   
       GetPage(
       name: '/event_accept_screen',
@@ -359,6 +367,10 @@ final List<GetPage> routes = [
       page: () => ContactsScreen(),
     ),
 
+    GetPage(
+      name: '/payroll/my-dues',
+      page: () => const MyDuesScreen(),
+    ),
     GetPage(
       name: '/attendance/report',
       page: () => AttendanceReportPage(),
