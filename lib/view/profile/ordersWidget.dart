@@ -1,3 +1,4 @@
+import 'package:sagr/theme/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:sagr/data/colors.dart';
 
@@ -46,7 +47,7 @@ Widget myOrder(int status) => Container(
                   height: 30,
                   width: .5,
                   color: Color.fromRGBO(153, 154, 154, 1)),
-              Icon(Icons.exit_to_app, color: Colors.orange, size: 20)
+              Icon(AppIcons.exitToApp, color: Colors.orange, size: 20)
             ],
           ),
           SizedBox(height: 20),

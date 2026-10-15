@@ -1,4 +1,15 @@
 class ImageConstant {
+  /// Arrows that point sideways (back, forward, a row's chevron).
+  /// CustomImageView mirrors them in right-to-left layouts, the way Material
+  /// icons with matchTextDirection mirror themselves; image assets never do.
+  static Set<String> get mirroredInRtl => {
+        imgArrowDown, // despite the name: the app bar's back arrow (points left)
+        imgArrowLeft,
+        imgArrowRight,
+        imgArrowRightGray50001,
+        imgArrowRightPrimary,
+      };
+
   // Image folder path
   static String imagePath = 'assets/images';
 

@@ -1,3 +1,4 @@
+import 'package:sagr/theme/app_icons.dart';
 import 'package:sagr/core/services/session_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:circular_profile_avatar/circular_profile_avatar.dart';
@@ -594,7 +595,7 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
                   child: Icon(
-                    Icons.logout_outlined,
+                    AppIcons.logoutOutlined,
                     color: AppTheme.danger,
                     size: 20,
                   ),

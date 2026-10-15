@@ -1,3 +1,4 @@
+import 'package:sagr/theme/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sagr/data/colors.dart';
@@ -87,7 +88,7 @@ class _ElegantExitDialogState extends State<ElegantExitDialog>
                   ],
                 ),
                 child: const Icon(
-                  Icons.exit_to_app_rounded,
+                  AppIcons.exitToAppRounded,
                   color: Colors.white,
                   size: 35,
                 ),

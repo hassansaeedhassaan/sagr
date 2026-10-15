@@ -1,3 +1,4 @@
+import 'package:sagr/theme/app_icons.dart';
 import 'package:sagr/core/services/precise_location.dart';
 import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
@@ -662,7 +663,7 @@ class _AttendanceAndDepartureScreenState
     final IconData icon = !open
         ? Icons.lock_outline_rounded
         : checkedIn
-            ? Icons.logout_rounded
+            ? AppIcons.logoutRounded
             : Icons.fingerprint_rounded;
 
     return GestureDetector(
@@ -744,7 +745,6 @@ class _AttendanceAndDepartureScreenState
 
   // ---- Permissions request row ----
   Widget _permissionsCard() {
-    final bool isRtl = Directionality.of(context) == TextDirection.rtl;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -801,9 +801,8 @@ class _AttendanceAndDepartureScreenState
                 ),
               ),
               Icon(
-                isRtl
-                    ? Icons.chevron_left_rounded
-                    : Icons.chevron_right_rounded,
+                // Mirrors itself in RTL (matchTextDirection).
+                Icons.chevron_right_rounded,
                 color: AppTheme.textMuted,
                 size: 22,
               ),
