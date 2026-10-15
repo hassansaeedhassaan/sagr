@@ -810,6 +810,12 @@ const Map<String, String> en = {
   "phone_short": "Phone number must be at least 10 digits",
   "release to load more": "release to load more",
   "typing...": "typing...",
+  // Walkie-talkie in the background.
+  "Walkie-talkie": "Walkie-talkie",
+  "Shown while the walkie-talkie is on in the background.": "Shown while the walkie-talkie is on in the background.",
+  "Walkie-talkie is on": "Walkie-talkie is on",
+  "Leave": "Leave",
+  "The channel stays on in the background until you leave it.": "The channel keeps playing in the background, even with the screen locked, until you leave it.",
   // Check-in hours.
   "Outside your work period": "Outside your work period",
   "Check-in is only open during your work period.": "Check-in is only open during your work period.",

@@ -9,6 +9,7 @@ import 'package:sagr/sagr_chat/controllers/auth_controller.dart';
 import 'package:sagr/sagr_chat/controllers/chat_controller.dart';
 import 'package:sagr/sagr_chat/services/reverb_service.dart';
 import 'package:sagr/smart_task_manager_service.dart';
+import 'package:sagr/walkie_talkie/services/walkie_manager.dart';
 
 /// The one way to end a session. Every logout path (menu, expired token,
 /// password change, account deletion) goes through here so the server token
@@ -60,6 +61,11 @@ class SessionService {
       }
 
       SmartTaskManager().stop();
+
+      // The next user must not hear the previous one's team.
+      if (Get.isRegistered<WalkieManager>()) {
+        await WalkieManager.to.leave();
+      }
 
       if (Get.isRegistered<UnifiedNotificationService>()) {
         await UnifiedNotificationService.instance.deleteToken();

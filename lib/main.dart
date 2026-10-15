@@ -9,6 +9,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:sagr/firebase_options.dart';
 import 'package:sagr/smart_task_manager_service.dart';
+import 'package:sagr/walkie_talkie/services/walkie_manager.dart';
+import 'package:sagr/walkie_talkie/widgets/walkie_live_pill.dart';
 import 'bindings/application_binding.dart';
 import 'core/services/unified-notification-service.dart';
 import 'routes/routes.dart';
@@ -62,6 +64,9 @@ void main() async {
   // Live unread count (Reverb), when a session already exists.
   LiveNotifications.to.start();
 
+  // One walkie-talkie connection for the whole app, kept on in the
+  // background (Android foreground service, iOS audio background mode).
+  Get.put(WalkieManager(), permanent: true);
 
   initializeDateFormatting().then((_) => runApp(MyApp()));
 
@@ -94,6 +99,10 @@ class MyApp extends StatelessWidget {
 
       // initialRoute:  '/init_view',
       getPages: routes,
+      // "Walkie on" pill over every screen but the walkie's own.
+      routingCallback: (routing) =>
+          WalkieManager.to.currentRoute.value = routing?.current ?? '',
+      builder: (context, child) => WalkieLivePill.overlay(context, child),
       // A typo'd or removed route lands on home instead of a blank screen.
       unknownRoute: routes.firstWhere((page) => page.name == '/home'),
     );

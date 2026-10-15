@@ -18,6 +18,7 @@ import '../../widgets/swipe_to_reply.dart';
 import '../../widgets/voice_recorder.dart';
 import 'package:flutter/services.dart';
 import 'package:sagr/widgets/messages.dart' show AppNotice;
+import 'package:sagr/walkie_talkie/services/walkie_manager.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -70,6 +71,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     
     scrollController.addListener(_onScroll);
 
+    // A conversation takes the user out of the walkie-talkie channel (its
+    // audio and voice notes would talk over each other); it rejoins when the
+    // conversation closes.
+    WalkieManager.to.suspendForChat();
+
     final args = Get.arguments;
     if (args is Conversation) {
       _open(args);
@@ -106,6 +112,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     _typingTimer?.cancel();
+    WalkieManager.to.resumeAfterChat();
 
     // ✅ Clear active conversation
     chatController.setCurrentConversation(null);
