@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
 import 'package:sagr/view/share_your_adds_seven_screen/share_your_adds_seven_screen.dart';
@@ -193,11 +194,11 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Upload attachments ",
+                            "Upload attachments ".tr,
                             style: CustomTextStyles.titleMediumBluegray90001_1,
                           ),
                           Text(
-                            "You can add maximum 20 images or 5 videos.",
+                            "You can add maximum 20 images or 5 videos.".tr,
                             style: theme.textTheme.bodySmall,
                           ),
                           SizedBox(height: 10.v),
@@ -307,7 +308,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
               top: 2.v,
             ),
             child: Text(
-              "Share your adds",
+              "Share your adds".tr,
               style: theme.textTheme.titleLarge,
             ),
           ),
@@ -326,11 +327,11 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
             text: TextSpan(
               children: [
                 TextSpan(
-                  text: "Add image ",
+                  text: "Add image ".tr,
                   style: CustomTextStyles.bodyMediumff363333,
                 ),
                 TextSpan(
-                  text: "( optional ) ",
+                  text: "( optional ) ".tr,
                   style: CustomTextStyles.bodySmallff828282,
                 ),
               ],
@@ -390,7 +391,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
                                                 children: [
                                                   Icon(Icons.radio_button_checked, size: 20, color: ZAHRA_ORANGE, fill: 0.5, ),
                                                     SizedBox(width: 2,),
-                                                  Text("Main Img", style: TextStyle(fontSize: 12, color: WHITE_COLOR),)
+                                                  Text("Main Img".tr, style: TextStyle(fontSize: 12, color: WHITE_COLOR),)
                                                 ],
                                               ),
                                 // child: CustomRadioButton(
@@ -461,7 +462,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
                                                 children: [
                                                   Icon(Icons.radio_button_checked, size: 20, color: ZAHRA_ORANGE, fill: 0.5, ),
                                                     SizedBox(width: 2,),
-                                                  Text("Main Img", style: TextStyle(fontSize: 12, color: WHITE_COLOR),)
+                                                  Text("Main Img".tr, style: TextStyle(fontSize: 12, color: WHITE_COLOR),)
                                                 ],
                                               ),
                                 // child: CustomRadioButton(
@@ -533,11 +534,11 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
           text: TextSpan(
             children: [
               TextSpan(
-                text: "Product Video ",
+                text: "Product Video ".tr,
                 style: CustomTextStyles.bodyMediumff363333,
               ),
               TextSpan(
-                text: "( optional ) ",
+                text: "( optional ) ".tr,
                 style: CustomTextStyles.bodySmallff828282,
               ),
             ],
@@ -645,7 +646,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
           Expanded(
             child: CustomElevatedButton(
               height: 42.h,
-              text: "Previous",
+              text: "Previous".tr,
               margin: EdgeInsets.only(right: 6.h),
               buttonStyle: CustomButtonStyles.none,
               decoration: CustomButtonStyles
@@ -660,7 +661,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (context) => ShareYourAddsSevenScreen())),
               height: 42.h,
-              text: "Next",
+              text: "Next".tr,
               margin: EdgeInsets.only(left: 6.h),
               buttonStyle: CustomButtonStyles.none,
               decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,
@@ -720,7 +721,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
           // });
         }
       },
-      child: Text('Next'),
+      child: Text('Next'.tr),
     );
   }
 
@@ -735,7 +736,7 @@ class ShareYourAddsThreeScreen extends StatelessWidget {
           // });
         }
       },
-      child: Text('Prev'),
+      child: Text('Prev'.tr),
     );
   }
 

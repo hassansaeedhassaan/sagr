@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/app_log.dart';
 import 'package:dartz/dartz.dart';
 import 'package:sagr/core/error/exceptions.dart';
@@ -29,7 +30,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       return Right(result);
     } on ServerException {
       return Left(ServerFailure(
-        message: 'Server error occurred. Please try again later.',
+        message: 'Server error occurred. Please try again later.'.tr,
       ));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(
@@ -41,7 +42,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ));
     } on NotFoundException catch (e) {
       return Left(NotFoundFailure(
-        message: e.data['message']?.toString() ?? 'Attendance data not found',
+        message: e.data['message']?.toString() ?? 'Attendance data not found'.tr,
       ));
     } on ValidationException catch (e) {
       return Left(ValidationFailure(
@@ -50,15 +51,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ));
     } on DataParsingException catch (e) {
       return Left(DataParsingFailure(
-        message: 'Failed to process attendance data: ${e.message}',
+        message: 'Failed to process attendance data: @error'.trParams({'error': '${e.message}'}),
       ));
     } on ServerExceptionFailure catch (e) {
       return Left(ServerFailure(
-        message: e.data['message']?.toString() ?? 'Server error occurred',
+        message: e.data['message']?.toString() ?? 'Server error occurred'.tr,
       ));
     } catch (e) {
       return Left(UnknownFailure(
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message: 'An unexpected error occurred: @error'.trParams({'error': e.toString()}),
       ));
     }
   }
@@ -76,7 +77,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       return Right(result);
     } on ServerException {
       return Left(ServerFailure(
-        message: 'Server error occurred. Please try again later.',
+        message: 'Server error occurred. Please try again later.'.tr,
       ));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(
@@ -88,7 +89,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ));
     } on NotFoundException catch (e) {
       return Left(NotFoundFailure(
-        message: e.data['message']?.toString() ?? 'Attendance data not found',
+        message: e.data['message']?.toString() ?? 'Attendance data not found'.tr,
       ));
     } on ValidationException catch (e) {
       return Left(ValidationFailure(
@@ -97,15 +98,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ));
     } on DataParsingException catch (e) {
       return Left(DataParsingFailure(
-        message: 'Failed to process attendance data: ${e.message}',
+        message: 'Failed to process attendance data: @error'.trParams({'error': '${e.message}'}),
       ));
     } on ServerExceptionFailure catch (e) {
       return Left(ServerFailure(
-        message: e.data['message']?.toString() ?? 'Server error occurred',
+        message: e.data['message']?.toString() ?? 'Server error occurred'.tr,
       ));
     } catch (e) {
       return Left(UnknownFailure(
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message: 'An unexpected error occurred: @error'.trParams({'error': e.toString()}),
       ));
     }
   }
@@ -125,7 +126,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       return Right(result);
     } on ServerException {
       return Left(ServerFailure(
-        message: 'Server error occurred. Please try again later.',
+        message: 'Server error occurred. Please try again later.'.tr,
       ));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(
@@ -137,7 +138,7 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ));
     } on NotFoundException catch (e) {
       return Left(NotFoundFailure(
-        message: e.data['message']?.toString() ?? 'Attendance data not found',
+        message: e.data['message']?.toString() ?? 'Attendance data not found'.tr,
       ));
     } on ValidationException catch (e) {
       return Left(ValidationFailure(
@@ -146,15 +147,15 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
       ));
     } on DataParsingException catch (e) {
       return Left(DataParsingFailure(
-        message: 'Failed to process attendance data: ${e.message}',
+        message: 'Failed to process attendance data: @error'.trParams({'error': '${e.message}'}),
       ));
     } on ServerExceptionFailure catch (e) {
       return Left(ServerFailure(
-        message: e.data['message']?.toString() ?? 'Server error occurred',
+        message: e.data['message']?.toString() ?? 'Server error occurred'.tr,
       ));
     } catch (e) {
       return Left(UnknownFailure(
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message: 'An unexpected error occurred: @error'.trParams({'error': e.toString()}),
       ));
     }
   }

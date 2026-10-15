@@ -113,11 +113,11 @@ class SharedData {
       // titleText: Text(
       //   "Hello Hero",
       //   style: TextStyle(
-      //       fontWeight: FontWeight.bold, fontSize: 20.0, color: Colors.yellow[600], fontFamily: "ShadowsIntoLightTwo"),
+      //       fontWeight: FontWeight.bold, fontSize: 20.0, color: Colors.yellow[600], fontFamily: 'URW'),
       // ),
       messageText: Text(
         message,
-        style: TextStyle(fontSize: 18.0, color: MAZ_GREEN, fontFamily: "ShadowsIntoLightTwo"),
+        style: TextStyle(fontSize: 18.0, color: MAZ_GREEN, fontFamily: 'URW'),
       ),
     )..show(context);
   }
@@ -147,11 +147,11 @@ class SharedData {
       // titleText: Text(
       //   "Hello Hero",
       //   style: TextStyle(
-      //       fontWeight: FontWeight.bold, fontSize: 20.0, color: Colors.yellow[600], fontFamily: "ShadowsIntoLightTwo"),
+      //       fontWeight: FontWeight.bold, fontSize: 20.0, color: Colors.yellow[600], fontFamily: 'URW'),
       // ),
       messageText: Text(
         message,
-        style: TextStyle(fontSize: 18.0, color: WHITE_COLOR, fontFamily: "ShadowsIntoLightTwo"),
+        style: TextStyle(fontSize: 18.0, color: WHITE_COLOR, fontFamily: 'URW'),
       ),
     )..show(context);
   }

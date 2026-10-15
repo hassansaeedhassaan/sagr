@@ -23,6 +23,7 @@ import '../screens/registration_success_page.dart';
 import 'auth_controller.dart';
 
 import 'dart:developer' as developer;
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 /// Controller for handling user account creation, profile completion, and updates
 class CreateAccountController extends GetxController {
@@ -668,12 +669,7 @@ class CreateAccountController extends GetxController {
           authController.getProfile();
 
           if (showSuccessMessage) {
-            Get.snackbar(
-              'Success',
-              'Profile updated successfully',
-              snackPosition: SnackPosition.BOTTOM,
-              duration: const Duration(seconds: 2),
-            );
+            AppNotice.success('Success'.tr, 'Profile updated successfully'.tr);
           }
 
           _setLoadingState(false);
@@ -736,12 +732,7 @@ class CreateAccountController extends GetxController {
 
   void _handleError(String message) {
     lastErrorMessage = message;
-    Get.snackbar(
-      "Error",
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 3),
-    );
+    AppNotice.error("Error".tr, message);
 
     if (kDebugMode) {
       developer.log(

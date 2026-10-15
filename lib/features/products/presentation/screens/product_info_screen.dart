@@ -40,7 +40,7 @@ class ShareYourAddsTwoTabContainerScreenState
     return MasterWrapper(
       body: Scaffold(
         appBar: AppBar(
-          title: Text("Edit Your Ads"),
+          title: Text("Edit Your Ads".tr),
           scrolledUnderElevation: 0,
           backgroundColor: WHITE_COLOR,
         ),
@@ -94,13 +94,13 @@ class ShareYourAddsTwoTabContainerScreenState
         labelColor: appTheme.orange400,
         labelStyle: TextStyle(
           fontSize: 14.fSize,
-          fontFamily: 'Nunito',
+          fontFamily: 'URW',
           fontWeight: FontWeight.w500,
         ),
         unselectedLabelColor: GREY_COLOR,
         unselectedLabelStyle: TextStyle(
           fontSize: 14.fSize,
-          fontFamily: 'Nunito',
+          fontFamily: 'URW',
           fontWeight: FontWeight.w500,
         ),
         indicatorPadding: EdgeInsets.all(
@@ -119,17 +119,17 @@ class ShareYourAddsTwoTabContainerScreenState
         tabs: [
           Tab(
             child: Text(
-              "Attachments",
+              "Attachments".tr,
             ),
           ),
           Tab(
             child: Text(
-              "Ads info",
+              "Ads info".tr,
             ),
           ),
           Tab(
             child: Text(
-              "Address info",
+              "Address info".tr,
             ),
           ),
         ],

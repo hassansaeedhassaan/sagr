@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -151,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: TextButton(
         onPressed: () {
           // Navigate to forgot password screen
-          Get.snackbar('Coming Soon', 'Forgot password feature will be available soon');
+          AppNotice.info('Coming Soon', 'Forgot password feature will be available soon');
         },
         child: const Text('Forgot Password?'),
       ),
@@ -203,7 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icons.g_mobiledata,
           label: 'Continue with Google',
           onPressed: () {
-            Get.snackbar('Coming Soon', 'Google sign-in will be available soon');
+            AppNotice.info('Coming Soon', 'Google sign-in will be available soon');
           },
         ),
         const SizedBox(height: 12),
@@ -211,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icons.apple,
           label: 'Continue with Apple',
           onPressed: () {
-            Get.snackbar('Coming Soon', 'Apple sign-in will be available soon');
+            AppNotice.info('Coming Soon', 'Apple sign-in will be available soon');
           },
         ),
       ],

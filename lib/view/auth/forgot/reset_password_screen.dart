@@ -43,7 +43,7 @@ class ResetPasswordScreen extends StatelessWidget {
                           child: CustomText(
                               text: "reset_password".tr,
                               style:
-                                  TextStyle(fontSize: 28.0, fontFamily: "TJB")),
+                                  TextStyle(fontSize: 28.0, fontFamily: 'URW')),
                         ),
                         SizedBox(
                           height: 15,
@@ -108,7 +108,7 @@ class ResetPasswordScreen extends StatelessWidget {
                       visible: _controller.isLoading.value,
                       child: AppLoader.inline())),
                   CustomLinkButton(
-                    text: 'don\'t have account?',
+                    text: "don't have account?".tr,
                     onPress: () {},
                   ),
                   SizedBox(height: 20.0),

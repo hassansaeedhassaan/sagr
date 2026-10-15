@@ -83,7 +83,7 @@ class _ProductItemState extends State<ProductItem> {
                         color: MAZ_GREEN,
                         borderRadius: BorderRadius.circular(6)),
                     child: Text(
-                      "Negabble",
+                      "Negotiable".tr,
                       style: TextStyle(color: WHITE_COLOR),
                     ),
                   )),
@@ -285,7 +285,7 @@ class _ProductItemState extends State<ProductItem> {
                                           CrossAxisAlignment.start,
                                       children: [
                                     Text(
-                                        "#${widget.obj.category != null ? widget.obj.category!.name : 'None'}",
+                                        "#${widget.obj.category != null ? widget.obj.category!.name : 'None'.tr}",
                                         style: CustomTextStyles
                                             .bodySmallOrange400),
                                     SizedBox(height: 2.v),
@@ -376,7 +376,7 @@ class _ProductItemState extends State<ProductItem> {
                                     side: BorderSide(
                                         width: 1.0, color: Color(0XFFD20653)),
                                   ),
-                                  text: "What's app",
+                                  text: "WhatsApp".tr,
                                   margin: EdgeInsets.only(left: 0.h),
                                   leftIcon: Container(
                                     margin: EdgeInsets.only(right: 0.h),
@@ -469,7 +469,7 @@ class _ProductItemState extends State<ProductItem> {
           return CustomElevatedButton(
             onPressed: () => _convCntr.openChat(adId, context),
             height: 42.v,
-            text: "Chat",
+            text: "Chat".tr,
             margin: EdgeInsets.only(right: 0.h),
             leftIcon: Container(
               margin: EdgeInsets.only(right: 8.h),
@@ -494,7 +494,7 @@ class _ProductItemState extends State<ProductItem> {
           return CustomElevatedButton(
               height: 42.v,
               width: 150.h,
-              text: "Send offer",
+              text: "Send Offer".tr,
               leftIcon: Container(
                   margin: EdgeInsets.only(right: 0.h),
                   child: CustomImageView(
@@ -556,7 +556,7 @@ class _ProductItemState extends State<ProductItem> {
                                         child: Column(
                                           children: [
                                             Text(
-                                              "Send Offer",
+                                              "Send Offer".tr,
                                               style: TextStyle(
                                                   fontSize: 22,
                                                   fontWeight: FontWeight.w600),
@@ -595,8 +595,8 @@ class _ProductItemState extends State<ProductItem> {
                                               child: EasyAppTextFormField(
                                                 onChanged: (value) =>
                                                     _cntr.offerPrice = value!,
-                                                hintText: "Offer Price",
-                                                labelText: "Offer Price",
+                                                hintText: "Offer Price".tr,
+                                                labelText: "Offer Price".tr,
                                               ),
                                             ),
                                             Padding(

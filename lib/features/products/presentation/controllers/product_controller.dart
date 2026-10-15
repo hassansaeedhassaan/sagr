@@ -10,6 +10,7 @@ import '../../../../core/error/exceptions.dart';
 import '../../../countries/domain/usecases/get_countries.dart';
 import '../../data/models/city_model.dart';
 import '../../data/models/state_model.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class ProductController extends GetxController {
   final ProductUsecase productUsecase;
@@ -367,12 +368,12 @@ class ProductController extends GetxController {
 
       update();
     } on ValidationException catch (e) {
-      Get.snackbar("Error!", e.data['message']);
+      AppNotice.error("Error!".tr, e.data['message']);
       // _isLoading.value = false;
       update();
     } catch (e) {
       appLog(e);
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
     }
   }
 
@@ -385,7 +386,7 @@ class ProductController extends GetxController {
       if (receivedData.data['code'] == 200) {
         appLog(receivedData);
 
-        Get.snackbar("Success", receivedData.data['message']);
+        AppNotice.success("Success".tr, receivedData.data['message']);
       }
     });
   }
@@ -438,7 +439,7 @@ class ProductController extends GetxController {
   Future<void> pickVideo() async {
     try {
       if (_videoPaths.length >= 5) {
-        Get.snackbar("Error", "Allowed Only 5 videos for your ad.");
+        AppNotice.error("Error".tr, "Allowed Only 5 videos for your ad.".tr);
         return;
       }
       var video = await _picker.pickVideo(source: ImageSource.gallery);

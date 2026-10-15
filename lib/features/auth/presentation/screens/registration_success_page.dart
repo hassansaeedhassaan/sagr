@@ -531,7 +531,7 @@ class MyApp extends StatelessWidget {
       title: 'Registration Success Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        fontFamily: 'SF Pro Display', // Use your preferred font
+        fontFamily: 'URW', // Use your preferred font
       ),
       home: const RegistrationSuccessPage(),
       routes: {

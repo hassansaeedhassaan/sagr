@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/models/customer_model.dart';
 import 'package:sagr/repositories/auth_repository.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class AccountController extends GetxController {
   late String phone;
@@ -137,14 +138,14 @@ appLog(authenticatedUser);
           // titleText: Text(
           //   "Hello Hero",
           //   style: TextStyle(
-          //       fontWeight: FontWeight.bold, fontSize: 20.0, color: Colors.yellow[600], fontFamily: "ShadowsIntoLightTwo"),
+          //       fontWeight: FontWeight.bold, fontSize: 20.0, color: Colors.yellow[600], fontFamily: 'URW'),
           // ),
           messageText: Text(
             "تم حفظ البيانات بنجاح",
             style: TextStyle(
                 fontSize: 18.0,
                 color: Colors.green,
-                fontFamily: "ShadowsIntoLightTwo"),
+                fontFamily: 'URW'),
           ),
         )..show(context);
 
@@ -173,7 +174,7 @@ appLog(authenticatedUser);
       });
       _isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", e.toString());
+      AppNotice.error("Error!".tr, e.toString());
       _isLoading.value = false;
     }
   }
@@ -188,7 +189,7 @@ appLog(authenticatedUser);
       // });
       _isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       _isLoading.value = false;
     }
   }

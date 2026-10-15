@@ -17,6 +17,7 @@ import '../../widgets/chat_input.dart';
 import '../../widgets/swipe_to_reply.dart';
 import '../../widgets/voice_recorder.dart';
 import 'package:flutter/services.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -278,75 +279,65 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         IconButton(
           icon: const Icon(Icons.videocam),
           onPressed: () {
-            Get.snackbar(
-              'Coming Soon',
-              'Video call feature will be available soon',
-              snackPosition: SnackPosition.BOTTOM,
-              duration: const Duration(seconds: 2),
-            );
+            AppNotice.info('Coming Soon'.tr, 'Video call feature will be available soon'.tr);
           },
         ),
         IconButton(
           icon: const Icon(Icons.call),
           onPressed: () {
-            Get.snackbar(
-              'Coming Soon',
-              'Voice call feature will be available soon',
-              snackPosition: SnackPosition.BOTTOM,
-              duration: const Duration(seconds: 2),
-            );
+            AppNotice.info('Coming Soon'.tr, 'Voice call feature will be available soon'.tr);
           },
         ),
         PopupMenuButton(
           itemBuilder: (context) => [
             PopupMenuItem(
               value: 'contact',
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.person_outline),
-                  SizedBox(width: 12),
-                  Text('View Contact'),
+                  const Icon(Icons.person_outline),
+                  const SizedBox(width: 12),
+                  Text('View Contact'.tr),
                 ],
               ),
             ),
             PopupMenuItem(
               value: 'media',
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.photo_library_outlined),
-                  SizedBox(width: 12),
-                  Text('Media, Links, and Docs'),
+                  const Icon(Icons.photo_library_outlined),
+                  const SizedBox(width: 12),
+                  Text('Media, Links, and Docs'.tr),
                 ],
               ),
             ),
             if (conversation.isGroupChat)
               PopupMenuItem(
                 value: 'group_info',
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.group_outlined),
-                    SizedBox(width: 12),
-                    Text('Group Info'),
+                    const Icon(Icons.group_outlined),
+                    const SizedBox(width: 12),
+                    Text('Group Info'.tr),
                   ],
                 ),
               ),
             PopupMenuItem(
               value: 'mute',
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.notifications_off_outlined),
-                  SizedBox(width: 12),
-                  Text('Mute Notifications'),
+                  const Icon(Icons.notifications_off_outlined),
+                  const SizedBox(width: 12),
+                  Text('Mute Notifications'.tr),
                 ],
               ),
             ),
             PopupMenuItem(
               value: 'clear',
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.delete_outline, color: Colors.red),
-                  SizedBox(width: 12),
-                  Text('Clear Chat', style: TextStyle(color: Colors.red)),
+                  const Icon(Icons.delete_outline, color: Colors.red),
+                  const SizedBox(width: 12),
+                  Text('Clear Chat'.tr, style: const TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -670,21 +661,16 @@ Widget _buildChatInput() {
             if (message.isTextMessage)
               ListTile(
                 leading: const Icon(Icons.copy),
-                title: const Text('Copy'),
+                title: Text('Copy'.tr),
                 onTap: () {
                   Clipboard.setData(ClipboardData(text: message.content ?? ''));
                   Get.back();
-                  Get.snackbar(
-                    'Copied',
-                    'Message copied to clipboard',
-                    snackPosition: SnackPosition.BOTTOM,
-                    duration: const Duration(seconds: 2),
-                  );
+                  AppNotice.success('Copied'.tr, 'Message copied to clipboard'.tr);
                 },
               ),
             ListTile(
               leading: const Icon(Icons.reply),
-              title: const Text('Reply'),
+              title: Text('Reply'.tr),
               onTap: () {
                 setState(() => replyToMessage = message);
                 Get.back();
@@ -694,7 +680,7 @@ Widget _buildChatInput() {
             ),
             ListTile(
               leading: const Icon(Icons.forward),
-              title: const Text('Forward'),
+              title: Text('Forward'.tr),
               onTap: () {
                 Get.back();
                 _forwardMessage(message);
@@ -703,7 +689,7 @@ Widget _buildChatInput() {
             if (message.senderId == currentUserId) ...[
               ListTile(
                 leading: const Icon(Icons.edit),
-                title: const Text('Edit'),
+                title: Text('Edit'.tr),
                 onTap: () {
                   Get.back();
                   _editMessage(message);
@@ -711,9 +697,9 @@ Widget _buildChatInput() {
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
+                title: Text(
+                  'Delete'.tr,
+                  style: const TextStyle(color: Colors.red),
                 ),
                 onTap: () {
                   Get.back();
@@ -730,53 +716,33 @@ Widget _buildChatInput() {
 
   void _deleteMessage(Message message) {
     Get.defaultDialog(
-      title: 'Delete Message',
-      middleText: 'Are you sure you want to delete this message?',
-      textConfirm: 'Delete',
-      textCancel: 'Cancel',
+      title: 'Delete Message'.tr,
+      middleText: 'Are you sure you want to delete this message?'.tr,
+      textConfirm: 'Delete'.tr,
+      textCancel: 'Cancel'.tr,
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
       onConfirm: () {
         chatController.deleteMessage(message.id, conversation.id);
         Get.back();
-        Get.snackbar(
-          'Deleted',
-          'Message deleted successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
+        AppNotice.success('Deleted'.tr, 'Message deleted successfully'.tr);
       },
     );
   }
 
   void _editMessage(Message message) {
     // TODO: Implement edit message functionality
-    Get.snackbar(
-      'Coming Soon',
-      'Edit message feature will be available soon',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+    AppNotice.info('Coming Soon'.tr, 'Edit message feature will be available soon'.tr);
   }
 
   void _forwardMessage(Message message) {
     // TODO: Implement forward message functionality
-    Get.snackbar(
-      'Coming Soon',
-      'Forward message feature will be available soon',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+    AppNotice.info('Coming Soon'.tr, 'Forward message feature will be available soon'.tr);
   }
 
   void _showConversationInfo() {
     // TODO: Navigate to conversation info screen
-    Get.snackbar(
-      'Coming Soon',
-      'Conversation info will be available soon',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
+    AppNotice.info('Coming Soon'.tr, 'Conversation info will be available soon'.tr);
   }
 
   void _handleMenuAction(String action) {
@@ -785,23 +751,13 @@ Widget _buildChatInput() {
         _showConversationInfo();
         break;
       case 'media':
-        Get.snackbar(
-          'Coming Soon',
-          'Media gallery will be available soon',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
+        AppNotice.info('Coming Soon'.tr, 'Media gallery will be available soon'.tr);
         break;
       case 'group_info':
         _showConversationInfo();
         break;
       case 'mute':
-        Get.snackbar(
-          'Coming Soon',
-          'Mute notifications will be available soon',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
+        AppNotice.info('Coming Soon'.tr, 'Mute notifications will be available soon'.tr);
         break;
       case 'clear':
         _clearChat();
@@ -811,21 +767,16 @@ Widget _buildChatInput() {
 
   void _clearChat() {
     Get.defaultDialog(
-      title: 'Clear Chat',
-      middleText: 'Are you sure you want to clear all messages in this chat?',
-      textConfirm: 'Clear',
-      textCancel: 'Cancel',
+      title: 'Clear Chat'.tr,
+      middleText: 'Are you sure you want to clear all messages in this chat?'.tr,
+      textConfirm: 'Clear'.tr,
+      textCancel: 'Cancel'.tr,
       confirmTextColor: Colors.white,
       buttonColor: Colors.red,
       onConfirm: () {
         // TODO: Implement clear chat
         Get.back();
-        Get.snackbar(
-          'Coming Soon',
-          'Clear chat feature will be available soon',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 2),
-        );
+        AppNotice.info('Coming Soon'.tr, 'Clear chat feature will be available soon'.tr);
       },
     );
   }

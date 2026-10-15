@@ -4,6 +4,7 @@ import 'package:sagr/core/services/unified-notification-service.dart';
 import 'package:sagr/exceptions/rest_exception.dart';
 import 'package:sagr/repositories/auth_repository.dart';
 import 'package:sagr/smart_task_manager_service.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class LoginController extends GetxController {
   final AuthRepository _authRepository;
@@ -100,17 +101,17 @@ class LoginController extends GetxController {
           }
           SmartTaskManager().initialize();
 
-          Get.snackbar("Success Message".tr, "");
+          AppNotice.success("Success Message".tr, "");
 
           Future.delayed(const Duration(milliseconds: 1500)).then((value) =>  Get.offAllNamed('/home_screen'));
         }
       });
       isLoading.value = false;
     } on RestException catch (e) {
-      Get.snackbar("Error!", e.message.tr);
+      AppNotice.error("Error!".tr, e.message.tr);
       isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       isLoading.value = false;
     }
 

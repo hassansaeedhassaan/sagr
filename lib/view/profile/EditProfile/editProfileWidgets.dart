@@ -86,7 +86,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              fontFamily: 'Cairo',
+              fontFamily: 'URW',
               color: Colors.black),
           decoration: InputDecoration(
               filled: true,
@@ -103,7 +103,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   fontWeight: FontWeight.bold,
                   fontSize: 13.0,
                   color: Colors.black,
-                  fontFamily: 'Cairo'),
+                  fontFamily: 'URW'),
               icon: widget.icon == null ? null : widget.icon,
               contentPadding:
                   EdgeInsets.symmetric(horizontal: 10, vertical: 10))),

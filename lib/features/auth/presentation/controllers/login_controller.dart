@@ -85,7 +85,7 @@ class LoginController extends GetxController {
     // Guard: the phone field is not a Form field, so validate() can pass with an
     // empty/stale phone. Block the request and surface a clear message instead.
     if (phone.trim().isEmpty) {
-      Get.snackbar("Error!".tr, 'Required'.tr);
+      AppNotice.error("Error!".tr, 'Required'.tr);
       return;
     }
 
@@ -130,7 +130,7 @@ class LoginController extends GetxController {
     } catch (e) {
       appLog(e);
       isLoading.value = false;
-      Get.snackbar("Error!".tr, 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
     }
 
     update();

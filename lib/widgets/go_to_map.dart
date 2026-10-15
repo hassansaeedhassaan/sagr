@@ -93,7 +93,7 @@ GetBuilder<AuthController> GoToMap(BuildContext context, List<Product> products)
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Text(
-                                            "Are you sure you want to delete your account ? If you delete your account, you may not be able to sign in again.",
+                                            "Are you sure you want to delete your account? If you delete your account, you may not be able to sign in again.".tr,
                                             textAlign: TextAlign.center,
                                             style: TextStyle(fontSize: 15),
                                           ),
@@ -138,7 +138,7 @@ GetBuilder<AuthController> GoToMap(BuildContext context, List<Product> products)
                                                   onPressed: () =>
                                                       Navigator.pop(context),
                                                   height: 42.v,
-                                                  text: "Cancle",
+                                                  text: "Cancel".tr,
                                                   margin: EdgeInsets.only(
                                                       left: 6.h),
                                                   buttonTextStyle:

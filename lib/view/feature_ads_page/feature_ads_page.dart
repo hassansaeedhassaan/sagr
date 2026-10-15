@@ -44,7 +44,7 @@ class FeatureAdsPage extends StatelessWidget {
                 preferredSize: Size.fromHeight(55),
                 child: AppBar(
                   backgroundColor: WHITE_COLOR,
-                  title: Text("Feature Ads"),
+                  title: Text("Feature Ads".tr),
                   scrolledUnderElevation: 0,
                 )),
             body: Stack(
@@ -236,7 +236,7 @@ class FeatureAdsPage extends StatelessWidget {
                                             MainAxisAlignment.spaceEvenly,
                                         children: [
                                           Text(
-                                            "Near By",
+                                            "Near By".tr,
                                             style: TextStyle(
                                                 color: !featuredAdsController
                                                         .nearBy
@@ -291,7 +291,7 @@ class FeatureAdsPage extends StatelessWidget {
                                               ? MainAxisAlignment.spaceAround
                                               : MainAxisAlignment.center,
                                           children: [
-                                            Text("Available Photo",
+                                            Text("Available Photo".tr,
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   color: featuredAdsController
@@ -528,7 +528,7 @@ class FeatureAdsPage extends StatelessWidget {
                   Expanded(
                     child: CustomSearchView(
                       controller: searchController,
-                      hintText: "Search for ads...",
+                      hintText: "Search for ads...".tr,
                       onChanged: (value) => __featuredController.setSearchQuery(value),
                     ),
                   ),
@@ -685,7 +685,7 @@ class SearchResults extends StatelessWidget {
                               child: Padding(
                                 padding: EdgeInsets.symmetric(
                                     vertical: 12, horizontal: 12),
-                                child: Text("More Results >>"),
+                                child: Text("More Results >>".tr),
                               ),
                             )
                           ],

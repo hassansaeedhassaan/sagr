@@ -15,14 +15,14 @@ class Price extends StatelessWidget {
           text: '₪',
           style: const TextStyle(
             color: BLACK_COLOR,
-            fontFamily: "TJB",
+            fontFamily: 'URW',
             fontSize: 12.0,
           ),
           children: <TextSpan>[
             TextSpan(
                 text: price,
                 style: TextStyle(
-                  fontFamily: "CAIRO",
+                  fontFamily: 'URW',
                   color: BLACK_COLOR,
                   fontWeight: FontWeight.w600,
                   fontSize: priceFontSize,

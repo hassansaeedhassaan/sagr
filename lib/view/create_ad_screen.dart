@@ -53,7 +53,7 @@ class CreateAdScreen extends StatelessWidget {
         return Scaffold(
           appBar: PreferredSize(
               preferredSize: Size.fromHeight(66),
-              child: BasicAppBar(title: "Share your ad.")),
+              child: BasicAppBar(title: "Share your ad.".tr)),
           resizeToAvoidBottomInset: false,
           body: SizedBox(
             width: SizeUtils.width,
@@ -85,12 +85,12 @@ class CreateAdScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Upload attachments ",
+                                    "Upload attachments".tr,
                                     style: CustomTextStyles
                                         .titleMediumBluegray90001_1,
                                   ),
                                   Text(
-                                    "You can add maximum 20 images or 5 videos.",
+                                    "You can add maximum 20 images or 5 videos.".tr,
                                     style: theme.textTheme.bodySmall,
                                   ),
                                   SizedBox(height: 10.v),
@@ -125,7 +125,7 @@ class CreateAdScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Add info",
+                                      "Add info".tr,
                                       style: CustomTextStyles
                                           .titleMediumBluegray90001_1,
                                     ),
@@ -164,15 +164,15 @@ class CreateAdScreen extends StatelessWidget {
                                         initialValue: _createAdCntr.phone,
                                         onChanged: (value) =>
                                             _createAdCntr.phone = value!,
-                                        labelText: "Phone number",
-                                        hintText: "Phone number"),
+                                        labelText: "Phone number".tr,
+                                        hintText: "Phone number".tr),
                                     SizedBox(height: 12.v),
                                     EasyAppTextFormField(
                                         initialValue: _createAdCntr.whatsapp,
                                         onChanged: (value) =>
                                             _createAdCntr.whatsapp = value!,
-                                        labelText: "Whats app number",
-                                        hintText: "Whats app number")
+                                        labelText: "WhatsApp number".tr,
+                                        hintText: "WhatsApp number".tr)
                                   ],
                                 ),
                               ),
@@ -203,7 +203,7 @@ class CreateAdScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Add address info",
+                                    "Add address info".tr,
                                     style: CustomTextStyles
                                         .titleMediumBluegray90001_1,
                                   ),
@@ -397,7 +397,7 @@ class CreateAdScreen extends StatelessWidget {
                           }
                         },
                         height: 42.h,
-                        text: "Previous",
+                        text: "Previous".tr,
                         margin: EdgeInsets.only(right: 6.h),
                         buttonStyle: CustomButtonStyles.none,
                         decoration: CustomButtonStyles
@@ -417,7 +417,7 @@ class CreateAdScreen extends StatelessWidget {
                         //     MaterialPageRoute(
                         //         builder: (context) => ShareYourAddsSevenScreen())),
                         height: 42.h,
-                        text: "Next",
+                        text: "Next".tr,
                         margin: EdgeInsets.only(left: 6.h),
                         buttonStyle: CustomButtonStyles.none,
                         decoration: CustomButtonStyles
@@ -614,7 +614,7 @@ class CreateAdScreen extends StatelessWidget {
                                                           width: 2,
                                                         ),
                                                         Text(
-                                                          "Main Img",
+                                                          "Main Img".tr,
                                                           style: TextStyle(
                                                               fontSize: 12,
                                                               color:
@@ -784,11 +784,11 @@ class CreateAdScreen extends StatelessWidget {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: "Product Video ",
+                            text: "${"Product Video".tr} ",
                             style: CustomTextStyles.bodyMediumff363333,
                           ),
                           TextSpan(
-                            text: "( optional ) ",
+                            text: "( optional ) ".tr,
                             style: CustomTextStyles.bodySmallff828282,
                           ),
                         ],
@@ -897,8 +897,8 @@ class CreateAdScreen extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.only(right: 6.h),
         child: EasyAppTextFormField(
-          labelText: "Min Price",
-          hintText: "Min Price",
+          labelText: "Min Price".tr,
+          hintText: "Min Price".tr,
           // hintStyle: CustomTextStyles.bodyMediumErrorContainer,
         ),
       ),
@@ -920,8 +920,8 @@ class CreateAdScreen extends StatelessWidget {
                         padding: EdgeInsets.only(right: 6.h),
                         child: EasyAppTextFormField(
                           onChanged: (value) => _createAdCntr.min_price,
-                          labelText: "Min Price",
-                          hintText: "Min Price",
+                          labelText: "Min Price".tr,
+                          hintText: "Min Price".tr,
                           // hintStyle: CustomTextStyles.bodyMediumErrorContainer,
                         ),
                       ),
@@ -1113,7 +1113,7 @@ class CreateAdScreen extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(left: 8.h),
                 child: Text(
-                  "Be permium :",
+                  "Be premium:".tr,
                   style: CustomTextStyles.titleMediumBluegray90001Medium,
                 ),
               ),
@@ -1149,7 +1149,7 @@ class CreateAdScreen extends StatelessWidget {
             padding: EdgeInsets.only(right: 6.h),
             child: CustomRadioButton(
               width: 181.h,
-              text: "Normal ad",
+              text: "Normal ad".tr,
               value: "Normal ad",
               groupValue: "",
               padding: EdgeInsets.symmetric(
@@ -1167,7 +1167,7 @@ class CreateAdScreen extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.only(left: 6.h),
             child: CustomTextFormField(
-              hintText: "Premium",
+              hintText: "Premium".tr,
               hintStyle: CustomTextStyles.titleMediumBluegray90001Medium,
               textInputAction: TextInputAction.done,
               prefix: Container(

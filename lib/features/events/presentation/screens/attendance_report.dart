@@ -294,7 +294,7 @@ class _GrandTotalCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '${attendance.grandTotalHours}h ${attendance.grandTotalMinutes}m',
+            '@hours h @minutes m'.trParams({'hours': '${attendance.grandTotalHours}', 'minutes': '${attendance.grandTotalMinutes}'}),
             style: const TextStyle(
               color: Colors.white54,
               fontSize: 12,

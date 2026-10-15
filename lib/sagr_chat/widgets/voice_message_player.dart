@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:get/get.dart';
 import '../theme/chat_theme.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 /// Voice note rendered as a self-contained dark pill so it reads as a
 /// distinct, premium element regardless of the surrounding bubble color.
@@ -221,12 +222,7 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer>
       await _audioPlayer.play(UrlSource(widget.audioUrl));
       if (mounted) setState(() => _isPlaying = true);
     } catch (e) {
-      Get.snackbar(
-        'Error'.tr,
-        'Failed to play audio'.tr,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
-      );
+      AppNotice.error('Error'.tr, 'Failed to play audio'.tr);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

@@ -182,10 +182,12 @@ flutter:
     - family: URW
       fonts:
         - asset: assets/fonts/URW-DIN-Arabic-Regular.ttf
+        - asset: assets/fonts/URW-DIN-Arabic-Medium.ttf
+          weight: 500
         - asset: assets/fonts/URW-DIN-Arabic-Demi.ttf
           weight: 600
         - asset: assets/fonts/URW-DIN-Arabic-Demi.ttf
-          weight: 500
+          weight: 700
 
     - family: URWD
       fonts:

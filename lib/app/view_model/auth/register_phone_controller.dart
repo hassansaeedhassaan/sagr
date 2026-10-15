@@ -3,6 +3,7 @@ import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 
 import '../../../repositories/auth_repository.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class RegisterPhoneController extends GetxController {
   final AuthRepository _authRepository;
@@ -51,7 +52,7 @@ class RegisterPhoneController extends GetxController {
 
 
 void reg(){
-   Get.snackbar("Error!", 'wrong'.tr);
+   AppNotice.error("Error!".tr, 'wrong'.tr);
 }
   Future<void> verificationCode() async {
     final Map<String, dynamic> body = {'verify_code': confirm_code};
@@ -71,7 +72,7 @@ void reg(){
       });
       isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       isLoading.value = false;
     }
   }
@@ -93,7 +94,7 @@ void reg(){
           // _open_confirm_dialog.value = true;
 
 
-            Get.snackbar("Success", response['message']);
+            AppNotice.success("Success".tr, response['message']);
 
        
         }
@@ -114,7 +115,7 @@ void reg(){
 
           update();
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       isLoading.value = false;
     }
   }

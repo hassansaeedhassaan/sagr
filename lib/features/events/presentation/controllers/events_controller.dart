@@ -5,6 +5,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../../models/pagination_filter.dart';
 import '../../data/models/event_model.dart';
 import '../../domain/usecases/get_events.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class EventsController extends GetxController {
   // MaritalStatusUsecase instance
@@ -189,7 +190,7 @@ Future<void> filterEventsByJob(int jobId) async {
 
   /// Shows error message to user (implement based on your UI framework)
 void _showErrorToUser(String message) {
-  Get.snackbar('Error'.tr, message, snackPosition: SnackPosition.BOTTOM);
+  AppNotice.error('Error'.tr, message);
 }
 
   Future<void> getEventDetails() async {

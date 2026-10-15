@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 
 import '../../../core/utils/image_constant.dart';
@@ -26,7 +27,7 @@ class Category1ItemWidget extends StatelessWidget {
         ),
         SizedBox(height: 6.v),
         Text(
-          "Electronics",
+          "Electronics".tr,
           style: theme.textTheme.labelLarge,
         ),
       ],

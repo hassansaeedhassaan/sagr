@@ -120,7 +120,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                                         text:
                                                             TextSpan(children: [
                                                           TextSpan(
-                                                              text: "Comments ",
+                                                              text: "${"Comments".tr} ",
                                                               style: CustomTextStyles
                                                                   .titleMediumff363333),
                                                           TextSpan(
@@ -295,7 +295,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                                           // _buildFrameRow10(context)
                                                         ])),
                                                 SizedBox(height: 24.v),
-                                                Text("View More",
+                                                Text("View More".tr,
                                                     style: CustomTextStyles
                                                         .titleSmallPrimary_1)
                                               ]));
@@ -316,14 +316,14 @@ class AdsDetailsScreen extends StatelessWidget {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          "Related ",
+                                          "Related".tr,
                                           style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.w600,
                                               color: AppTheme.textTitle),
                                         ),
                                         InkWell(
-                                          child: Text("See More",
+                                          child: Text("See More".tr,
                                               style: TextStyle(
                                                   color: AppTheme.brand,
                                                   fontWeight: FontWeight.w600)),
@@ -413,7 +413,7 @@ class AdsDetailsScreen extends StatelessWidget {
     return CustomElevatedButton(
         height: 28.v,
         width: 80.h,
-        text: "Negotiable",
+        text: "Negotiable".tr,
         buttonStyle: CustomButtonStyles.fillTealA,
         buttonTextStyle: CustomTextStyles.labelLargeOnPrimary);
   }
@@ -889,7 +889,7 @@ class AdsDetailsScreen extends StatelessWidget {
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Padding(
                     padding: EdgeInsets.only(top: 2.v),
-                    child: Text("Description",
+                    child: Text("Description".tr,
                         style: CustomTextStyles.titleMediumBluegray900)),
                 Container(
                     width: 133.h,
@@ -900,10 +900,7 @@ class AdsDetailsScreen extends StatelessWidget {
                     child: RichText(
                         text: TextSpan(children: [
                           TextSpan(
-                              text: "Translate ",
-                              style: CustomTextStyles.titleSmallffd20653),
-                          TextSpan(
-                              text: "to English",
+                              text: "Translate to English".tr,
                               style: CustomTextStyles.titleSmallffd20653)
                         ]),
                         textAlign: TextAlign.left))
@@ -936,7 +933,7 @@ class AdsDetailsScreen extends StatelessWidget {
         init: AuthController(),
         builder: (AuthController authController) {
           return !authController.isLoggedIn
-              ? Text("Not Logged in")
+              ? Text("Not Logged in".tr)
               : Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -969,8 +966,8 @@ class AdsDetailsScreen extends StatelessWidget {
                                                   child: SizedBox(
                                                 height: 40,
                                                 child: EasyAppTextFormField(
-                                                    hintText: "Reply",
-                                                    labelText: "Reply",
+                                                    hintText: "Reply".tr,
+                                                    labelText: "Reply".tr,
                                                     onChanged: (value) =>
                                                         _commentController
                                                             .replay = value),
@@ -1281,7 +1278,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                       child: Column(
                                         children: [
                                           Text(
-                                            "Delete Comment",
+                                            "Delete Comment".tr,
                                             style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.w600),
@@ -1289,7 +1286,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                           Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: Text(
-                                              "Are you sure you want to delete your comment?",
+                                              "Are you sure you want to delete your comment?".tr,
                                               textAlign: TextAlign.center,
                                               style: TextStyle(fontSize: 15),
                                             ),
@@ -1361,7 +1358,7 @@ class AdsDetailsScreen extends StatelessWidget {
                                                     onPressed: () =>
                                                         Navigator.pop(context),
                                                     height: 42.v,
-                                                    text: "Cancle",
+                                                    text: "Cancel".tr,
                                                     margin: EdgeInsets.only(
                                                         left: 6.h),
                                                     buttonTextStyle:
@@ -1523,7 +1520,7 @@ Widget _buildChatButton(adId, BuildContext context) {
         return CustomElevatedButton(
           onPressed: () => _convCntr.openChat(adId, context),
           height: 42.v,
-          text: "Chat",
+          text: "Chat".tr,
           margin: EdgeInsets.only(right: 0.h),
           leftIcon: Container(
             margin: EdgeInsets.only(right: 8.h),
@@ -1548,7 +1545,7 @@ Widget _buildSendOfferButton(Product product, BuildContext context) {
         return CustomElevatedButton(
             height: 42.v,
             width: 140.h,
-            text: "Send offer",
+            text: "Send Offer".tr,
             leftIcon: Container(
                 margin: EdgeInsets.only(right: 4.h),
                 child: CustomImageView(
@@ -1609,7 +1606,7 @@ Widget _buildSendOfferButton(Product product, BuildContext context) {
                                       child: Column(
                                         children: [
                                           Text(
-                                            "Send Offer",
+                                            "Send Offer".tr,
                                             style: TextStyle(
                                                 fontSize: 22,
                                                 fontWeight: FontWeight.w600),
@@ -1644,8 +1641,8 @@ Widget _buildSendOfferButton(Product product, BuildContext context) {
                                             padding: const EdgeInsets.all(16.0),
                                             child: EasyAppTextFormField(
                                               onChanged: (value) => _cntr.offerPrice = value!,
-                                              hintText: "Offer Price",
-                                              labelText: "Offer Price",
+                                              hintText: "Offer Price".tr,
+                                              labelText: "Offer Price".tr,
                                             ),
                                           ),
                                           Padding(
@@ -1720,7 +1717,7 @@ class ProductPriceWidget extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Padding(
                   padding: EdgeInsets.only(right: 1.h),
-                  child: Text(" in ${product!.created_at}",
+                  child: Text(" ${"in".tr} ${product!.created_at}",
                       style: CustomTextStyles.bodySmall10))),
           Text(
             product!.price_type == "open_offer" ? "Open Offer".tr : "",

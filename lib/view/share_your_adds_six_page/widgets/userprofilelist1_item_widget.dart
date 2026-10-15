@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/data/colors.dart';
 
@@ -46,7 +47,7 @@ class Userprofilelist1ItemWidget extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: 8.h),
                   child: Text(
-                    "Premium",
+                    "Premium".tr,
                     style: CustomTextStyles.titleMediumErrorContainerMedium,
                   ),
                 ),
@@ -84,7 +85,7 @@ class Userprofilelist1ItemWidget extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: 8.h),
                   child: Text(
-                    "Normal",
+                    "Normal".tr,
                     style: CustomTextStyles.titleMediumErrorContainerMedium,
                   ),
                 ),

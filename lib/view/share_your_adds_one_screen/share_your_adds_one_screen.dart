@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -101,7 +102,7 @@ Iterable markers = [];
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Add address info",
+                    "Add address info".tr,
                     style: CustomTextStyles.titleMediumBluegray90001_1,
                   ),
                   SizedBox(height: 12.v),
@@ -114,7 +115,7 @@ Iterable markers = [];
                         width: 20.adaptSize,
                       ),
                     ),
-                    hintText: "Country",
+                    hintText: "Country".tr,
                     hintStyle: theme.textTheme.bodyMedium!,
                     items: dropdownItemList,
                     contentPadding: EdgeInsets.only(
@@ -154,7 +155,7 @@ Iterable markers = [];
                         width: 20.adaptSize,
                       ),
                     ),
-                    hintText: "City",
+                    hintText: "City".tr,
                     hintStyle: theme.textTheme.bodyMedium!,
                     items: dropdownItemList2,
                     contentPadding: EdgeInsets.only(
@@ -206,7 +207,7 @@ Iterable markers = [];
               top: 2.v,
             ),
             child: Text(
-              "Share your adds",
+              "Share your ads".tr,
               style: theme.textTheme.titleLarge,
             ),
           ),
@@ -259,7 +260,7 @@ Iterable markers = [];
             padding: EdgeInsets.only(right: 6.h),
             child: CustomRadioButton(
               width: 181.h,
-              text: "Normal ad",
+              text: "Normal ad".tr,
               value: "Normal ad",
               groupValue: radioGroup,
               padding: EdgeInsets.symmetric(
@@ -280,7 +281,7 @@ Iterable markers = [];
             padding: EdgeInsets.only(left: 6.h),
             child: CustomTextFormField(
               controller: premiumController,
-              hintText: "Premium",
+              hintText: "Premium".tr,
               hintStyle: CustomTextStyles.titleMediumBluegray90001Medium,
               textInputAction: TextInputAction.done,
               prefix: Container(
@@ -361,7 +362,7 @@ Iterable markers = [];
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShareYourAddsSevenScreen())),
-              text: "Previous",
+              text: "Previous".tr,
               margin: EdgeInsets.only(right: 6.h),
               buttonStyle: CustomButtonStyles.none,
               decoration: CustomButtonStyles
@@ -375,7 +376,7 @@ Iterable markers = [];
               //     context,
               //     MaterialPageRoute(
               //         builder: (context) => MapsScreen())),
-              text: "Next",
+              text: "Next".tr,
               margin: EdgeInsets.only(left: 6.h),
               buttonStyle: CustomButtonStyles.none,
               decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,

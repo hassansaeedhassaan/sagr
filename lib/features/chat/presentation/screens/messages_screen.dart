@@ -100,7 +100,7 @@ class MessagesScreen extends StatelessWidget {
                         ),
                       ),
                       AppbarSubtitleTwo(
-                        text: "Online",
+                        text: "Online".tr,
                         margin: EdgeInsets.only(
                           left: 16.h,
                           top: 19.v,
@@ -139,20 +139,20 @@ class MessagesScreen extends StatelessWidget {
                         Widget body;
                         if (mode == LoadStatus.idle) {
                           body = _controller.conversations.length > 0
-                              ? Text("Pull up load")
+                              ? Text("Pull up load".tr)
                               : Text("");
                         } else if (mode == LoadStatus.loading) {
                           body = AppLoader.inline();
                         } else if (mode == LoadStatus.failed) {
-                          body = Text("Load Failed!Click retry!");
+                          body = Text("Load Failed!Click retry!".tr);
                         } else if (mode == LoadStatus.canLoading) {
-                          body = Text("release to load more");
+                          body = Text("release to load more".tr);
                         } else {
-                          body = Text("No more Data");
+                          body = Text("No more Data".tr);
                         }
 
                         if (_controller.hasMore == false) {
-                          body = Text("No more Data");
+                          body = Text("No more Data".tr);
                         }
 
                         return Container(
@@ -200,7 +200,7 @@ class MessagesScreen extends StatelessWidget {
                                 _authController.authenticatedUser!['id']);
                           } else {
                             return Container(
-                              child: Text("Empty "),
+                              child: Text("Empty".tr),
                             );
                           }
                         }),
@@ -216,7 +216,7 @@ class MessagesScreen extends StatelessWidget {
     return CustomElevatedButton(
       onPressed: () => _controller.replyOnOffer(context, adId, offerId),
       height: 40.v,
-      text: "Relay",
+      text: "Relay".tr,
       margin: EdgeInsets.only(right: 4.h),
       leftIcon: Container(
         margin: EdgeInsets.only(right: 8.h),
@@ -237,7 +237,7 @@ class MessagesScreen extends StatelessWidget {
     return CustomOutlinedButton(
       onPressed: () => _controller.rejectOnOffer(context, adId, offerId),
       height: 40.v,
-      text: "Reject ",
+      text: "Reject".tr,
       margin: EdgeInsets.only(left: 0.h),
       leftIcon: Container(
         // color: PURPLE_COLOR,
@@ -375,7 +375,7 @@ class MessagesScreen extends StatelessWidget {
                       bottom: 3.v,
                     ),
                     child: Text(
-                      "Offer",
+                      "Offer".tr,
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),

@@ -23,7 +23,7 @@ class MyFavoriteScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MasterWrapper(
       appBar: AppBar(
-        title: Text("My Favorite"),
+        title: Text("My Favorite".tr),
         scrolledUnderElevation: 0,
         backgroundColor: WHITE_COLOR,
         toolbarHeight: 66,
@@ -55,7 +55,7 @@ class MyFavoriteScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 23.v),
                           Text(
-                            "No Favorites Ads Found",
+                            "No Favorites Ads Found".tr,
                             style: CustomTextStyles
                                 .titleMediumBluegray90001SemiBold_1,
                           ),
@@ -66,13 +66,8 @@ class MyFavoriteScreen extends StatelessWidget {
                               text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: "Its ",
-                                    style:
-                                        CustomTextStyles.bodyMediumff828282,
-                                  ),
-                                  TextSpan(
                                     text:
-                                        "Seems we can't find any results on your Favorite List",
+                                        "It seems we can't find any results on your Favorite List".tr,
                                     style:
                                         CustomTextStyles.bodyMediumff828282,
                                   ),

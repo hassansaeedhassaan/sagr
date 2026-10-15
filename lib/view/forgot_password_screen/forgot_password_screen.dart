@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/view/reset/reset_password_screen.dart';
 import 'package:sagr/widgets/app_bar/appbar_leading_image.dart';
@@ -52,7 +53,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 2.v),
                   Text(
-                    "Forget password",
+                    "Forgot password".tr,
                     style: CustomTextStyles.titleLargePoppins,
                   ),
                   SizedBox(height: 1.v),
@@ -60,7 +61,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                     width: 322.h,
                     margin: EdgeInsets.only(right: 51.h),
                     child: Text(
-                      "Enter your email so that we can send you password reset link",
+                      "Enter your email so that we can send you password reset link".tr,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: CustomTextStyles.bodyMediumGray50001.copyWith(
@@ -71,7 +72,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                   SizedBox(height: 21.v),
                   CustomTextFormField(
                     controller: passwordController,
-                    hintText: "Email",
+                    hintText: "Email".tr,
                     autofocus: false,
                     hintStyle: CustomTextStyles.bodyMediumErrorContainer,
                     textInputAction: TextInputAction.done,
@@ -82,7 +83,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                   CustomElevatedButton(
                     onPressed: () => Navigator.push(
               context, MaterialPageRoute(builder: (context) => ResetPasswordScreen())),
-                    text: "Send",
+                    text: "Send".tr,
                     buttonStyle: CustomButtonStyles.none,
                     decoration:
                         CustomButtonStyles.gradientPrimaryToOrangeDecoration,

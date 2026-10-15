@@ -9,6 +9,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../../../models/pagination_filter.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../domain/usecases/get_conversation.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class MessagesController extends GetxController {
   final ConversationUsecase conversationUsecase;
@@ -139,12 +140,12 @@ class MessagesController extends GetxController {
 
       update();
     } on ValidationException catch (e) {
-      Get.snackbar("Error!", e.data['message']);
+      AppNotice.error("Error!".tr, e.data['message']);
       // _isLoading.value = false;
       update();
     } catch (e) {
       appLog(e);
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
     }
   }
 
@@ -186,10 +187,10 @@ class MessagesController extends GetxController {
       update();
     } on ValidationException catch (e) {
       SharedData().showAlertError(context, '${e.data['error']} 🤌');
-      // Get.snackbar("Error!", e.data['error']);
+      // Get.snackbar("Error!".tr, e.data['error']);
       update();
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
     }
   }
 
@@ -213,10 +214,10 @@ class MessagesController extends GetxController {
       update();
     } on ValidationException catch (e) {
       SharedData().showAlertError(context, '${e.data['error']} 🤌');
-      // Get.snackbar("Error!", e.data['error']);
+      // Get.snackbar("Error!".tr, e.data['error']);
       update();
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
     }
   }
 

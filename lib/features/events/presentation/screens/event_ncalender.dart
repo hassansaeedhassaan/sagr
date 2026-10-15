@@ -57,9 +57,9 @@ class EventCalendarPage extends StatelessWidget {
       scrolledUnderElevation: 0,
       elevation: 0,
       centerTitle: false,
-      title: const Text(
-        'Events Calendar',
-        style: TextStyle(
+      title: Text(
+        'Events Calendar'.tr,
+        style: const TextStyle(
           color: AppTheme.textTitle,
           fontWeight: FontWeight.w700,
           fontSize: 18,
@@ -72,7 +72,7 @@ class EventCalendarPage extends StatelessWidget {
             icon: const Icon(Icons.refresh_rounded,
                 color: AppTheme.textTitle, size: 22),
             onPressed: c.loadEventsFromApi,
-            tooltip: 'Refresh',
+            tooltip: 'Refresh'.tr,
           ),
         ),
       ],
@@ -109,9 +109,9 @@ class EventCalendarPage extends StatelessWidget {
               dividerColor: Colors.transparent,
               splashFactory: NoSplash.splashFactory,
               onTap: c.setTabIndex,
-              tabs: const [
-                Tab(text: 'Calendar'),
-                Tab(text: 'List'),
+              tabs: [
+                Tab(text: 'Calendar'.tr),
+                Tab(text: 'List'.tr),
               ],
             ),
           ),
@@ -301,7 +301,7 @@ class EventCalendarPage extends StatelessWidget {
                   child: Text(
                     selected != null
                         ? DateFormat.yMMMMEEEEd(_locale).format(selected)
-                        : 'Select a date',
+                        : 'Select a date'.tr,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -559,9 +559,9 @@ class EventCalendarPage extends StatelessWidget {
                 size: 26, color: AppTheme.textMuted),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'No events on this day',
-            style: TextStyle(
+          Text(
+            'No events on this day'.tr,
+            style: const TextStyle(
               color: AppTheme.textMuted,
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -585,18 +585,18 @@ class EventCalendarPage extends StatelessWidget {
                 size: 30, color: AppTheme.textMuted),
           ),
           const SizedBox(height: 14),
-          const Text(
-            'No events scheduled',
-            style: TextStyle(
+          Text(
+            'No events scheduled'.tr,
+            style: const TextStyle(
               color: AppTheme.textTitle,
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Your events will appear here',
-            style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+          Text(
+            'Your events will appear here'.tr,
+            style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
           ),
         ],
       ),

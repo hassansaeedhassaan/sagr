@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
 class ProDropdown<T> extends StatefulWidget {
@@ -272,7 +273,7 @@ class _ProDropdownState<T> extends State<ProDropdown<T>> {
               });
               _overlayEntry?.markNeedsBuild();
             },
-            child: const Text('Clear All'),
+            child: Text('Clear All'.tr),
           ),
           ElevatedButton(
             onPressed: () {
@@ -283,7 +284,7 @@ class _ProDropdownState<T> extends State<ProDropdown<T>> {
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24),
             ),
-            child: const Text('Apply'),
+            child: Text('Apply'.tr),
           ),
         ],
       ),

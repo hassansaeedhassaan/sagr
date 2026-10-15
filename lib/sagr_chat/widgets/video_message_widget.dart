@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'dart:io';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class VideoMessageWidget extends StatefulWidget {
   final String? videoUrl;
@@ -32,7 +33,7 @@ class _VideoMessageWidgetState extends State<VideoMessageWidget> {
 
   void _openVideoPlayer() {
     if (widget.videoUrl == null || widget.videoUrl!.isEmpty) {
-      Get.snackbar('Error', 'Video URL is not available');
+      AppNotice.error('Error'.tr, 'Video URL is not available'.tr);
       return;
     }
 
@@ -84,7 +85,7 @@ class _VideoMessageWidgetState extends State<VideoMessageWidget> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Video unavailable',
+              'Video unavailable'.tr,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.7),
                 fontSize: 14,
@@ -292,7 +293,7 @@ class _VideoMessageWidgetState extends State<VideoMessageWidget> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Video Message',
+            'Video Message'.tr,
             style: TextStyle(
               color: Colors.white.withOpacity(0.7),
               fontSize: 14,
@@ -360,7 +361,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Error playing video',
+                  'Error playing video'.tr,
                   style: const TextStyle(color: Colors.white),
                 ),
                 const SizedBox(height: 8),
@@ -445,9 +446,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             size: 64,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Failed to load video',
-            style: TextStyle(
+          Text(
+            'Failed to load video'.tr,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -466,7 +467,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           ElevatedButton.icon(
             onPressed: () => Get.back(),
             icon: const Icon(Icons.arrow_back),
-            label: const Text('Go Back'),
+            label: Text('Go Back'.tr),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
@@ -501,25 +502,25 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.download),
-              title: const Text('Download Video'),
+              title: Text('Download Video'.tr),
               onTap: () {
                 Get.back();
                 // Implement download
-                Get.snackbar('Info', 'Download feature coming soon');
+                AppNotice.info('Info'.tr, 'Download feature coming soon'.tr);
               },
             ),
             ListTile(
               leading: const Icon(Icons.share),
-              title: const Text('Share Video'),
+              title: Text('Share Video'.tr),
               onTap: () {
                 Get.back();
                 // Implement share
-                Get.snackbar('Info', 'Share feature coming soon');
+                AppNotice.info('Info'.tr, 'Share feature coming soon'.tr);
               },
             ),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('Video Info'),
+              title: Text('Video Info'.tr),
               onTap: () {
                 Get.back();
                 _showVideoInfo();
@@ -538,21 +539,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     
     Get.dialog(
       AlertDialog(
-        title: const Text('Video Information'),
+        title: Text('Video Information'.tr),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow('Duration', _formatDuration(duration)),
-            _buildInfoRow('Resolution', '${size.width.toInt()}x${size.height.toInt()}'),
-            _buildInfoRow('Aspect Ratio', size.aspectRatio.toStringAsFixed(2)),
-            _buildInfoRow('Source', widget.videoUrl.startsWith('http') ? 'Network' : 'Local'),
+            _buildInfoRow('Duration'.tr, _formatDuration(duration)),
+            _buildInfoRow('Resolution'.tr, '${size.width.toInt()}x${size.height.toInt()}'),
+            _buildInfoRow('Aspect Ratio'.tr, size.aspectRatio.toStringAsFixed(2)),
+            _buildInfoRow('Source'.tr, widget.videoUrl.startsWith('http') ? 'Network'.tr : 'Local'.tr),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Close'),
+            child: Text('Close'.tr),
           ),
         ],
       ),

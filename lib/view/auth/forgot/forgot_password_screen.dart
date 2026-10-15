@@ -37,7 +37,7 @@ class ForgotPasswordScreenOLD extends StatelessWidget {
                     // color: Colors.red,
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: Text(
-                      "back to login",
+                      "back to login".tr,
                       textAlign: TextAlign.left,
                     ),
                   ),
@@ -84,7 +84,7 @@ class ForgotPasswordScreenOLD extends StatelessWidget {
                       visible: _controller.isLoading.value,
                       child: AppLoader.inline())),
                   CustomLinkButton(
-                    text: 'don\'t have account?',
+                    text: "don't have account?".tr,
                     onPress: () {},
                   ),
                   SizedBox(height: 50.0),

@@ -36,7 +36,7 @@ class ContactUsTwoScreen extends StatelessWidget {
         resizeToAvoidBottomInset: false,
         appBar: PreferredSize(
             preferredSize: Size.fromHeight(66),
-            child: BasicAppBar(title: "Change Password")),
+            child: BasicAppBar(title: "Change Password".tr)),
         body: SizedBox(
           width: SizeUtils.width,
           child: SingleChildScrollView(
@@ -79,8 +79,8 @@ class ContactUsTwoScreen extends StatelessWidget {
 
           EasyAppPasswordFormField(
             
-            hintText: "Old Password",
-            labelText: "Old Password",
+            hintText: "Old Password".tr,
+            labelText: "Old Password".tr,
             onSave: (val) =>  _controller.old_password = val,
             onValidate: (val) {
               if (val!.length == 0){
@@ -93,8 +93,8 @@ class ContactUsTwoScreen extends StatelessWidget {
           
             SizedBox(height: 12.v),
             EasyAppPasswordFormField(
-            hintText: "New Password",
-            labelText: "New Password",
+            hintText: "New Password".tr,
+            labelText: "New Password".tr,
             onSave: (val) =>  _controller.new_password = val,
             onValidate: (val) {
               if (val!.length == 0){
@@ -106,8 +106,8 @@ class ContactUsTwoScreen extends StatelessWidget {
           ),
             SizedBox(height: 12.v),
             EasyAppPasswordFormField(
-            hintText: "New Password Confirmation",
-            labelText: "New Password Confirmation" ,
+            hintText: "New Password Confirmation".tr,
+            labelText: "New Password Confirmation".tr,
             onSave: (val) =>  _controller.new_password_confirmation = val,
             onValidate: (val) {
               if (val!.length == 0){
@@ -126,7 +126,7 @@ class ContactUsTwoScreen extends StatelessWidget {
                   _controller.changePassword(context);
                 }
               },
-              text: "Update ",
+              text: "Update".tr,
               buttonStyle: CustomButtonStyles.none,
               decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,
             )

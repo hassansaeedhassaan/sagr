@@ -16,6 +16,7 @@ import 'package:sagr/features/nationalities/presentation/controllers/nationaliti
 import 'package:sagr/features/regions/data/models/region_model.dart';
 import 'package:sagr/features/regions/presentation/controllers/regions_controller.dart';
 import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 T _findOrPut<T>(T Function() create) =>
     Get.isRegistered<T>() ? Get.find<T>() : Get.put<T>(create());
@@ -180,15 +181,7 @@ class _CompleteAccountScreenState extends State<CompleteAccountScreen> {
 
     HapticFeedback.mediumImpact();
     Navigator.of(context).pop(true);
-    Get.snackbar(
-      'Profile completed'.tr,
-      'You can now apply for events'.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
-      backgroundColor: AppTheme.navy,
-      colorText: Colors.white,
-      icon: const Icon(Icons.check_circle_rounded, color: AppTheme.success),
-    );
+    AppNotice.success('Profile completed'.tr, 'You can now apply for events'.tr);
   }
 
   Future<void> _pickPhoto() async {

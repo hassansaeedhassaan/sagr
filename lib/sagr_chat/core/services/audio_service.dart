@@ -4,6 +4,7 @@ import 'package:flutter_sound/flutter_sound.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class AudioService extends GetxService {
   FlutterSoundRecorder? _recorder;
@@ -31,7 +32,7 @@ class AudioService extends GetxService {
 
   Future<void> startRecording() async {
     if (!await _requestPermissions()) {
-      Get.snackbar('Permission Required', 'Microphone permission is required to record audio');
+      AppNotice.info('Permission Required', 'Microphone permission is required to record audio');
       return;
     }
 

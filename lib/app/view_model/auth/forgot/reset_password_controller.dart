@@ -1,5 +1,6 @@
 import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 
 class ResetPasswordController extends GetxController {
@@ -54,7 +55,7 @@ class ResetPasswordController extends GetxController {
       // });
       isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       isLoading.value = false;
     }
   }

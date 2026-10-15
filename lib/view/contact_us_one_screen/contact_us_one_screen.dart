@@ -62,7 +62,7 @@ class ContactUsOneScreen extends StatelessWidget {
       appBar: PreferredSize(
           preferredSize: Size.fromHeight(66),
           child: BasicAppBar(
-            title: 'General Info',
+            title: 'General Info'.tr,
           )),
       body: GetBuilder<ProfileController>(
         init: ProfileController(Get.find()),
@@ -137,14 +137,14 @@ class ContactUsOneScreen extends StatelessWidget {
                             CustomTextFormField(
                               initialValue:
                                   _controller.authenticatedUser!['name'],
-                              labelText: "Name",
-                              hintText: "Name",
+                              labelText: "Name".tr,
+                              hintText: "Name".tr,
                               onSave: (value) => _controller.name = value!,
                             ),
                             SizedBox(height: 15.v),
                             CustomEmailFormField(
-                              hintText: "Email",
-                              labelText: "Email",
+                              hintText: "Email".tr,
+                              labelText: "Email".tr,
                               onSave: (value) => _controller.email = value!,
                               initialValue:
                                   _controller.authenticatedUser!['email'],
@@ -213,7 +213,7 @@ class ContactUsOneScreen extends StatelessWidget {
                                   _controller.updateProfile(context);
                                 }
                               },
-                              text: "Update ",
+                              text: "Update".tr,
                               buttonStyle: CustomButtonStyles.none,
                               decoration: CustomButtonStyles
                                   .gradientPrimaryToOrangeDecoration,
@@ -272,9 +272,9 @@ class ContactUsOneScreen extends StatelessWidget {
   Widget _buildFloatingTextFieldName(BuildContext context, String? name) {
     return CustomFloatingTextField(
       controller: floatingTextFieldNameController,
-      labelText: "Name",
+      labelText: "Name".tr,
       labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-      hintText: "Name",
+      hintText: "Name".tr,
     );
   }
 
@@ -282,9 +282,9 @@ class ContactUsOneScreen extends StatelessWidget {
   Widget _buildFloatingTextFieldEmail(BuildContext context) {
     return CustomFloatingTextField(
       controller: floatingTextFieldEmailController,
-      labelText: "Email",
+      labelText: "Email".tr,
       labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-      hintText: "Email",
+      hintText: "Email".tr,
       textInputType: TextInputType.emailAddress,
     );
   }
@@ -293,9 +293,9 @@ class ContactUsOneScreen extends StatelessWidget {
   Widget _buildFloatingTextFieldPhone(BuildContext context) {
     return CustomFloatingTextField(
       controller: floatingTextFieldPhoneController,
-      labelText: "Phone",
+      labelText: "Phone".tr,
       labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-      hintText: "Phone",
+      hintText: "Phone".tr,
       textInputType: TextInputType.phone,
     );
   }
@@ -304,9 +304,9 @@ class ContactUsOneScreen extends StatelessWidget {
   Widget _buildFloatingTextFieldCountry(BuildContext context) {
     return CustomFloatingTextField(
       controller: floatingTextFieldCountryController,
-      labelText: "Country",
+      labelText: "Country".tr,
       labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-      hintText: "Country",
+      hintText: "Country".tr,
       textInputAction: TextInputAction.done,
       suffix: Container(
         margin: EdgeInsets.symmetric(horizontal: 12.h),
@@ -325,7 +325,7 @@ class ContactUsOneScreen extends StatelessWidget {
   /// Section Widget
   Widget _buildButtonUpdate(BuildContext context) {
     return CustomElevatedButton(
-      text: "Update",
+      text: "Update".tr,
       buttonStyle: CustomButtonStyles.none,
       decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,
     );

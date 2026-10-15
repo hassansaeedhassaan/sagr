@@ -148,16 +148,8 @@ class SmartTaskManager {
     if (type == 'zone_exit') {
       if (_zoneState != 'inside') return;
       _zoneState = 'outside';
-      Get.snackbar(
-        'You left your zone'.tr,
-        'Go back to your event zone within @seconds seconds, or you will be checked out automatically.'
-            .trParams({'seconds': '${secondsLeft ?? 60}'}),
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange.shade700,
-        colorText: Colors.white,
-        icon: const Icon(Icons.warning_amber_rounded, color: Colors.white),
-        duration: const Duration(seconds: 10),
-      );
+      AppNotice.warning('You left your zone'.tr, 'Go back to your event zone within @seconds seconds, or you will be checked out automatically.'
+            .trParams({'seconds': '${secondsLeft ?? 60}'}));
     } else if (type == 'auto_checkout') {
       if (_zoneState == 'checked_out') return;
       _zoneState = 'checked_out';

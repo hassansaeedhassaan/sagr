@@ -7,6 +7,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../../../models/pagination_filter.dart';
 import '../../domain/usecases/get_commissions.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class CommissionsController extends GetxController {
   final CommissionsUsecase commissionsUsecase;
@@ -72,7 +73,7 @@ final RxBool _isLoadingPay = false.obs;
       final error =
           ErrorMessage.fromJson(l.props.single as Map<String, dynamic>);
 
-      Get.snackbar("Error!", error.error.toString());
+      AppNotice.error("Error!".tr, error.error.toString());
 
       Navigator.pop(context);
      

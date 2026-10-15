@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class MediaService extends GetxService {
   final ImagePicker _imagePicker = ImagePicker();
@@ -15,7 +16,7 @@ class MediaService extends GetxService {
       );
       return image?.path;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to pick image: $e');
+      AppNotice.error('Error', 'Failed to pick image: $e');
       return null;
     }
   }
@@ -30,7 +31,7 @@ class MediaService extends GetxService {
       );
       return image?.path;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to capture image: $e');
+      AppNotice.error('Error', 'Failed to capture image: $e');
       return null;
     }
   }
@@ -43,7 +44,7 @@ class MediaService extends GetxService {
       );
       return video?.path;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to pick video: $e');
+      AppNotice.error('Error', 'Failed to pick video: $e');
       return null;
     }
   }
@@ -56,7 +57,7 @@ class MediaService extends GetxService {
       );
       return video?.path;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to record video: $e');
+      AppNotice.error('Error', 'Failed to record video: $e');
       return null;
     }
   }
@@ -73,7 +74,7 @@ class MediaService extends GetxService {
       }
       return null;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to pick document: $e');
+      AppNotice.error('Error', 'Failed to pick document: $e');
       return null;
     }
   }

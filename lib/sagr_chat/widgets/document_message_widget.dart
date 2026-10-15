@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:open_file/open_file.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class DocumentMessageWidget extends StatefulWidget {
   final String? documentUrl;
@@ -74,7 +75,7 @@ class _DocumentMessageWidgetState extends State<DocumentMessageWidget>
 
   Future<void> _downloadFile() async {
     if (widget.documentUrl == null || widget.fileName == null) {
-      Get.snackbar('Error', 'Invalid file URL');
+      AppNotice.error('Error'.tr, 'Invalid file URL'.tr);
       return;
     }
 
@@ -111,20 +112,10 @@ class _DocumentMessageWidgetState extends State<DocumentMessageWidget>
         _localFilePath = filePath;
       });
 
-      Get.snackbar(
-        'Success',
-        'File downloaded successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
-      );
+      AppNotice.success('Success'.tr, 'File downloaded successfully'.tr);
     } catch (e) {
       setState(() => _isDownloading = false);
-      Get.snackbar(
-        'Error',
-        'Failed to download file: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade100,
-      );
+      AppNotice.error('Error'.tr, 'Failed to download file: @error'.trParams({'error': '$e'}));
     }
   }
 
@@ -137,10 +128,10 @@ class _DocumentMessageWidgetState extends State<DocumentMessageWidget>
     try {
       final result = await OpenFile.open(_localFilePath!);
       if (result.type != ResultType.done) {
-        Get.snackbar('Info', 'No app found to open this file');
+        AppNotice.info('Info'.tr, 'No app found to open this file'.tr);
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to open file: $e');
+      AppNotice.error('Error'.tr, 'Failed to open file: @error'.trParams({'error': '$e'}));
     }
   }
 
@@ -261,7 +252,7 @@ class _DocumentMessageWidgetState extends State<DocumentMessageWidget>
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Document unavailable',
+                'Document unavailable'.tr,
                 style: TextStyle(
                   fontSize: 14,
                   color: widget.isMe ? Colors.white : Colors.black87,
@@ -345,7 +336,7 @@ class _DocumentMessageWidgetState extends State<DocumentMessageWidget>
                               ),
                               const SizedBox(width: 2),
                               Text(
-                                'Downloaded',
+                                'Downloaded'.tr,
                                 style: TextStyle(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w600,

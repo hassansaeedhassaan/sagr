@@ -8,6 +8,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../../models/pagination_filter.dart';
 import '../../domain/usecases/get_events.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class EventCalendarController extends GetxController {
 
@@ -315,13 +316,7 @@ final RxBool _isLoading = true.obs;
     descriptionController.clear();
 
     // Show success message
-    Get.snackbar(
-      'Success',
-      'Event "${newEvent.name}" added successfully!',
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    AppNotice.success('Success'.tr, 'Event "@name" added successfully!'.trParams({'name': newEvent.name ?? ''}));
   }
 
   // Delete event
@@ -348,13 +343,7 @@ final RxBool _isLoading = true.obs;
     }
 
     // Show delete message
-    Get.snackbar(
-      'Deleted',
-      'Event "${event.name}" deleted',
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-    );
+    AppNotice.error('Deleted'.tr, 'Event "@name" deleted'.trParams({'name': event.name ?? ''}));
   }
 
   // Load events from API or database
@@ -497,19 +486,9 @@ update();
 
       updateSelectedEvents();
       
-      Get.snackbar(
-        'Success',
-        'Events loaded successfully!',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      AppNotice.success('Success'.tr, 'Events loaded successfully!'.tr);
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load events: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      AppNotice.error('Error'.tr, 'Could not load events. Please try again.'.tr);
     }
   }
 
@@ -633,19 +612,9 @@ update();
       // Replace this with your actual API call
       // await ApiService.saveEvents(events.value);
       
-      Get.snackbar(
-        'Success',
-        'Events saved successfully!',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      AppNotice.success('Success'.tr, 'Events saved successfully!'.tr);
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to save events: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      AppNotice.error('Error'.tr, 'Failed to save events: @error'.trParams({'error': '$e'}));
     }
   }
 

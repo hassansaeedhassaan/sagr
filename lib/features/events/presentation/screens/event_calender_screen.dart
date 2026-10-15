@@ -32,7 +32,7 @@ final EventCalendarController _controller = Get.put(EventCalendarController(Get.
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
-      appBar: AppBar(title: Text("Event Calendar")),
+      appBar: AppBar(title: Text("Event Calendar".tr)),
       body: Obx(() => _controller.isLoading? AppLoader.box(height: 320) : Column(
         children: [
           // Calendar Widget
@@ -89,7 +89,7 @@ final EventCalendarController _controller = Get.put(EventCalendarController(Get.
                       );
                     },
                   )
-                : Center(child: Text("No Events on this day")),
+                : Center(child: Text("No Events on this day".tr)),
           ),
         ],
       )),

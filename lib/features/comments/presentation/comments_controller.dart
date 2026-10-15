@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../../../models/pagination_filter.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class CommentsController extends GetxController {
   final CommentsUsecase commentsUsecase;
@@ -88,7 +89,7 @@ class CommentsController extends GetxController {
         _productsLoading.value = false;
       }, (receivedResponse) {
         if (receivedResponse.data['code'] == 200) {
-          Get.snackbar("Delete", "Comment has been delete successfully.");
+          AppNotice.info("Delete".tr, "Comment has been deleted successfully.".tr);
         }
         _items.value = [];
         _findItems();
@@ -96,10 +97,10 @@ class CommentsController extends GetxController {
         update();
       });
     } on ServerExceptionFailure catch (e) {
-      Get.snackbar("Error!", e.data['error']);
+      AppNotice.error("Error!".tr, e.data['error']);
     } catch (e) {
       appLog(e);
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
     }
   }
 
