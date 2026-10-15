@@ -1,3 +1,4 @@
+import 'package:sagr/utilities/html_text.dart';
 import 'package:sagr/features/events/data/models/job_model.dart';
 import 'package:sagr/features/events/data/models/period_model.dart';
 import 'package:sagr/features/events/data/models/start_date_time_model.dart';
@@ -126,7 +127,10 @@ class EventModel extends Event {
     return EventModel(
       id: json['id'],
       name: json['name'] ?? "",
-      description: json['description'],
+      // Saved by the dashboard's rich-text editor; the app shows plain text.
+      description: json['description'] == null
+          ? null
+          : htmlToPlainText(json['description'].toString()),
       logo: json['logo'],
       datetime: json['datetime'],
       date: json['date'],

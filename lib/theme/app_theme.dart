@@ -34,6 +34,10 @@ class AppTheme {
 
   static const String _font = 'URW';
 
+  /// The app's Arabic font. A button's or tab's own `textStyle` replaces the
+  /// theme's instead of merging with it, so give it this family too.
+  static const String fontFamily = _font;
+
   // ---- Shared shape tokens ----
   static const double radiusSm = 10;
   static const double radius = 14;
@@ -138,6 +142,16 @@ class AppTheme {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(radius),
             ),
+            textStyle: const TextStyle(
+              fontFamily: _font,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
             textStyle: const TextStyle(
               fontFamily: _font,
               fontSize: 15,
@@ -297,6 +311,9 @@ class AppTheme {
           unselectedLabelColor: textMuted,
           indicatorColor: brand,
           dividerColor: Colors.transparent,
+          labelStyle: TextStyle(fontFamily: _font, fontWeight: FontWeight.w700),
+          unselectedLabelStyle:
+              TextStyle(fontFamily: _font, fontWeight: FontWeight.w600),
         ),
       );
 }

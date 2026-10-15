@@ -891,7 +891,6 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
     required VoidCallback onTap,
   }) {
     final color = enabled ? AppTheme.brand : AppTheme.textHint;
-    final rtl = Directionality.of(context) == TextDirection.rtl;
 
     return InkWell(
       onTap: enabled ? onTap : null,
@@ -937,9 +936,8 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
             const SizedBox(width: 8),
             Icon(
               enabled
-                  ? (rtl
-                      ? Icons.chevron_left_rounded
-                      : Icons.chevron_right_rounded)
+                  // Mirrors itself in RTL (matchTextDirection).
+                  ? Icons.chevron_right_rounded
                   : Icons.lock_outline_rounded,
               size: enabled ? 22 : 18,
               color: enabled ? AppTheme.textMuted : AppTheme.textHint,
@@ -1310,7 +1308,10 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radius),
         ),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        textStyle: const TextStyle(
+            fontFamily: AppTheme.fontFamily,
+            fontSize: 15,
+            fontWeight: FontWeight.w700),
       ),
     );
   }

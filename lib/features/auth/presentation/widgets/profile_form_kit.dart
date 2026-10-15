@@ -261,6 +261,7 @@ class ProfileBottomBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppTheme.radius),
               ),
               textStyle: const TextStyle(
+                fontFamily: AppTheme.fontFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

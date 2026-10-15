@@ -1,5 +1,6 @@
 // ignore_for_file: must_be_immutable
 
+import 'package:sagr/core/utils/image_constant.dart';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -39,12 +40,21 @@ class CustomImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget image = _buildWidget();
+
+    // Sideways arrows point the other way in Arabic.
+    if (imagePath != null &&
+        ImageConstant.mirroredInRtl.contains(imagePath) &&
+        Directionality.of(context) == TextDirection.rtl) {
+      image = Transform.flip(flipX: true, child: image);
+    }
+
     return alignment != null
         ? Align(
             alignment: alignment!,
-            child: _buildWidget(),
+            child: image,
           )
-        : _buildWidget();
+        : image;
   }
 
   Widget _buildWidget() {

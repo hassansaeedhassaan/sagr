@@ -685,14 +685,11 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           Spacer(),
-          RotatedBox(
-            quarterTurns: 90,
-            child: CustomImageView(
-              imagePath: ImageConstant.imgArrowRightGray50001,
-              height: 20.adaptSize,
-              width: 20.adaptSize,
-              margin: EdgeInsets.symmetric(vertical: 14.v),
-            ),
+          CustomImageView(
+            imagePath: ImageConstant.imgArrowRightGray50001,
+            height: 20.adaptSize,
+            width: 20.adaptSize,
+            margin: EdgeInsets.symmetric(vertical: 14.v),
           ),
         ],
       ),
@@ -748,14 +745,11 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           Spacer(),
-          RotatedBox(
-            quarterTurns: 90,
-            child: CustomImageView(
-              imagePath: arrowRightImage,
-              height: 20.adaptSize,
-              width: 20.adaptSize,
-              margin: EdgeInsets.symmetric(vertical: 14.v),
-            ),
+          CustomImageView(
+            imagePath: arrowRightImage,
+            height: 20.adaptSize,
+            width: 20.adaptSize,
+            margin: EdgeInsets.symmetric(vertical: 14.v),
           ),
         ],
       ),

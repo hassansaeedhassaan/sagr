@@ -1,3 +1,4 @@
+import 'package:sagr/theme/app_icons.dart';
 import 'package:sagr/core/services/session_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
@@ -383,7 +384,7 @@ class _RegistrationSuccessPageState extends State<RegistrationSuccessPage>
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
-                                        Icons.login,
+                                        AppIcons.login,
                                         color: WHITE_COLOR,
                                         size: 24,
                                       ),

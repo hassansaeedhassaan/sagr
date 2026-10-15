@@ -1,3 +1,4 @@
+import 'package:sagr/theme/app_icons.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -632,7 +633,7 @@ class _DailyRow extends StatelessWidget {
               children: [
                 Expanded(
                   child: _TimeBlock(
-                    icon: Icons.login_rounded,
+                    icon: AppIcons.loginRounded,
                     label: 'Check In'.tr,
                     time: report.attendanceTime,
                     color: AppTheme.success,
@@ -646,7 +647,7 @@ class _DailyRow extends StatelessWidget {
                 ),
                 Expanded(
                   child: _TimeBlock(
-                    icon: Icons.logout_rounded,
+                    icon: AppIcons.logoutRounded,
                     label: 'Check Out'.tr,
                     time: report.departureTime,
                     color: AppTheme.warning,
