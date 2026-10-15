@@ -895,4 +895,5 @@ const Map<String, String> ar = {
   "Check-in opens tomorrow at @time": "يُفتح تسجيل الحضور غداً الساعة @time",
   "Check-in opens @date at @time": "يُفتح تسجيل الحضور @date الساعة @time",
   "Work period @start – @end (check-in from @opens)": "فترة العمل @start – @end (التسجيل من @opens)",
+  "Couldn't create your account. Please try again.": "تعذّر إنشاء الحساب، حاول مرة أخرى.",
 };

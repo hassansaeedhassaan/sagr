@@ -832,7 +832,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                             const SizedBox(width: 15),
                                           Text(
                                             accountController.isLoading
-                                                ? "Creating Account..."
+                                                ? "Creating Account...".tr
                                                 : "Create Account".tr,
                                             style: TextStyle(
                                               color: Colors.white,

@@ -84,7 +84,13 @@ class AuthDataSourceImpl extends AuthDataSource {
       // appLog(e.response?.statusCode);
       // appLog(e.response?.data);
 
-      throw ValidationException(e.response?.data);
+      // Without the status the failure mapper took every refusal for a
+      // network error, so the server's reason ("phone already used") was
+      // replaced by "Registration failed".
+      throw ValidationException(
+        e.response?.data,
+        statusCode: e.response?.statusCode,
+      );
     }
 
     throw ServerException();

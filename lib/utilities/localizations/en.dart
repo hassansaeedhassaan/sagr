@@ -823,4 +823,5 @@ const Map<String, String> en = {
   "Check-in opens tomorrow at @time": "Check-in opens tomorrow at @time",
   "Check-in opens @date at @time": "Check-in opens @date at @time",
   "Work period @start – @end (check-in from @opens)": "Work period @start – @end (check-in from @opens)",
+  "Couldn't create your account. Please try again.": "Couldn't create your account. Please try again.",
 };

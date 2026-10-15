@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sagr/features/auth/data/datasource/auth_data_source.dart';
@@ -57,6 +57,56 @@ void main() {
       expect(errors, isEmpty);
       // The submit button is disabled while isLoading is true.
       expect(ctrl.isLoading, isFalse);
+    });
+  });
+
+  group('register', () {
+    /// A server that refuses the sign-up the way RegisterFormRequest does.
+    CreateAccountController refusing(Map<String, dynamic> body) {
+      Get.testMode = true;
+      final dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:9'));
+      dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+        handler.reject(DioException(
+          requestOptions: options,
+          type: DioExceptionType.badResponse,
+          response: Response(requestOptions: options, statusCode: 422, data: body),
+        ));
+      }));
+      return CreateAccountController(
+          AuthUsecase(AuthRepositoryImpl(AuthDataSourceImpl(dio: dio))));
+    }
+
+    Future<String?> run(CreateAccountController ctrl) async {
+      await runZonedGuarded(() async {
+        await ctrl.register();
+        await Future<void>.delayed(Duration.zero);
+      }, (e, st) {});
+      return ctrl.lastErrorMessage;
+    }
+
+    test('a phone already used shows the server\'s message, not "Registration failed"', () async {
+      const taken = 'رقم الجوال مسجل بحساب آخر، سجّل الدخول أو استخدم رقماً آخر';
+      final ctrl = refusing({
+        'message': taken,
+        'errors': {
+          'phone': [taken]
+        },
+      });
+
+      expect(await run(ctrl), taken);
+      expect(ctrl.isLoading, isFalse);
+    });
+
+    test('an email already used shows the server\'s message', () async {
+      const taken = 'البريد الإلكتروني مسجل بحساب آخر، سجّل الدخول أو استخدم بريداً آخر';
+      final ctrl = refusing({
+        'message': taken,
+        'errors': {
+          'email': [taken]
+        },
+      });
+
+      expect(await run(ctrl), taken);
     });
   });
 }

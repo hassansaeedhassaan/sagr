@@ -481,7 +481,12 @@ class CreateAccountController extends GetxController {
       failureOrCustomer.fold(
         (failure) {
           _setLoadingState(false);
-          _handleError('Registration failed');
+          // The server says exactly what's wrong (phone or email already
+          // used, invalid email, ...) in the app's language; this used to
+          // be replaced by a bare "Registration failed".
+          _handleError(failure is ValidationFailure
+              ? (failure.firstError ?? failure.message)
+              : "Couldn't create your account. Please try again.".tr);
         },
         (receivedData) {
           _navigateToSuccessPage();
@@ -490,7 +495,8 @@ class CreateAccountController extends GetxController {
       );
     } on ValidationException catch (e) {
       _logError('Validation error during registration', e);
-      _handleError(e.data['message'] ?? 'Validation failed');
+      _handleError(_firstServerError(e.data) ??
+          "Couldn't create your account. Please try again.".tr);
     } catch (e) {
       _logError('Unexpected error during registration', e);
       _handleError('wrong'.tr);
