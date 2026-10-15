@@ -1310,7 +1310,10 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTheme.radius),
         ),
-        textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        textStyle: const TextStyle(
+            fontFamily: AppTheme.fontFamily,
+            fontSize: 15,
+            fontWeight: FontWeight.w700),
       ),
     );
   }

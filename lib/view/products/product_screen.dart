@@ -895,6 +895,7 @@ class ProductScreen extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(10.0),
                                     ),
                                     textStyle: TextStyle(
+                                        fontFamily: 'URW',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold)),
                                 onPressed: () {

@@ -90,8 +90,11 @@ class EventCalendarPage extends StatelessWidget {
               labelColor: Colors.white,
               unselectedLabelColor: AppTheme.textMuted,
               labelStyle: const TextStyle(
-                  fontWeight: FontWeight.w700, fontSize: 13),
+                  fontFamily: AppTheme.fontFamily,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13),
               unselectedLabelStyle: const TextStyle(
+                  fontFamily: AppTheme.fontFamily,
                   fontWeight: FontWeight.w600, fontSize: 13),
               indicator: BoxDecoration(
                 color: AppTheme.brand,
