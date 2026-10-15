@@ -337,6 +337,19 @@ class EventController extends GetxController {
         }
       }
 
+      // At the event but outside the work period: say why, with the hours
+      // and the next opening. The server refuses the same way (with the same
+      // text) if the payload is out of date.
+      final hours = event?.access.checkInHours;
+      if (type == 'attendance' && hours != null && hours.closedNow) {
+        MessageHelper.showErrorDialog(
+          title: 'Outside your work period'.tr,
+          message: hours.message ??
+              'Check-in is only open during your work period.'.tr,
+        );
+        return;
+      }
+
       // Perform attendance API call
       final failureOrResponse = await eventsUsecase.attendanceAndDeparture(body);
 

@@ -816,4 +816,11 @@ const Map<String, String> en = {
   "Walkie-talkie is on": "Walkie-talkie is on",
   "Leave": "Leave",
   "The channel stays on in the background until you leave it.": "The channel keeps playing in the background, even with the screen locked, until you leave it.",
+  // Check-in hours.
+  "Outside your work period": "Outside your work period",
+  "Check-in is only open during your work period.": "Check-in is only open during your work period.",
+  "Check-in opens today at @time": "Check-in opens today at @time",
+  "Check-in opens tomorrow at @time": "Check-in opens tomorrow at @time",
+  "Check-in opens @date at @time": "Check-in opens @date at @time",
+  "Work period @start – @end (check-in from @opens)": "Work period @start – @end (check-in from @opens)",
 };

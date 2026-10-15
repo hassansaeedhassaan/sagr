@@ -94,13 +94,12 @@ class _CustomDropdownState<T> extends State<CustomDropdownV2<T>> with TickerProv
                   child: widget.icon ??
                       const Padding(
                         padding: EdgeInsets.only(left: 5, right: 7),
-                        child: RotatedBox(
-                          quarterTurns: 3,
-                          child: Icon(
-                            Icons.arrow_back_ios_rounded,
-                            size: 13,
-                            color: Colors.grey,
-                          ),
+                        // Not a rotated back arrow: that one mirrors in RTL
+                        // and then pointed up.
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 18,
+                          color: Colors.grey,
                         ),
                       ),
                 ),

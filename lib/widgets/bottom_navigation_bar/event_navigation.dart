@@ -1,3 +1,4 @@
+import 'package:sagr/features/notifications/live/notification_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -108,6 +109,7 @@ class EventBottomNavigation extends StatelessWidget {
                 isActive: active == EventNavTab.notifications,
                 icon: Icons.notifications_outlined,
                 label: 'Notifications'.tr,
+                showUnread: true,
                 onTap: () => Get.toNamed('/notifications'),
               ),
               _NavItem(
@@ -131,12 +133,16 @@ class _NavItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
+  /// Shows the live unread notification count on the icon.
+  final bool showUnread;
+
   const _NavItem({
     required this.isActive,
     this.enabled = true,
     required this.icon,
     required this.label,
     required this.onTap,
+    this.showUnread = false,
   });
 
   @override
@@ -187,13 +193,21 @@ class _NavItem extends StatelessWidget {
                     duration: EventBottomNavigation._animDuration,
                     curve: EventBottomNavigation._animCurve,
                     scale: isActive ? 1.05 : 1.0,
-                    child: Icon(icon, color: foreground, size: 22),
+                    child: showUnread
+                        ? NotificationBadge(
+                            offset: const Offset(-8, -6),
+                            child: Icon(icon, color: foreground, size: 22),
+                          )
+                        : Icon(icon, color: foreground, size: 22),
                   ),
                   const SizedBox(height: 4),
                   AnimatedDefaultTextStyle(
                     duration: EventBottomNavigation._animDuration,
                     curve: EventBottomNavigation._animCurve,
+                    // Replaces the inherited style rather than merging with
+                    // it, so it must name the font itself.
                     style: TextStyle(
+                      fontFamily: AppTheme.fontFamily,
                       fontSize: 10.5,
                       fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                       color: foreground,

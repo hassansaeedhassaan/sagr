@@ -16,6 +16,7 @@ class EventAccess {
   static const eventNotActive = 'event_not_active';
   static const notStarted = 'not_started';
   static const ended = 'ended';
+  static const outsideHours = 'outside_hours';
 
   final bool checkIn;
   final String? checkInReason;
@@ -32,6 +33,10 @@ class EventAccess {
   /// history of their walkie-talkie channels, during the event or after it.
   final bool walkieHistory;
 
+  /// The work-period hours check-in keeps to (`check_in_hours`), when
+  /// [checkIn] is otherwise allowed. Null from older servers.
+  final CheckInHours? checkInHours;
+
   const EventAccess({
     required this.checkIn,
     this.checkInReason,
@@ -41,6 +46,7 @@ class EventAccess {
     this.walkieReason,
     this.recordings = false,
     this.walkieHistory = false,
+    this.checkInHours,
   });
 
   /// Accepted and placed in a zone: attendance and the walkie-talkie belong
@@ -69,6 +75,10 @@ class EventAccess {
       walkieReason: reason(json['walkie_reason']),
       recordings: json['recordings'] == true,
       walkieHistory: json['walkie_history'] == true,
+      checkInHours: json['check_in_hours'] is Map
+          ? CheckInHours.fromJson(
+              Map<String, dynamic>.from(json['check_in_hours'] as Map))
+          : null,
     );
   }
 
@@ -115,8 +125,54 @@ class EventAccess {
 }
 
 /// Why a tool is unavailable, in the user's language.
+/// When check-in is open on an event: from an hour before the user's work
+/// period until it ends. [message] is the server's full explanation (hours
+/// and the next opening) while it is closed.
+class CheckInHours {
+  final bool open;
+  final List<({String start, String end, String opens})> periods;
+  final DateTime? nextOpensAt;
+  final int earlyMinutes;
+  final String? message;
+
+  const CheckInHours({
+    required this.open,
+    this.periods = const [],
+    this.nextOpensAt,
+    this.earlyMinutes = 60,
+    this.message,
+  });
+
+  /// Closed for certain right now: the payload may be old, so only trust it
+  /// until the next opening it announced.
+  bool get closedNow =>
+      !open && (nextOpensAt == null || DateTime.now().isBefore(nextOpensAt!));
+
+  factory CheckInHours.fromJson(Map<String, dynamic> json) {
+    final message = json['message']?.toString() ?? '';
+    return CheckInHours(
+      open: json['open'] != false,
+      periods: (json['periods'] is List ? json['periods'] as List : [])
+          .whereType<Map>()
+          .map((p) => (
+                start: p['start']?.toString() ?? '',
+                end: p['end']?.toString() ?? '',
+                opens: p['opens']?.toString() ?? '',
+              ))
+          .toList(),
+      nextOpensAt: DateTime.tryParse('${json['next_opens_at']}')?.toLocal(),
+      earlyMinutes: json['early_minutes'] is num
+          ? (json['early_minutes'] as num).toInt()
+          : 60,
+      message: message.isEmpty ? null : message,
+    );
+  }
+}
+
 String eventAccessMessage(String? reason, {bool forWalkie = false}) {
   switch (reason) {
+    case EventAccess.outsideHours:
+      return 'Check-in is only open during your work period.'.tr;
     case EventAccess.notAccepted:
       return 'Available once your application is accepted.'.tr;
     case EventAccess.notAssigned:
