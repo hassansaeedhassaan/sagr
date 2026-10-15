@@ -1,3 +1,4 @@
+import 'package:sagr/features/notifications/live/notification_badge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -105,8 +106,10 @@ class HomeScreen extends StatelessWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_outlined,
-              color: AppColors.onSurface),
+          icon: const NotificationBadge(
+            child: Icon(Icons.notifications_outlined,
+                color: AppColors.onSurface),
+          ),
           onPressed: () => Get.toNamed('/notifications'),
         ),
         const SizedBox(width: 8),

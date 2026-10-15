@@ -1,3 +1,4 @@
+import 'package:sagr/features/notifications/live/live_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:get/get.dart';
@@ -371,22 +372,23 @@ class BuildCoreAppBar extends StatelessWidget {
           onTap: () => Get.toNamed("/notifications"),
             // onTap: () => Navigator.push(context,
             //     MaterialPageRoute(builder: (context) => NotificationScreen())),
-            child: badges.Badge(
+            // The live unread count (it used to show how many notifications
+            // were loaded, read or not, and hid none).
+            child: Obx(() {
+              final unread = LiveNotifications.to.unread.value;
+              return badges.Badge(
+                showBadge: unread > 0,
                 badgeStyle: badges.BadgeStyle(
                     badgeColor: Color(0XFFD20653), elevation: 0),
                 badgeContent: Padding(
                     padding: EdgeInsets.zero,
-                    child:GetBuilder<NotificationsController>(
-                      init: NotificationsController(Get.find()),
-                      builder: (NotificationsController _notificationController){
-                      return  Text(
-                      _notificationController.notifications.length.toString(),
+                    child: Text(
+                      unread > 99 ? '99+' : '$unread',
                       style: TextStyle(
                           color: WHITE_COLOR,
                           fontSize: 10,
                           fontWeight: FontWeight.w800),
-                    );
-                    })),
+                    )),
                 position: badges.BadgePosition.topEnd(top: -7, end: 10),
                 child: Container(
                   margin: EdgeInsetsDirectional.fromSTEB(6, 0, 12, 0),
@@ -397,7 +399,8 @@ class BuildCoreAppBar extends StatelessWidget {
                   child: CustomImageView(
                     imagePath: ImageConstant.imgVuesaxTwotoneNotification,
                   ),
-                ))),
+                ));
+            })),
 
         // The clock icon here used to log the user out silently; removed.
 

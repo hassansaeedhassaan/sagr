@@ -41,6 +41,18 @@ class ReverbService extends GetxService {
   void Function(Map<String, dynamic> data)? onMessageRead;
   void Function(Map<String, dynamic> data)? onUserTyping;
 
+  /// Listeners for any other event (e.g. `notification.created` on
+  /// private-user.{id}), so features other than chat share this socket.
+  final Map<String, List<void Function(Map<String, dynamic> data)>> _listeners = {};
+
+  void on(String event, void Function(Map<String, dynamic> data) listener) {
+    (_listeners[event] ??= []).add(listener);
+  }
+
+  void off(String event, void Function(Map<String, dynamic> data) listener) {
+    _listeners[event]?.remove(listener);
+  }
+
   Future<ReverbService> init() async {
     await _connect();
     return this;
@@ -106,6 +118,12 @@ class ReverbService extends GetxService {
       case 'user.typing':
         if (data != null) onUserTyping?.call(data);
         break;
+      default:
+        if (data != null && event != null) {
+          for (final listener in List.of(_listeners[event] ?? const [])) {
+            listener(data);
+          }
+        }
     }
   }
 
@@ -171,6 +189,16 @@ class ReverbService extends GetxService {
 
   Future<void> subscribeConversation(int conversationId) async {
     final channel = 'private-conversation.$conversationId';
+    _desired.add(channel);
+    await _connect();
+    if (_socketId != null && !_active.contains(channel)) {
+      await _subscribe(channel);
+    }
+  }
+
+  /// Any private channel by its full name (`private-user.12`), kept across
+  /// reconnects like the conversation channels.
+  Future<void> subscribe(String channel) async {
     _desired.add(channel);
     await _connect();
     if (_socketId != null && !_active.contains(channel)) {

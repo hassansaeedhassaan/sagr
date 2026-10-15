@@ -1,4 +1,6 @@
-import 'package:dio/dio.dart' show Dio;
+import 'package:sagr/features/notifications/live/live_notifications.dart';
+import 'package:dio/dio.dart' show Dio, Options;
+import 'package:get_storage/get_storage.dart';
 import 'package:sagr/helper/base_url.dart';
 import 'dart:async';
 import 'package:get/get.dart';
@@ -39,15 +41,25 @@ class NotificationsController extends GetxController {
 
   int get unreadCount => _items.where((n) => n.is_read != true).length;
 
+  Worker? _liveWorker;
+
   @override
   void onInit() {
     super.onInit();
     ever(_paginationFilter, (_) => _findItems());
     _changePaginationFilter(1, 20);
+
+    // A notification that arrives live goes straight to the top.
+    _liveWorker = ever<NotificationModel?>(LiveNotifications.to.latest, (n) {
+      if (n == null || (n.id != null && _items.any((e) => e.id == n.id))) return;
+      _items.insert(0, n);
+      update();
+    });
   }
 
   @override
   void onClose() {
+    _liveWorker?.dispose();
     refreshController.dispose();
     super.onClose();
   }
@@ -143,18 +155,36 @@ class NotificationsController extends GetxController {
   }
 
   void _setRead(bool Function(NotificationModel) test) {
+    var marked = 0;
     for (var i = 0; i < _items.length; i++) {
       final n = _items[i];
-      if (n.is_read != true && test(n)) _items[i] = n.copyWith(is_read: true);
+      if (n.is_read != true && test(n)) {
+        _items[i] = n.copyWith(is_read: true);
+        marked++;
+      }
+    }
+    if (marked > 0) {
+      final live = LiveNotifications.to;
+      live.setUnread(live.unread.value - marked);
     }
     update();
   }
 
   /// Best effort: the list already shows it read; next refresh re-syncs.
   Future<void> _post(String path) async {
-    if (!Get.isRegistered<Dio>()) return;
+    // No Dio is registered with GetX, so this used to return before sending.
+    final token = GetStorage().read('access_token');
+    if (token == null) return;
     try {
-      await Get.find<Dio>().post('$BASEURL$path');
+      final response = await Dio().post(
+        '$BASEURL$path',
+        options: Options(headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        }),
+      );
+      final count = response.data is Map ? response.data['unread_count'] : null;
+      if (count is num) LiveNotifications.to.setUnread(count.toInt());
     } catch (_) {}
   }
 }

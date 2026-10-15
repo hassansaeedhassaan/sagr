@@ -1,3 +1,4 @@
+import 'package:sagr/features/notifications/live/live_notifications.dart';
 import 'package:sagr/smart_task_manager_service.dart';
 import 'package:sagr/core/utils/app_log.dart';
 import 'dart:convert';
@@ -116,6 +117,7 @@ class LoginController extends GetxController {
       GetStorage().write('accessTypeData', payload['token_type'] ?? tokenField);
       GetStorage().write('userData', payload['user']);
       SmartTaskManager().initialize();
+      LiveNotifications.to.start();
 
       isLoading.value = false;
 
