@@ -11,6 +11,7 @@ import 'package:sagr/models/country_model.dart';
 import '../../../config/app_config.dart';
 import '../../../repositories/auth_repository.dart';
 import '../../../view/contact_us_screen/contact_us_screen.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class ProfileController extends GetxController {
   
@@ -144,7 +145,7 @@ class ProfileController extends GetxController {
       });
       _isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", e.toString());
+      AppNotice.error("Error!".tr, e.toString());
       _isLoading.value = false;
     }
   }
@@ -174,7 +175,7 @@ class ProfileController extends GetxController {
       });
       _isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", e.toString());
+      AppNotice.error("Error!".tr, e.toString());
       _isLoading.value = false;
     }
   }
@@ -197,7 +198,7 @@ class ProfileController extends GetxController {
       });
       _isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", e.toString());
+      AppNotice.error("Error!".tr, e.toString());
       _isLoading.value = false;
     }
   }

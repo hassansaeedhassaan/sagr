@@ -2,6 +2,7 @@ import 'package:sagr/core/utils/app_log.dart';
 import 'package:get/get.dart';
 
 import '../../../repositories/auth_repository.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class RegisterController extends GetxController {
   final AuthRepository _authRepository;
@@ -50,7 +51,7 @@ class RegisterController extends GetxController {
 
         if (response['status'] == 200) {
           // return response;
-          Get.snackbar("", "Registeration Completed Successfullt".tr);
+          AppNotice.info("", "Registeration Completed Successfullt".tr);
           Future.delayed(Duration(milliseconds: 1000)).then((value) {
             Get.offAllNamed('/login');
           });
@@ -60,7 +61,7 @@ class RegisterController extends GetxController {
       isLoading.value = false;
     } catch (e) {
       appLog(e);
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       isLoading.value = false;
     }
   }

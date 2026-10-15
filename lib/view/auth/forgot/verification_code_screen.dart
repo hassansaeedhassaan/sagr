@@ -37,7 +37,7 @@ class VerificationScreen extends StatelessWidget {
                     // color: Colors.red,
                     padding: EdgeInsets.symmetric(vertical: 4.0),
                     child: Text(
-                      "back to login",
+                      "Back to login".tr,
                       textAlign: TextAlign.left,
                     ),
                   ),
@@ -86,7 +86,7 @@ class VerificationScreen extends StatelessWidget {
                         clearAll: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            'clear all',
+                            'Clear all'.tr,
                             style: TextStyle(
                                 fontSize: 14.0,
                                 decoration: TextDecoration.underline,
@@ -125,7 +125,7 @@ class VerificationScreen extends StatelessWidget {
                       visible: _controller.isLoading.value,
                       child: AppLoader.inline())),
                   CustomLinkButton(
-                    text: 'don\'t have account?',
+                    text: "Don't have an account?".tr,
                     onPress: () {},
                   ),
                   SizedBox(height: 50.0),

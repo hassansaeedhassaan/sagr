@@ -91,7 +91,7 @@ Widget totalText(String title, String money) => Row(
         Text(title),
         Spacer(),
         Text(
-          "$money ريال",
+          "$money ${"SAR".tr}",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ],

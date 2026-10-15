@@ -758,7 +758,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen>
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 10),
                                   child: Text(
-                                    "Please, agree on terms of Use & Privacy Policy.",
+                                    "Please, agree on terms of Use & Privacy Policy.".tr,
                                     style: TextStyle(
                                       color: Colors.red.shade600,
                                       fontWeight: FontWeight.w600,

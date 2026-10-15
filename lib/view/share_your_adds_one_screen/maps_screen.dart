@@ -309,7 +309,7 @@ class _MapsScreenState extends State<MapsScreen> {
       //     )),
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Maps'),
+        title: Text('Maps'.tr),
         scrolledUnderElevation: 0,
         backgroundColor: WHITE_COLOR,
       ),
@@ -403,7 +403,7 @@ Widget _buildSearchHorizontalScroll(BuildContext context) {
                     borderRadius: BorderRadiusStyle.roundedBorder8,
                   ),
                   child: Text(
-                    "All",
+                    "All".tr,
                     style: CustomTextStyles.bodyMediumOrange400,
                   ),
                 ),
@@ -580,7 +580,7 @@ class ProductPriceWidget extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Padding(
                   padding: EdgeInsets.only(right: 1.h),
-                  child: Text(" in ${product!.created_at}",
+                  child: Text(" ${"in @date".trParams({"date": "${product!.created_at}"})}",
                       style: CustomTextStyles.bodySmall10))),
           Text(
             product!.price_type == "open_offer" ? "Open Offer".tr : "",

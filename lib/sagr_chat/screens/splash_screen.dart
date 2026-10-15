@@ -210,9 +210,9 @@ class _SplashScreenState extends State<SplashScreen>
               opacity: _titleFade,
               child: SlideTransition(
                 position: _titleSlide,
-                child: const Text(
-                  'Sagr',
-                  style: TextStyle(
+                child: Text(
+                  'Sagr'.tr,
+                  style: const TextStyle(
                     fontSize: 38,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
@@ -304,7 +304,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             const SizedBox(height: 4),
             Text(
-              'Powered by Sagr',
+              'Powered by Sagr'.tr,
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.white.withOpacity(0.75),

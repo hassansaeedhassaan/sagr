@@ -8,6 +8,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../../../models/pagination_filter.dart';
 import '../../domain/usecases/get_wallet.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class BannerController extends GetxController {
   final BannerUsecase walletUsecase;
@@ -108,7 +109,7 @@ class BannerController extends GetxController {
       final error =
           ErrorMessage.fromJson(l.props.single as Map<String, dynamic>);
 
-      Get.snackbar("Error!", error.error.toString());
+      AppNotice.error("Error!", error.error.toString());
 
       Navigator.pop(context);
     }, (r) {});

@@ -36,7 +36,7 @@ class ContactUsScreen extends StatelessWidget {
     return MasterWrapper(
       body: Scaffold(
         appBar: AppBar(
-          title: Text("Personal Info "),
+          title: Text("Personal Info".tr),
         ),
         body: Container(
           width: double.maxFinite,
@@ -77,7 +77,7 @@ class ContactUsScreen extends StatelessWidget {
         ),
       ),
       title: AppbarSubtitle(
-        text: "Personal info",
+        text: "Personal info".tr,
         margin: EdgeInsets.only(left: 16.h),
       ),
       styleType: Style.bgFill,
@@ -175,7 +175,7 @@ class ContactUsScreen extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.symmetric(vertical: 11.v),
                     child: Text(
-                      "General Info",
+                      "General Info".tr,
                       style: CustomTextStyles.titleMediumOnErrorContainer,
                     ),
                   ),
@@ -236,7 +236,7 @@ class ContactUsScreen extends StatelessWidget {
                       bottom: 10.v,
                     ),
                     child: Text(
-                      "Change Password",
+                      "Change Password".tr,
                       style: CustomTextStyles.titleMediumOnErrorContainer,
                     ),
                   )),
@@ -344,7 +344,7 @@ class ContactUsScreen extends StatelessWidget {
                                               child: Column(
                                                 children: [
                                                   Text(
-                                                    "Delete Account",
+                                                    "Delete Account".tr,
                                                     style: TextStyle(
                                                         fontSize: 18,
                                                         fontWeight:
@@ -355,7 +355,7 @@ class ContactUsScreen extends StatelessWidget {
                                                         const EdgeInsets.all(
                                                             8.0),
                                                     child: Text(
-                                                      "Are you sure you want to delete your account? If you delete your account, you may not be able to sign in again.",
+                                                      "Are you sure you want to delete your account? If you delete your account, you may not be able to sign in again.".tr,
                                                       textAlign:
                                                           TextAlign.center,
                                                       style: TextStyle(
@@ -421,7 +421,7 @@ class ContactUsScreen extends StatelessWidget {
                                                                 Navigator.pop(
                                                                     context),
                                                             height: 42.v,
-                                                            text: "Cancle",
+                                                            text: "Cancel".tr,
                                                             margin:
                                                                 EdgeInsets.only(
                                                                     left: 6.h),
@@ -520,7 +520,7 @@ class ContactUsScreen extends StatelessWidget {
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 11.v),
                       child: Text(
-                        "Delete Account",
+                        "Delete Account".tr,
                         style: CustomTextStyles.titleMediumSemiBold,
                       ),
                     )),

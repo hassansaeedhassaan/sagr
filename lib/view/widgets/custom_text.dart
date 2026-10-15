@@ -12,7 +12,7 @@ class CustomText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: style?.copyWith(fontFamily: "TJB"),
+      style: style?.copyWith(fontFamily: 'URW'),
     );
   }
 }

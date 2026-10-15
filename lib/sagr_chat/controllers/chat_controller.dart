@@ -13,6 +13,7 @@ import '../models/user.dart';
 import '../services/api_service.dart';
 import '../services/reverb_service.dart';
 import 'auth_controller.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class ChatController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -170,7 +171,7 @@ class ChatController extends GetxController {
       appLog('✅ Loaded ${convs.length} conversations');
     } catch (e) {
       appLog('❌ Error loading conversations: $e');
-      Get.snackbar('Error', 'Failed to load conversations');
+      AppNotice.error('Error'.tr, 'Failed to load conversations'.tr);
     } finally {
       isLoading.value = false;
     }
@@ -204,7 +205,7 @@ class ChatController extends GetxController {
       
     } catch (e) {
       appLog('❌ Error loading messages: $e');
-      Get.snackbar('Error', 'Failed to load messages');
+      AppNotice.error('Error'.tr, 'Failed to load messages'.tr);
     } finally {
       if (page == 1) isLoadingMessages.value = false;
     }
@@ -259,16 +260,11 @@ class ChatController extends GetxController {
         appLog('❌ Network error: $errorMessage');
       }
       
-      Get.snackbar(
-        'Error', 
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 3),
-      );
+      AppNotice.error('Error'.tr, errorMessage);
       
     } catch (e) {
       appLog('❌ Unexpected error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred');
+      AppNotice.error('Error'.tr, 'An unexpected error occurred'.tr);
     } finally {
       // ✅ CRITICAL: Always reset the flag
       isSendingMessage.value = false;
@@ -330,16 +326,11 @@ class ChatController extends GetxController {
       
       appLog('❌ Error sending image: $errorMessage');
       
-      Get.snackbar(
-        'Error', 
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 3),
-      );
+      AppNotice.error('Error'.tr, errorMessage);
       
     } catch (e) {
       appLog('❌ Error sending image: $e');
-      Get.snackbar('Error', 'Failed to send image');
+      AppNotice.error('Error'.tr, 'Failed to send image'.tr);
     } finally {
       isSendingMessage.value = false;
       appLog('✅ Image send complete, flag reset');
@@ -399,16 +390,11 @@ class ChatController extends GetxController {
       
       appLog('❌ Error sending video: $errorMessage');
       
-      Get.snackbar(
-        'Error', 
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 3),
-      );
+      AppNotice.error('Error'.tr, errorMessage);
       
     } catch (e) {
       appLog('❌ Error sending video: $e');
-      Get.snackbar('Error', 'Failed to send video');
+      AppNotice.error('Error'.tr, 'Failed to send video'.tr);
     } finally {
       isSendingMessage.value = false;
       appLog('✅ Video send complete, flag reset');
@@ -475,16 +461,11 @@ class ChatController extends GetxController {
       
       appLog('❌ Error sending document: $errorMessage');
       
-      Get.snackbar(
-        'Error', 
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 3),
-      );
+      AppNotice.error('Error'.tr, errorMessage);
       
     } catch (e) {
       appLog('❌ Error sending document: $e');
-      Get.snackbar('Error', 'Failed to send document');
+      AppNotice.error('Error'.tr, 'Failed to send document'.tr);
     } finally {
       isSendingMessage.value = false;
       appLog('✅ Document send complete, flag reset');
@@ -538,16 +519,11 @@ class ChatController extends GetxController {
       
       appLog('❌ Error sending voice message: $errorMessage');
       
-      Get.snackbar(
-        'Error', 
-        errorMessage,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 3),
-      );
+      AppNotice.error('Error'.tr, errorMessage);
       
     } catch (e) {
       appLog('❌ Error sending voice message: $e');
-      Get.snackbar('Error', 'Failed to send voice message');
+      AppNotice.error('Error'.tr, 'Failed to send voice message'.tr);
     } finally {
       isSendingMessage.value = false;
       appLog('✅ Voice send complete, flag reset');
@@ -569,7 +545,7 @@ class ChatController extends GetxController {
       
     } catch (e) {
       appLog('❌ Error creating conversation: $e');
-      Get.snackbar('Error', 'Failed to create conversation');
+      AppNotice.error('Error'.tr, 'Failed to create conversation'.tr);
     } finally {
       isLoading.value = false;
     }
@@ -593,7 +569,7 @@ class ChatController extends GetxController {
       
     } catch (e) {
       appLog('❌ Error creating group: $e');
-      Get.snackbar('Error', 'Failed to create group');
+      AppNotice.error('Error'.tr, 'Failed to create group'.tr);
     } finally {
       isLoading.value = false;
     }
@@ -613,7 +589,7 @@ class ChatController extends GetxController {
       
     } catch (e) {
       appLog('❌ Error deleting message: $e');
-      Get.snackbar('Error', 'Failed to delete message');
+      AppNotice.error('Error'.tr, 'Failed to delete message'.tr);
     }
   }
 

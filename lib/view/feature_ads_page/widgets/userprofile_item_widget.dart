@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 import 'package:sagr/features/products/data/models/product_model.dart';
 
@@ -109,7 +110,7 @@ class ProductItemWidget extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.only(left: 0.h),
                     child: Text(
-                      " in ${product!.created_at}",
+                      " ${"in".tr} ${product!.created_at}",
                       style: CustomTextStyles.bodySmall10,
                     ),
                   ),

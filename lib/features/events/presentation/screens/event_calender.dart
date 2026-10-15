@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 
@@ -156,7 +157,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Event "${newEvent.title}" added successfully!'),
+        content: Text('Event "@name" added successfully!'.trParams({'name': newEvent.title})),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
       ),
@@ -179,7 +180,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
     
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Event "${event.title}" deleted'),
+        content: Text('Event "@name" deleted'.trParams({'name': event.title})),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ),
@@ -215,12 +216,12 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Events Calendar'),
+        title: Text('Events Calendar'.tr),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Calendar', icon: Icon(Icons.calendar_month)),
-            Tab(text: 'Events List', icon: Icon(Icons.list)),
+          tabs: [
+            Tab(text: 'Calendar'.tr, icon: const Icon(Icons.calendar_month)),
+            Tab(text: 'Events List'.tr, icon: const Icon(Icons.list)),
           ],
         ),
         actions: [
@@ -235,7 +236,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                     : CalendarFormat.month;
               });
             },
-            tooltip: 'Toggle calendar format',
+            tooltip: 'Toggle calendar format'.tr,
           ),
         ],
       ),
@@ -249,7 +250,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddEventDialog(),
         child: const Icon(Icons.add),
-        tooltip: 'Add new event',
+        tooltip: 'Add new event'.tr,
       ),
     );
   }
@@ -348,15 +349,15 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
     allEvents.sort((a, b) => a.startTime.compareTo(b.startTime));
 
     return allEvents.isEmpty
-        ? const Center(
+        ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.event_busy, size: 80, color: Colors.grey),
-                SizedBox(height: 16),
+                const Icon(Icons.event_busy, size: 80, color: Colors.grey),
+                const SizedBox(height: 16),
                 Text(
-                  'No events scheduled',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  'No events scheduled'.tr,
+                  style: const TextStyle(fontSize: 18, color: Colors.grey),
                 ),
               ],
             ),
@@ -434,7 +435,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline),
           onPressed: () => _deleteEvent(event),
-          tooltip: 'Delete event',
+          tooltip: 'Delete event'.tr,
         ),
         onTap: () => _showEventDetails(event),
       ),
@@ -488,9 +489,9 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
               ),
               if (event.description.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                const Text(
-                  'Description',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  'Description'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(event.description),
@@ -505,7 +506,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                       _deleteEvent(event);
                     },
                     icon: const Icon(Icons.delete),
-                    label: const Text('Delete'),
+                    label: Text('Delete'.tr),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
@@ -514,7 +515,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                   ElevatedButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
-                    label: const Text('Close'),
+                    label: Text('Close'.tr),
                   ),
                 ],
               ),
@@ -566,9 +567,9 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Add New Event',
-                      style: TextStyle(
+                    Text(
+                      'Add New Event'.tr,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -576,25 +577,25 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                     const SizedBox(height: 16),
                     TextField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Event Title',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.event),
+                      decoration: InputDecoration(
+                        labelText: 'Event Title'.tr,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.event),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Description (Optional)',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.description),
+                      decoration: InputDecoration(
+                        labelText: 'Description (Optional)'.tr,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.description),
                       ),
                       maxLines: 3,
                     ),
                     const SizedBox(height: 16),
                     SwitchListTile(
-                      title: const Text('All Day'),
+                      title: Text('All Day'.tr),
                       value: _isAllDay,
                       onChanged: (value) {
                         setState(() {
@@ -604,7 +605,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                     ),
                     const SizedBox(height: 8),
                     ListTile(
-                      title: const Text('Start Date & Time'),
+                      title: Text('Start Date & Time'.tr),
                       subtitle: Text(
                         DateFormat(_isAllDay ? 'EEE, MMM d, yyyy' : 'EEE, MMM d, yyyy • h:mm a')
                             .format(_newEventStartDate),
@@ -656,7 +657,7 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                     ),
                     if (!_isAllDay)
                       ListTile(
-                        title: const Text('End Time'),
+                        title: Text('End Time'.tr),
                         subtitle: Text(DateFormat('EEE, MMM d, yyyy • h:mm a').format(_newEventEndDate)),
                         leading: const Icon(Icons.access_time_filled),
                         onTap: () async {
@@ -691,9 +692,9 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                         },
                       ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Event Color',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    Text(
+                      'Event Color'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -721,12 +722,12 @@ class _EventCalendarPageState extends State<EventCalendarPage> with TickerProvid
                       children: [
                         ElevatedButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
+                          child: Text('Cancel'.tr),
                         ),
                         ElevatedButton.icon(
                           onPressed: _addEvent,
                           icon: const Icon(Icons.add),
-                          label: const Text('Add Event'),
+                          label: Text('Add Event'.tr),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Theme.of(context).primaryColor,
                             foregroundColor: Colors.white,

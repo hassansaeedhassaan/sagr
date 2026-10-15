@@ -16,6 +16,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../features/events/presentation/screens/event_ncalender.dart';
 import '../../theme/app_decoration.dart';
 import '../../widgets/Common/elegant_exit_dialog.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class MoreOneScreen extends StatefulWidget {
   const MoreOneScreen({Key? key}) : super(key: key);
@@ -336,7 +337,7 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                           borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         ),
                         child: Text(
-                          'ID: ${authController.authenticatedUser!['nationalID'] ?? "--"}',
+                          '${"ID".tr}: ${authController.authenticatedUser!['nationalID'] ?? "--"}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -718,9 +719,7 @@ class _MoreOneScreenState extends State<MoreOneScreen>
       borderRadius: BorderRadius.circular(AppTheme.radiusSm),
       onTap: () async {
         await Clipboard.setData(ClipboardData(text: text));
-        Get.snackbar('Copied'.tr, text,
-            snackPosition: SnackPosition.BOTTOM,
-            duration: const Duration(seconds: 2));
+        AppNotice.success('Copied'.tr, text);
       },
       child: Container(
       padding: EdgeInsets.symmetric(horizontal: 12.h, vertical: 10.v),

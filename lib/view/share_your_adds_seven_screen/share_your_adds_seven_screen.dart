@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 
 import 'package:flutter/material.dart';
 import 'package:sagr/data/colors.dart';
@@ -110,7 +111,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Add info",
+                            "Add info".tr,
                             style: CustomTextStyles.titleMediumBluegray90001_1,
                           ),
                           SizedBox(height: 12.v),
@@ -124,7 +125,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
                                 width: 20.adaptSize,
                               ),
                             ),
-                            hintText: "Category",
+                            hintText: "Category".tr,
                             items: dropdownItemList,
                             contentPadding: EdgeInsets.only(
                               left: 16.h,
@@ -183,7 +184,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
               top: 2.v,
             ),
             child: Text(
-              "Share your adds",
+              "Share your adds".tr,
               style: theme.textTheme.titleLarge,
             ),
           ),
@@ -196,7 +197,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
   Widget _buildAddTitleSection(BuildContext context) {
     return CustomTextFormField(
       controller: addTitleSectionController,
-      hintText: "Title",
+      hintText: "Title".tr,
       hintStyle: CustomTextStyles.bodyMediumErrorContainer,
     );
   }
@@ -205,7 +206,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
   Widget _buildAddDescriptionSection(BuildContext context) {
     return CustomTextFormField(
       controller: addDescriptionSectionController,
-      hintText: "Description",
+      hintText: "Description".tr,
       hintStyle: CustomTextStyles.bodyMediumErrorContainer,
       maxLines: 8,
       contentPadding: EdgeInsets.symmetric(
@@ -219,9 +220,9 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
   Widget _buildAddPriceSection(BuildContext context) {
     return CustomFloatingTextField(
       controller: addPriceSectionController,
-      labelText: "Price Type",
+      labelText: "Price Type".tr,
       labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-      hintText: "Price Type",
+      hintText: "Price Type".tr,
       contentPadding: EdgeInsets.only(
         left: 16.h,
         right: 16.h,
@@ -239,7 +240,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
         padding: EdgeInsets.only(right: 6.h),
         child: CustomTextFormField(
           controller: maxPriceSectionController,
-          hintText: "Min Price",
+          hintText: "Min Price".tr,
           hintStyle: CustomTextStyles.bodyMediumErrorContainer,
         ),
       ),
@@ -276,9 +277,9 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
                     width: 78,
                     child: CustomFloatingTextField(
                           controller: addPriceSectionController,
-                          labelText: "Max Price",
+                          labelText: "Max Price".tr,
                           labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-                          hintText: "Price Type",
+                          hintText: "Price Type".tr,
                           contentPadding: EdgeInsets.only(
                             left: 0.h,
                             right: 0.h,
@@ -345,7 +346,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
   Widget _buildPhoneNumberSection(BuildContext context) {
     return CustomTextFormField(
       controller: phoneNumberSectionController,
-      hintText: "Phone number",
+      hintText: "Phone number".tr,
       hintStyle: CustomTextStyles.bodyMediumErrorContainer,
       textInputType: TextInputType.phone,
     );
@@ -355,7 +356,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
   Widget _buildWhatsNumberSection(BuildContext context) {
     return CustomTextFormField(
       controller: whatsNumberSectionController,
-      hintText: "What's number",
+      hintText: "What's number".tr,
       hintStyle: CustomTextStyles.bodyMediumErrorContainer,
       textInputAction: TextInputAction.done,
       textInputType: TextInputType.number,
@@ -370,7 +371,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShareYourAddsThreeScreen())),
-        text: "Previous",
+        text: "Previous".tr,
         margin: EdgeInsets.only(right: 6.h),
         buttonStyle: CustomButtonStyles.none,
         decoration:
@@ -388,7 +389,7 @@ class ShareYourAddsSevenScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShareYourAddsOneScreen())),
-        text: "Next",
+        text: "Next".tr,
         margin: EdgeInsets.only(left: 6.h),
         buttonStyle: CustomButtonStyles.none,
         decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,

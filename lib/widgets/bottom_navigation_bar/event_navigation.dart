@@ -6,6 +6,7 @@ import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
 import 'package:sagr/sagr_chat/routes/app_routes.dart';
 import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 /// Tabs exposed by [EventBottomNavigation]. Pass [EventBottomNavigation.active]
 /// from the host screen to highlight the right item.
@@ -83,13 +84,8 @@ class EventBottomNavigation extends StatelessWidget {
                   label: 'Walkie Talkie'.tr,
                   onTap: () {
                     if (!access.walkie) {
-                      Get.snackbar(
-                        'Walkie Talkie'.tr,
-                        eventAccessMessage(access.walkieReason,
-                            forWalkie: true),
-                        snackPosition: SnackPosition.BOTTOM,
-                        margin: const EdgeInsets.all(16),
-                      );
+                      AppNotice.info('Walkie Talkie'.tr, eventAccessMessage(access.walkieReason,
+                            forWalkie: true));
                       return;
                     }
                     Get.toNamed('/event_walkie_talkie', arguments: e.id);

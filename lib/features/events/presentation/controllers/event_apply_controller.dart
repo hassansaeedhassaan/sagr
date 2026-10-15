@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import '../../../jobs/data/models/job_model.dart';
 import '../../../language/data/models/language_model.dart';
 import '../screens/event_apply_success_screen.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class EventApplyController extends GetxController {
   final EventsUsecase eventsUsecase;
@@ -246,12 +247,12 @@ if (!promise) {
         }
         update();
         if (errors.isEmpty) {
-          Get.snackbar('Error'.tr, failure.message.tr);
+          AppNotice.error('Error'.tr, failure.message.tr);
         }
         return;
       }
 
-      Get.snackbar('Error'.tr, failure.message.tr);
+      AppNotice.error('Error'.tr, failure.message.tr);
     }, (_) {
       _submitting.value = false;
       // Replace the form rather than stacking on it — going "back" from the

@@ -86,7 +86,7 @@ class BuildCoreAppBar extends StatelessWidget {
                                             children: [
                                               SizedBox(height: 20),
                                               Text(
-                                                "Preferences",
+                                                "Preferences".tr,
                                                 style: TextStyle(
                                                     fontSize: 22,
                                                     fontWeight:

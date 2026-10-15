@@ -355,13 +355,13 @@ extension on TextStyle {
 
   TextStyle get nunitoSans {
     return copyWith(
-      fontFamily: 'Nunito Sans',
+      fontFamily: 'URW',
     );
   }
 
   TextStyle get poppins {
     return copyWith(
-      fontFamily: 'Poppins',
+      fontFamily: 'URW',
     );
   }
 

@@ -776,9 +776,9 @@ class _CreateEvocationBottomSheetState
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'JPG, PNG, PDF, MP3, MP4, DOC · Max 10MB',
-                    style: TextStyle(
+                  Text(
+                    'JPG, PNG, PDF, MP3, MP4, DOC · Max 10MB'.tr,
+                    style: const TextStyle(
                       fontSize: 10.5,
                       color: AppTheme.textMuted,
                       fontFeatures: _tabular,

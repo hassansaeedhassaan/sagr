@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/error/exceptions.dart';
 import '../../../countries/data/models/country_model.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class CreateAdController extends GetxController {
   final ProductUsecase productUsecase;
@@ -254,7 +255,7 @@ class CreateAdController extends GetxController {
 
       if (_videoPaths.length >=5 ){
 
-        Get.snackbar("Error", "Allowed Only 5 videos for your ad.");
+        AppNotice.error("Error".tr, "Allowed Only 5 videos for your ad.".tr);
         return;
       }
       var video = await _picker.pickVideo(source: ImageSource.gallery);
@@ -330,12 +331,12 @@ class CreateAdController extends GetxController {
 
       update();
     } on ValidationException catch (e) {
-      Get.snackbar("Error!", e.data['message']);
+      AppNotice.error("Error!".tr, e.data['message']);
       _isLoading.value = false;
       update();
     } catch (e) {
       appLog(e);
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
     }
   }
 

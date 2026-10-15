@@ -102,7 +102,7 @@ class Userprofile4ItemWidget extends StatelessWidget {
                           right: 1.h,
                         ),
                         child: Text(
-                          " in ${product.created_at}",
+                          " ${"in".tr} ${product.created_at}",
                           style: CustomTextStyles.bodySmall10,
                         ),
                       ),
@@ -175,7 +175,7 @@ class Userprofile4ItemWidget extends StatelessWidget {
                     Expanded(
                       child: CustomElevatedButton(
                         height: 42.v,
-                        text: "Chat ",
+                        text: "Chat".tr,
                         margin: EdgeInsets.only(right: 4.h),
                         leftIcon: Container(
                           margin: EdgeInsets.only(right: 8.h),
@@ -202,7 +202,7 @@ class Userprofile4ItemWidget extends StatelessWidget {
                           side:
                               BorderSide(width: 1.0, color: Color(0XFFD20653)),
                         ),
-                        text: "View",
+                        text: "View".tr,
                         margin: EdgeInsets.only(left: 4.h),
                         leftIcon: Container(
                           margin: EdgeInsets.only(right: 8.h),

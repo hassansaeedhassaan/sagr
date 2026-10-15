@@ -78,7 +78,7 @@ class Userprofile3ItemWidget extends StatelessWidget {
                           right: 1.h,
                         ),
                         child: Text(
-                          " in ${product.created_at}",
+                          " ${"in".tr} ${product.created_at}",
                           style: CustomTextStyles.bodySmall10,
                         ),
                       ),
@@ -161,7 +161,7 @@ class Userprofile3ItemWidget extends StatelessWidget {
                 child: CustomElevatedButton(
                   onPressed: () => Get.toNamed('/product_detail_screen', arguments: product.id!, preventDuplicates: true),
                   height: 42.v,
-                  text: "View" ,
+                  text: "View".tr,
                   margin: EdgeInsets.only(right: 4.h),
                   leftIcon: Container(
                     margin: EdgeInsets.only(right: 8.h),
@@ -188,7 +188,7 @@ class Userprofile3ItemWidget extends StatelessWidget {
                     side: BorderSide(width: 1.0, color: Color(0XFFD20653)),
                   ),
                   height: 42.v,
-                  text: "Edit",
+                  text: "Edit".tr,
                   margin: EdgeInsets.only(left: 4.h),
                   leftIcon: Container(
                     margin: EdgeInsets.only(right: 8.h),

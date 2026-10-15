@@ -79,7 +79,7 @@ class CommissionScreen extends StatelessWidget {
                                    _commissionCntr.commissions.elementAt(index).is_paid == '1' ? _buildPayedButton(context) :  _buildPayButton(context),
                                     SizedBox(height: 11.v),
                                     Text(
-                                      "Commission",
+                                      "Commission".tr,
                                       style:
                                           CustomTextStyles.labelLargeGray60001,
                                     ),
@@ -170,7 +170,7 @@ class CommissionScreen extends StatelessWidget {
                                 child: Column(
                                   children: [
                                     Text(
-                                      "Pay By",
+                                      "Pay By".tr,
                                       style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.w600),
@@ -211,7 +211,7 @@ class CommissionScreen extends StatelessWidget {
                                                           color: BLACK_COLOR,
                                                           fontSize: 16)),
                                                   TextSpan(
-                                                    text: " (6 SAR)",
+                                                    text: " (${"6 SAR".tr})",
                                                     style: TextStyle(
                                                         color: Colors.green,
                                                         fontSize: 16),
@@ -347,7 +347,7 @@ class CommissionScreen extends StatelessWidget {
                                               onPressed: () =>
                                                   Navigator.pop(context),
                                               height: 48.v,
-                                              text: "Cancle",
+                                              text: "Cancel".tr,
                                               margin:
                                                   EdgeInsets.only(left: 6.h),
                                               buttonTextStyle: CustomTextStyles
@@ -385,7 +385,7 @@ class CommissionScreen extends StatelessWidget {
         side: BorderSide(width: 1.0, color: Color(0XFFD20653)),
       ),
       width: 86.h,
-      text: "Pay",
+      text: "Pay".tr,
     );
   }
 

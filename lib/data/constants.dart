@@ -10,7 +10,7 @@ mixin AppLimit {
 
 const String appVersion = '0.0.1';
 const String environment = 'Production';
-const String FONT_FAMILY = "STC";
+const String FONT_FAMILY = "URW";
 const String DEFAULT_LANG = 'ar';
 
 

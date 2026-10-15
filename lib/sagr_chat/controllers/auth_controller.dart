@@ -3,6 +3,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class SagrAuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -53,7 +54,7 @@ class SagrAuthController extends GetxController {
       Get.offAllNamed('/home');
       
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      AppNotice.error('Error'.tr, e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -78,7 +79,7 @@ class SagrAuthController extends GetxController {
       Get.offAllNamed('/home');
       
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      AppNotice.error('Error'.tr, e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -112,7 +113,7 @@ class SagrAuthController extends GetxController {
       Get.offAllNamed('/login');
       
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      AppNotice.error('Error'.tr, e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -133,10 +134,10 @@ class SagrAuthController extends GetxController {
       currentUser.value = updatedUser;
       await _storage.write('user', updatedUser.toJson());
       
-      Get.snackbar('Success', 'Profile updated successfully');
+      AppNotice.success('Success'.tr, 'Profile updated successfully'.tr);
       
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      AppNotice.error('Error'.tr, e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -158,7 +159,7 @@ class SagrAuthController extends GetxController {
         );
       }
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      AppNotice.error('Error'.tr, e.toString());
     }
   }
 }

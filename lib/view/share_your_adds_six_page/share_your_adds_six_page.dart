@@ -106,7 +106,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Add info",
+                                  "Add info".tr,
                                   style: CustomTextStyles
                                       .titleMediumBluegray90001_1,
                                 ),
@@ -213,8 +213,8 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                 // ),
                                 SizedBox(height: 15.v),
                                 CustomTextFormField(
-                                  labelText: "Ad title",
-                                  hintText: "Ad title",
+                                  labelText: "Ad title".tr,
+                                  hintText: "Ad title".tr,
                                   initialValue: _prodCntr.title,
                                   onSave: (value) => _prodCntr.title = value!,
                                   // initialValue: widget.product!.name,
@@ -224,8 +224,8 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                 SizedBox(
                                     height: 70,
                                     child: TextareaFormField(
-                                      labelText: "Description",
-                                      hintText: "Description",
+                                      labelText: "Description".tr,
+                                      hintText: "Description".tr,
                                       initialValue: _prodCntr.description!,
                                       onSave: (value) =>
                                           _prodCntr.description = value!,
@@ -262,7 +262,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                                 onSaved: (value) => _prodCntr.price = value,
                                                       decoration: InputDecoration(
                                                     border: InputBorder.none,
-                                                    hintText: 'Price',
+                                                    hintText: 'Price'.tr,
                                                   ),
                                               )
                                               // TextField(
@@ -308,7 +308,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                                 onChanged: (value) => _prodCntr.minPrice = value,
                                             decoration: InputDecoration(
                                               border: InputBorder.none,
-                                              hintText: 'Price',
+                                              hintText: 'Price'.tr,
                                             ),
                                           ),
                                         ),
@@ -338,7 +338,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                                       onChanged: (value) => _prodCntr.price = value,
                                                   decoration: InputDecoration(
                                                     border: InputBorder.none,
-                                                    hintText: 'Max Price',
+                                                    hintText: 'Max Price'.tr,
                                                   ),
                                                 ),
                                               ),
@@ -362,14 +362,14 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                   
                                     initialValue: _prodCntr.phone,
                                     onSave: (value) =>  _prodCntr.phone = value,
-                                    labelText: "Phone",
-                                    hintText: "Phone"),
+                                    labelText: "Phone".tr,
+                                    hintText: "Phone".tr),
                                 SizedBox(height: 12.v),
                                 EasyAppTextFormField(
                                              initialValue: _prodCntr.product!.whatsapp_number,
-                                    labelText: "Whatsapp",
+                                    labelText: "WhatsApp".tr,
                                               onSave: (value) =>  _prodCntr.whatsapp = value,
-                                    hintText: "Whatsapp"),
+                                    hintText: "WhatsApp".tr),
 
                                 SizedBox(height: 12.v),
                                 // _buildUserProfileList(context),
@@ -412,7 +412,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                                 padding:
                                                     EdgeInsets.only(left: 8.h),
                                                 child: Text(
-                                                  "Normal",
+                                                  "Normal".tr,
                                                   style: CustomTextStyles
                                                       .titleMediumErrorContainerMedium,
                                                 ),
@@ -471,7 +471,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                                 padding:
                                                     EdgeInsets.only(left: 8.h),
                                                 child: Text(
-                                                  "Premium",
+                                                  "Premium".tr,
                                                   style: CustomTextStyles
                                                       .titleMediumErrorContainerMedium,
                                                 ),
@@ -607,7 +607,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                                                 ),
                                                 SizedBox(width: 5),
                                                 Text(
-                                                  "Active",
+                                                  "Active".tr,
                                                   style:
                                                       TextStyle(fontSize: 18),
                                                 )
@@ -751,9 +751,9 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
   Widget _buildElectronicsLabel(BuildContext context) {
     return CustomFloatingTextField(
       controller: electronicsLabelController,
-      labelText: "Category",
+      labelText: "Category".tr,
       labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-      hintText: "Category",
+      hintText: "Category".tr,
       suffix: Container(
         margin: EdgeInsets.symmetric(horizontal: 14.h),
         child: CustomImageView(
@@ -772,9 +772,9 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
   Widget _buildTitleTextField(BuildContext context) {
     return CustomFloatingTextField(
       controller: titleTextFieldController,
-      labelText: "Title",
+      labelText: "Title".tr,
       labelStyle: CustomTextStyles.titleMediumBluegray90001Medium,
-      hintText: "Title",
+      hintText: "Title".tr,
       suffix: Container(
         margin: EdgeInsets.symmetric(horizontal: 14.h),
         child: CustomImageView(
@@ -846,7 +846,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
                   Align(
                     alignment: Alignment.center,
                     child: Text(
-                      "Description",
+                      "Description".tr,
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -879,7 +879,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
               bottom: 4.v,
             ),
             child: Text(
-              "Price",
+              "Price".tr,
               style: CustomTextStyles.bodyMediumErrorContainer,
             ),
           ),
@@ -957,7 +957,7 @@ class ShareYourAddsSixPageState extends State<ShareYourAddsSixPage>
             _productController.updateAd(2);
           }
         },
-        text: "Update ",
+        text: "Update".tr,
         buttonStyle: CustomButtonStyles.none,
         decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,
       );

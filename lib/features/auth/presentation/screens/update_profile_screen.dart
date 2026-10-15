@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/messages.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sagr/features/auth/presentation/controllers/create_account_controller.dart';
 import 'package:sagr/features/auth/presentation/widgets/profile_form_kit.dart';
@@ -148,17 +149,8 @@ class _UpdateAccountScreenState extends State<UpdateAccountScreen> {
     final saved = await c.updateProfile(showSuccessMessage: false);
     if (!saved || !mounted) return;
 
-    HapticFeedback.mediumImpact();
     Navigator.of(context).pop(true);
-    Get.snackbar(
-      'Profile updated'.tr,
-      'Your changes have been saved'.tr,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
-      backgroundColor: AppTheme.navy,
-      colorText: Colors.white,
-      icon: const Icon(Icons.check_circle_rounded, color: AppTheme.success),
-    );
+    AppNotice.success('Profile updated'.tr, 'Your changes have been saved'.tr);
   }
 
   Future<void> _pickPhoto() async {

@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/app_log.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -370,7 +371,7 @@ class _PhoneNumberInputState extends State<PhoneNumberInput> {
                     Row(
                       children: [
                         Text(
-                          'Select Country',
+                          'Select Country'.tr,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const Spacer(),

@@ -5,6 +5,7 @@ import 'package:sagr/core/error/failures.dart';
 import 'package:sagr/features/attendance/domain/entities/attendance.dart';
 import 'package:sagr/features/attendance/domain/usecases/get_attendance_report.dart';
 import 'package:sagr/features/attendance/domain/usecases/get_current_user_attendance.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 /// Controller for managing attendance data and UI state
 /// Uses GetX for reactive state management
@@ -82,7 +83,7 @@ class AttendanceController extends GetxController {
       );
     } catch (e) {
       _handleError(UnknownFailure(
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message: 'An unexpected error occurred: @error'.trParams({'error': e.toString()}),
       ));
     } finally {
       _isLoading.value = false;
@@ -127,7 +128,7 @@ class AttendanceController extends GetxController {
       );
     } catch (e) {
       _handleError(UnknownFailure(
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message: 'An unexpected error occurred: @error'.trParams({'error': e.toString()}),
       ));
     } finally {
       _isLoading.value = false;
@@ -207,17 +208,7 @@ class AttendanceController extends GetxController {
     
     // Show snackbar for certain error types
     if (failure is NetworkFailure || failure is ServerFailure) {
-      Get.snackbar(
-        'خطأ',
-        _errorMessage.value!,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade900,
-        duration: const Duration(seconds: 3),
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
-        icon: const Icon(Icons.error_outline, color: Colors.red),
-      );
+      AppNotice.error('خطأ', _errorMessage.value!);
     }
   }
 

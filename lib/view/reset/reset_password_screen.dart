@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/utils/size_utils.dart';
@@ -49,12 +50,12 @@ class ResetPasswordScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Reset password",
+                    "Reset password".tr,
                     style: CustomTextStyles.titleLargePoppins,
                   ),
                   SizedBox(height: 4.v),
                   Text(
-                    "Please kindly set your new password",
+                    "Please kindly set your new password".tr,
                     style: CustomTextStyles.bodyMediumGray50001,
                   ),
                   SizedBox(height: 23.v),

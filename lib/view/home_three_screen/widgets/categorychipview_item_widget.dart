@@ -28,7 +28,7 @@ class CategorychipviewItemWidget extends StatelessWidget {
         style: TextStyle(
           color: appTheme.blueGray90001,
           fontSize: 14.fSize,
-          fontFamily: 'Nunito',
+          fontFamily: 'URW',
           fontWeight: FontWeight.w500,
         ),
       ),

@@ -8,6 +8,7 @@ import 'package:sagr/widgets/skeletons/app_skeleton.dart';
 import '../../theme/chat_theme.dart';
 import '../../widgets/chat_avatar.dart';
 import '../../widgets/create_group_dialog.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class ContactsScreen extends StatefulWidget {
   @override
@@ -43,7 +44,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
       final contactsList = await apiService.getContacts();
       contacts.value = contactsList;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load contacts');
+      AppNotice.error('Error'.tr, 'Failed to load contacts'.tr);
     } finally {
       isLoadingContacts.value = false;
     }
@@ -61,7 +62,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
       final results = await apiService.searchUsers(query.trim());
       searchResults.value = results;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to search users');
+      AppNotice.error('Error'.tr, 'Failed to search users'.tr);
       searchResults.clear();
     } finally {
       isSearching.value = false;

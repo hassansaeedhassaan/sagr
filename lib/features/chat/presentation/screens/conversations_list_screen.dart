@@ -51,7 +51,7 @@ class ConversationListScreen extends StatelessWidget {
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: "Message ",
+                      text: "${"Message".tr} ",
                       style: CustomTextStyles.titleLargeff333333,
                     ),
                     TextSpan(
@@ -77,7 +77,7 @@ class ConversationListScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 12.v),
                     Text(
-                      "There are no messages",
+                      "There are no messages".tr,
                       style: CustomTextStyles.bodyMediumGray60001,
                     ),
                   ],
@@ -90,7 +90,7 @@ class ConversationListScreen extends StatelessWidget {
                   children: [
                     CustomSearchView(
                       controller: searchController,
-                      hintText: "Search Direct Messages ...",
+                      hintText: "Search Direct Messages ...".tr,
                       hintStyle: theme.textTheme.bodySmall!,
                     ),
                     SizedBox(height: 8.v),
@@ -116,14 +116,14 @@ class ConversationListScreen extends StatelessWidget {
             Widget body;
             if (mode == LoadStatus.idle) {
               body = _controller.conversations.length > 0
-                  ? Text("Pull up load")
+                  ? Text("Pull up load".tr)
                   : Text("");
             } else if (mode == LoadStatus.loading) {
               body = AppLoader.inline();
             } else if (mode == LoadStatus.failed) {
-              body = Text("Load Failed!Click retry!");
+              body = Text("Load Failed!Click retry!".tr);
             } else if (mode == LoadStatus.canLoading) {
-              body = Text("release to load more");
+              body = Text("release to load more".tr);
             } else {
               body = Text("");
             }

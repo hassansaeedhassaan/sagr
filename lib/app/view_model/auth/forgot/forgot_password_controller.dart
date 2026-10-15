@@ -2,6 +2,7 @@
 import 'package:get/get.dart';
 
 import '../../../../exceptions/rest_exception.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 
 class ForgotPasswordController extends GetxController {
    ForgotPasswordController();
@@ -65,7 +66,7 @@ class ForgotPasswordController extends GetxController {
 
 
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       isLoading.value = false;
     }
   }
@@ -88,7 +89,7 @@ class ForgotPasswordController extends GetxController {
       isLoading.value = false;
     } on RestException catch (e) {
       isLoading.value = false;
-      Get.snackbar("Error!", e.message);
+      AppNotice.error("Error!".tr, e.message);
       // } catch (e) {
       //   Get.snackbar("Error!", 'wrong'.tr);
     }

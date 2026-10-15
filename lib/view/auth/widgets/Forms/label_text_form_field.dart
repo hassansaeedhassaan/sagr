@@ -28,7 +28,7 @@ class LabelTextFormField extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
                 color: Color(0xffEF3939),
-                fontFamily: "TJ",
+                fontFamily: 'URW',
                 height: 0.5),
           ) : TextSpan(),
         ],

@@ -1,6 +1,7 @@
 import 'package:sagr/config/app_config.dart';
 import 'package:sagr/repositories/change_password_repository.dart';
 import 'package:get/get.dart';
+import 'package:sagr/widgets/messages.dart' show AppNotice;
 // ignore: library_prefixes
 
 class ChangePasswordController extends GetxController {
@@ -69,7 +70,7 @@ class ChangePasswordController extends GetxController {
       });
       isLoading.value = false;
     } catch (e) {
-      Get.snackbar("Error!", 'wrong'.tr);
+      AppNotice.error("Error!".tr, 'wrong'.tr);
       isLoading.value = false;
     }
   }

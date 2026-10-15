@@ -230,14 +230,14 @@ class EvocationsController extends GetxController {
 
     // Optionally show user-friendly error message
     // You might want to show a snackbar or dialog here
-    _showErrorToUser('Failed to filter events. Please try again.');
+    _showErrorToUser('Failed to filter events. Please try again.'.tr);
   }
 
   /// Shows error message to user (implement based on your UI framework)
   void _showErrorToUser(String message) {
     // Implementation depends on your UI framework
     // For example, using Get.snackbar() if using GetX
-    Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM);
+    AppNotice.error('Error'.tr, message);
   }
 
   nextPage() {

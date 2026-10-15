@@ -85,7 +85,7 @@ class ShareYourAddsFourPageState extends State<ShareYourAddsFourPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Add address info ",
+                        "Add address info".tr,
                         style:
                             CustomTextStyles.titleMediumBluegray90001_1,
                       ),
@@ -153,7 +153,7 @@ class ShareYourAddsFourPageState extends State<ShareYourAddsFourPage>
         decoration: AppDecoration.fillOnPrimary,
         child: CustomElevatedButton(
           onPressed: () => _prodCntr.updateAd(3),
-          text: "Update ",
+          text: "Update".tr,
           buttonStyle: CustomButtonStyles.none,
           decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,
         ),

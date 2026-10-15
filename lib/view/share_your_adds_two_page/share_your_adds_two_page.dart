@@ -64,11 +64,11 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Upload attachments ",
+                          "Upload attachments ".tr,
                           style: CustomTextStyles.titleMediumBluegray90001_1,
                         ),
                         Text(
-                          "You can add maximum 20 images or 50 videos.",
+                          "You can add maximum 20 images or 50 videos.".tr,
                           style: theme.textTheme.bodySmall,
                         ),
                         SizedBox(height: 11.v),
@@ -183,7 +183,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
                                                         width: 2,
                                                       ),
                                                       Text(
-                                                        "Main Img",
+                                                        "Main Img".tr,
                                                         style: TextStyle(
                                                             fontSize: 12,
                                                             color: WHITE_COLOR),
@@ -290,7 +290,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
                                                                   child: Column(
                                                                     children: [
                                                                       Text(
-                                                                        "Delete Image",
+                                                                        "Delete Image".tr,
                                                                         style: TextStyle(
                                                                             fontSize:
                                                                                 18,
@@ -303,7 +303,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
                                                                             8.0),
                                                                         child:
                                                                             Text(
-                                                                          "Are you sure you want to delete image? If you deleted it, you may not be able to restore it again.",
+                                                                          "Are you sure you want to delete image? If you deleted it, you may not be able to restore it again.".tr,
                                                                           textAlign:
                                                                               TextAlign.center,
                                                                           style:
@@ -348,7 +348,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
                                                                                 ),
                                                                                 onPressed: () => Navigator.pop(context),
                                                                                 height: 42.v,
-                                                                                text: "Cancle",
+                                                                                text: "Cancel".tr,
                                                                                 margin: EdgeInsets.only(left: 6.h),
                                                                                 buttonTextStyle: CustomTextStyles.titleMediumPink60001_1,
                                                                               ),
@@ -409,11 +409,11 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: "Add image ",
+                    text: "Add image ".tr,
                     style: CustomTextStyles.bodyMediumff363333,
                   ),
                   TextSpan(
-                    text: "( optional ) ",
+                    text: "( optional ) ".tr,
                     style: CustomTextStyles.bodySmallff828282,
                   ),
                 ],
@@ -440,7 +440,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
           bottom: 4.v,
         ),
         child: CustomRadioButton(
-          text: "Main img",
+          text: "Main img".tr,
           value: "Main img",
           groupValue: radioGroup,
           padding: EdgeInsets.symmetric(vertical: 1.v),
@@ -463,7 +463,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
           bottom: 4.v,
         ),
         child: CustomRadioButton(
-          text: "Main img",
+          text: "Main img".tr,
           value: "Main img",
           groupValue: radioGroup1,
           padding: EdgeInsets.symmetric(vertical: 1.v),
@@ -485,11 +485,11 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
           text: TextSpan(
             children: [
               TextSpan(
-                text: "Product Video ",
+                text: "Product Video ".tr,
                 style: CustomTextStyles.bodyMediumff363333,
               ),
               TextSpan(
-                text: "( optional ) ",
+                text: "( optional ) ".tr,
                 style: CustomTextStyles.bodySmallff828282,
               ),
             ],
@@ -659,13 +659,13 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
                                                                               Column(
                                                                             children: [
                                                                               Text(
-                                                                                "Delete Image",
+                                                                                "Delete Image".tr,
                                                                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                                                                               ),
                                                                               Padding(
                                                                                 padding: const EdgeInsets.all(8.0),
                                                                                 child: Text(
-                                                                                  "Are you sure you want to delete image? If you deleted it, you may not be able to restore it again.",
+                                                                                  "Are you sure you want to delete image? If you deleted it, you may not be able to restore it again.".tr,
                                                                                   textAlign: TextAlign.center,
                                                                                   style: TextStyle(fontSize: 15),
                                                                                 ),
@@ -701,7 +701,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
                                                                                         ),
                                                                                         onPressed: () => Navigator.pop(context),
                                                                                         height: 42.v,
-                                                                                        text: "Cancle",
+                                                                                        text: "Cancel".tr,
                                                                                         margin: EdgeInsets.only(left: 6.h),
                                                                                         buttonTextStyle: CustomTextStyles.titleMediumPink60001_1,
                                                                                       ),
@@ -776,7 +776,7 @@ class ShareYourAddsTwoPageState extends State<ShareYourAddsTwoPage>
         decoration: AppDecoration.fillOnPrimary,
         child: CustomElevatedButton(
           onPressed: () => _prodCntr.updateAd(1),
-          text: "Update ",
+          text: "Update".tr,
           buttonStyle: CustomButtonStyles.none,
           decoration: CustomButtonStyles.gradientPrimaryToOrangeDecoration,
         ),

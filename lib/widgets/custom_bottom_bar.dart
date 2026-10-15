@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sagr/core/utils/size_utils.dart';
 
 import '../core/utils/image_constant.dart';
@@ -73,7 +74,7 @@ class CustomBottomBarState extends State<CustomBottomBar> {
                   color: appTheme.gray60001,
                 ),
                 Text(
-                  bottomMenuList[index].title ?? "",
+                  (bottomMenuList[index].title ?? "").tr,
                   style: theme.textTheme.bodySmall!.copyWith(
                     color: appTheme.gray60001,
                   ),
@@ -91,7 +92,7 @@ class CustomBottomBarState extends State<CustomBottomBar> {
                   color: appTheme.gray60001,
                 ),
                 Text(
-                  bottomMenuList[index].title ?? "",
+                  (bottomMenuList[index].title ?? "").tr,
                   style: CustomTextStyles.labelLargeGray60001.copyWith(
                     color: appTheme.gray60001,
                   ),

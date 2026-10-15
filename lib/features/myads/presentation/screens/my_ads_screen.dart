@@ -28,7 +28,7 @@ class MyAdsScreen extends StatelessWidget {
       appBar: AppBar(
         scrolledUnderElevation: 0,
         backgroundColor: WHITE_COLOR,
-        title: Text("My Ads"),
+        title: Text("My Ads".tr),
       ),
       body: GetBuilder<MyAdsController>(
           init: MyAdsController(Get.find()),
@@ -48,7 +48,7 @@ class MyAdsScreen extends StatelessWidget {
                                                   body = _myAdsController.products
                                                               .length >
                                                           0
-                                                      ? Text("Pull up load")
+                                                      ? Text("Pull up load".tr)
                                                       : Text("");
                                                 } else if (mode ==
                                                     LoadStatus.loading) {
@@ -57,18 +57,18 @@ class MyAdsScreen extends StatelessWidget {
                                                 } else if (mode ==
                                                     LoadStatus.failed) {
                                                   body = Text(
-                                                      "Load Failed!Click retry!");
+                                                      "Load Failed!Click retry!".tr);
                                                 } else if (mode ==
                                                     LoadStatus.canLoading) {
                                                   body = Text(
-                                                      "release to load more");
+                                                      "release to load more".tr);
                                                 } else {
-                                                  body = Text("No more Data");
+                                                  body = Text("No more Data".tr);
                                                 }
 
                                                 if (_myAdsController.hasMore ==
                                                     false) {
-                                                  body = Text("No more Data");
+                                                  body = Text("No more Data".tr);
                                                 }
 
                                                 return Container(
