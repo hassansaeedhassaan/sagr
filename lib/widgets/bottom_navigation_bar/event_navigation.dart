@@ -193,7 +193,10 @@ class _NavItem extends StatelessWidget {
                   AnimatedDefaultTextStyle(
                     duration: EventBottomNavigation._animDuration,
                     curve: EventBottomNavigation._animCurve,
+                    // Replaces the inherited style rather than merging with
+                    // it, so it must name the font itself.
                     style: TextStyle(
+                      fontFamily: AppTheme.fontFamily,
                       fontSize: 10.5,
                       fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                       color: foreground,
