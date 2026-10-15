@@ -810,4 +810,11 @@ const Map<String, String> en = {
   "phone_short": "Phone number must be at least 10 digits",
   "release to load more": "release to load more",
   "typing...": "typing...",
+  // Check-in hours.
+  "Outside your work period": "Outside your work period",
+  "Check-in is only open during your work period.": "Check-in is only open during your work period.",
+  "Check-in opens today at @time": "Check-in opens today at @time",
+  "Check-in opens tomorrow at @time": "Check-in opens tomorrow at @time",
+  "Check-in opens @date at @time": "Check-in opens @date at @time",
+  "Work period @start – @end (check-in from @opens)": "Work period @start – @end (check-in from @opens)",
 };

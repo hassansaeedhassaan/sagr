@@ -121,4 +121,44 @@ void main() {
       expect(a.checkOut, isTrue);
     });
   });
+
+  group('check_in_hours (CheckInHours::summary shape)', () {
+    test('closed: periods, next opening and the server message', () {
+      final next = DateTime.now().add(const Duration(hours: 2));
+      final a = EventAccess.fromJson({
+        'check_in': true,
+        'check_out': false,
+        'walkie': true,
+        'check_in_hours': {
+          'open': false,
+          'periods': [
+            {'start': '9:00 ص', 'end': '1:00 م', 'opens': '8:00 ص'}
+          ],
+          'next_opens_at': next.toUtc().toIso8601String(),
+          'early_minutes': 60,
+          'message': 'لا يمكنك تسجيل الحضور الآن',
+        },
+      });
+      final h = a.checkInHours!;
+      expect(a.checkIn, isTrue);
+      expect(h.open, isFalse);
+      expect(h.closedNow, isTrue);
+      expect(h.periods.single.opens, '8:00 ص');
+      expect(h.message, 'لا يمكنك تسجيل الحضور الآن');
+    });
+
+    test('a stale "closed" past its next opening is not trusted', () {
+      final h = CheckInHours.fromJson({
+        'open': false,
+        'next_opens_at':
+            DateTime.now().subtract(const Duration(minutes: 1)).toUtc().toIso8601String(),
+      });
+      expect(h.closedNow, isFalse);
+    });
+
+    test('older servers send no block', () {
+      final a = EventAccess.fromJson({'check_in': true, 'check_out': false, 'walkie': true});
+      expect(a.checkInHours, isNull);
+    });
+  });
 }
