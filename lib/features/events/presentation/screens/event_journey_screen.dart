@@ -856,6 +856,17 @@ class _EventJourneyScreenState extends State<EventJourneyScreen> {
                   arguments: event.id),
             ),
           ],
+          if (access.walkieHistory) ...[
+            const Divider(height: 16, color: AppTheme.line),
+            _toolRow(
+              icon: Icons.forum_rounded,
+              title: 'Walkie-talkie history'.tr,
+              subtitle: 'Who said what on your channels, and when.'.tr,
+              enabled: true,
+              onTap: () =>
+                  Get.toNamed('/event_walkie_history', arguments: event.id),
+            ),
+          ],
           if (access.recordings) ...[
             const Divider(height: 16, color: AppTheme.line),
             _toolRow(

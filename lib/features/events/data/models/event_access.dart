@@ -28,6 +28,10 @@ class EventAccess {
   /// recordings, during the event or after it.
   final bool recordings;
 
+  /// Accepted and placed on the event: may go back through the message
+  /// history of their walkie-talkie channels, during the event or after it.
+  final bool walkieHistory;
+
   const EventAccess({
     required this.checkIn,
     this.checkInReason,
@@ -36,6 +40,7 @@ class EventAccess {
     required this.walkie,
     this.walkieReason,
     this.recordings = false,
+    this.walkieHistory = false,
   });
 
   /// Accepted and placed in a zone: attendance and the walkie-talkie belong
@@ -63,6 +68,7 @@ class EventAccess {
       walkie: json['walkie'] == true,
       walkieReason: reason(json['walkie_reason']),
       recordings: json['recordings'] == true,
+      walkieHistory: json['walkie_history'] == true,
     );
   }
 

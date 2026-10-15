@@ -228,31 +228,36 @@ class _CreateEvocationBottomSheetState
   // ============================================================
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.92,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
-          _header(),
-          _stepper(),
-          Expanded(
-            child: Form(
-              key: _formKey,
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _formStep(),
-                  _reviewStep(),
-                ],
+    return GestureDetector(
+      // Tapping anywhere outside a field closes the keyboard.
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.92,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            _header(),
+            _stepper(),
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: PageView(
+                  controller: _pageController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _formStep(),
+                    _reviewStep(),
+                  ],
+                ),
               ),
             ),
-          ),
-          _footer(),
-        ],
+            _footer(),
+          ],
+        ),
       ),
     );
   }
@@ -408,6 +413,7 @@ class _CreateEvocationBottomSheetState
   // ---- Step 1: form ----
   Widget _formStep() {
     return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       child: Column(
@@ -441,6 +447,7 @@ class _CreateEvocationBottomSheetState
   // ---- Step 2: review ----
   Widget _reviewStep() {
     return SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       child: Column(

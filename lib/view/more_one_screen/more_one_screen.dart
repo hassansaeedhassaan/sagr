@@ -118,6 +118,13 @@ class _MoreOneScreenState extends State<MoreOneScreen>
                             ),
 
 
+                            _buildEnhancedMenuItem(
+                              icon: Icons.account_balance_wallet_outlined,
+                              title: "My dues".tr,
+                              subtitle: "Your pay, overtime and deductions".tr,
+                              onTap: () => Get.toNamed('/payroll/my-dues'),
+                            ),
+
                               _buildEnhancedMenuItem(
                               icon: Icons.report,
                               title: "Attendance Reports".tr,
