@@ -173,6 +173,7 @@ class _AttendanceAndDepartureScreenState
                       channelName:
                           eventController.event!.channel!.channelName,
                       eventId: eventController.event!.id,
+                      label: eventController.event!.channel!.displayName,
                     ),
                   ],
                   const SizedBox(height: 8),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:sagr/theme/app_theme.dart';
+import 'package:sagr/walkie_talkie/services/walkie_manager.dart';
 import 'package:sagr/walkie_talkie/services/walkie_session.dart';
 
 /// Compact hold-to-talk (push-to-talk) control for the event walkie channel,
@@ -9,9 +10,10 @@ import 'package:sagr/walkie_talkie/services/walkie_session.dart';
 /// has checked in: it joins the event's LiveKit room with the mic OFF, then
 /// publishes audio only while the button is held. Releasing mutes again.
 ///
-/// Owns a [WalkieSession] for the lifetime of the widget and tears it down on
-/// dispose. Fails soft — a failed connect shows a tappable "retry" label rather
-/// than breaking the surrounding screen.
+/// Uses the app's [WalkieManager] session, so the channel stays on after the
+/// screen closes and with the phone locked, until the user leaves it. Fails
+/// soft — a failed connect shows a tappable "retry" label rather than breaking
+/// the surrounding screen.
 class PushToTalkButton extends StatefulWidget {
   /// Walkie channel name for the event → maps 1:1 to a LiveKit room.
   final String channelName;
@@ -19,10 +21,14 @@ class PushToTalkButton extends StatefulWidget {
   /// Event the channel belongs to; needed to request the channel's token.
   final int? eventId;
 
+  /// Channel name to show in the "walkie on" notification and pill.
+  final String? label;
+
   const PushToTalkButton({
     super.key,
     required this.channelName,
     this.eventId,
+    this.label,
   });
 
   @override
@@ -30,16 +36,31 @@ class PushToTalkButton extends StatefulWidget {
 }
 
 class _PushToTalkButtonState extends State<PushToTalkButton> {
-  late final WalkieSession _session;
+  late WalkieSession _session;
 
   @override
   void initState() {
     super.initState();
-    _session = WalkieSession(
+    _bind();
+    // Paused while a chat conversation is open: that one rejoins on its own.
+    if (!WalkieManager.to.pausedForChat.value) _session.connect();
+  }
+
+  /// The manager's session for this channel; asked again on retry in case
+  /// another channel replaced it meanwhile.
+  void _bind() {
+    _session = WalkieManager.to.sessionFor(
       channelName: widget.channelName,
       eventId: widget.eventId,
+      label: widget.label,
+      routeArgs: widget.eventId,
     )..addListener(_onChanged);
-    _session.connect();
+  }
+
+  void _retry() {
+    _session.removeListener(_onChanged);
+    _bind();
+    _session.retry();
   }
 
   void _onChanged() {
@@ -49,7 +70,6 @@ class _PushToTalkButtonState extends State<PushToTalkButton> {
   @override
   void dispose() {
     _session.removeListener(_onChanged);
-    _session.dispose();
     super.dispose();
   }
 
@@ -78,7 +98,7 @@ class _PushToTalkButtonState extends State<PushToTalkButton> {
     return Column(
       children: [
         GestureDetector(
-          onTap: failed ? _session.retry : null,
+          onTap: failed ? _retry : null,
           onTapDown: ready ? (_) => _session.startTalking() : null,
           onTapUp: ready ? (_) => _session.stopTalking() : null,
           onTapCancel: ready ? _session.stopTalking : null,

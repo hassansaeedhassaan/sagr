@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sagr/features/events/data/models/event_access.dart';
 import 'package:sagr/features/events/data/models/event_model.dart';
 import 'package:sagr/features/events/presentation/controllers/event_controller.dart';
+import 'package:sagr/walkie_talkie/services/walkie_manager.dart';
 import 'package:sagr/walkie_talkie/services/walkie_session.dart';
 import 'package:sagr/walkie_talkie/walkie_dev_config.dart';
 import 'package:sagr/widgets/skeletons/app_skeleton.dart';
@@ -18,7 +19,9 @@ enum WalkieChannelKind { team, supervisor }
 /// Both the team channel (`/event_walkie_talkie`) and the supervisors channel
 /// (`/event_supervisor_walkie_talkie`) render through this screen — they only
 /// differ by which [ChannelInfo] they read and where the swap button goes.
-/// The LiveKit room lifecycle lives in [WalkieSession].
+/// The LiveKit room lifecycle lives in [WalkieSession], owned by
+/// [WalkieManager]: a joined channel stays on after this screen closes and
+/// while the app is in the background, until the user leaves it.
 class LiveKitWalkieScreen extends StatefulWidget {
   const LiveKitWalkieScreen({super.key, this.kind = WalkieChannelKind.team});
 
@@ -91,8 +94,12 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
     // before the backend assigns channels.
     if (WalkieDevConfig.enabled &&
         (channel == null || channel.channelName.isEmpty)) {
-      final session =
-          WalkieSession(channelName: WalkieDevConfig.fallbackChannel);
+      final session = WalkieManager.to.sessionFor(
+        channelName: WalkieDevConfig.fallbackChannel,
+        label: WalkieDevConfig.fallbackChannel,
+        route: _route,
+        routeArgs: _eventId ?? event?.id,
+      );
       session.addListener(_onSessionChanged);
       setState(() {
         _resolving = false;
@@ -117,9 +124,12 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
       return;
     }
 
-    final session = WalkieSession(
+    final session = WalkieManager.to.sessionFor(
       channelName: channel.channelName,
       eventId: event?.id,
+      label: channel.displayName ?? channel.channelName,
+      route: _route,
+      routeArgs: _eventId ?? event?.id,
     );
     session.addListener(_onSessionChanged);
     setState(() {
@@ -130,6 +140,10 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
       _session = session;
     });
   }
+
+  String get _route => widget.kind == WalkieChannelKind.supervisor
+      ? '/event_supervisor_walkie_talkie'
+      : '/event_walkie_talkie';
 
   ChannelInfo? _channelOf(EventModel event) =>
       widget.kind == WalkieChannelKind.supervisor
@@ -152,8 +166,9 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
 
   @override
   void dispose() {
+    // The session belongs to WalkieManager: a joined channel keeps playing
+    // after the screen closes.
     _session?.removeListener(_onSessionChanged);
-    _session?.dispose();
     super.dispose();
   }
 
@@ -528,7 +543,7 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: session.disconnect,
+                onPressed: WalkieManager.to.leave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   shape: RoundedRectangleBorder(
@@ -544,6 +559,12 @@ class _LiveKitWalkieScreenState extends State<LiveKitWalkieScreen> {
                   ),
                 ),
               ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'The channel stays on in the background until you leave it.'.tr,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[500], fontSize: 12.5),
             ),
           ],
         ],

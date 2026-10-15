@@ -882,4 +882,10 @@ const Map<String, String> ar = {
   "in": "في",
   "in @date": "في @date",
   "release to load more": "أفلت لتحميل المزيد",
+  // Walkie-talkie in the background.
+  "Walkie-talkie": "اللاسلكي",
+  "Shown while the walkie-talkie is on in the background.": "يظهر أثناء تشغيل اللاسلكي في الخلفية.",
+  "Walkie-talkie is on": "اللاسلكي يعمل",
+  "Leave": "مغادرة",
+  "The channel stays on in the background until you leave it.": "تظل القناة تعمل في الخلفية حتى لو أغلقت الشاشة أو قفلت الجوال، إلى أن تغادرها.",
 };

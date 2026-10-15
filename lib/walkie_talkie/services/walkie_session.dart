@@ -1,5 +1,6 @@
 import 'package:sagr/core/utils/app_log.dart';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -209,7 +210,11 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
     try {
       await room.connect(tk.url, tk.token);
       // Join muted — only transmit while the talk button is held.
-      await room.localParticipant?.setMicrophoneEnabled(false);
+      if (!kIsWeb && Platform.isIOS) {
+        await _publishMuted(room);
+      } else {
+        await room.localParticipant?.setMicrophoneEnabled(false);
+      }
       await Hardware.instance.setSpeakerphoneOn(true);
     } catch (e, st) {
       // The reason matters when diagnosing a room that won't join; the UI
@@ -228,6 +233,23 @@ class WalkieSession extends ChangeNotifier with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _set(WalkieState.connected);
     _refreshParticipants();
+  }
+
+  /// iOS keeps a backgrounded app running only while its audio session is
+  /// doing I/O. Joined muted with nobody else publishing yet, LiveKit drops
+  /// the session to a non-background category and iOS suspends the app — the
+  /// team then goes silent in the user's pocket. A muted microphone track,
+  /// published from the start, keeps the session in playAndRecord (and makes
+  /// the first press of the talk button instant). The track is disabled
+  /// before it is published, so nothing is sent until the user talks.
+  Future<void> _publishMuted(Room room) async {
+    final lp = room.localParticipant;
+    if (lp == null) return;
+    final track =
+        await LocalAudioTrack.create(room.roomOptions.defaultAudioCaptureOptions);
+    track.mediaStreamTrack.enabled = false;
+    await lp.publishAudioTrack(track);
+    await lp.setMicrophoneEnabled(false);
   }
 
   /// Leaves the room and returns to [WalkieState.idle].
