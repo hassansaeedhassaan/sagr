@@ -83,6 +83,20 @@ class _AttendanceAndDepartureScreenState
   void _armStartReload() {
     _startTimer?.cancel();
     final e = eventController.event;
+
+    // Outside the work period: reload when check-in opens.
+    final opens = e?.access.checkInHours?.nextOpensAt;
+    if (opens != null && !eventController.isCheckedIn) {
+      final wait = opens.difference(DateTime.now());
+      if (wait > Duration.zero && wait <= const Duration(days: 1)) {
+        _startTimer = Timer(wait + const Duration(seconds: 2), () {
+          if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+          _load();
+        });
+        return;
+      }
+    }
+
     final sdt = e?.startDateTime;
     if (e == null ||
         sdt == null ||
@@ -597,6 +611,13 @@ class _AttendanceAndDepartureScreenState
   Widget _windowNotice() {
     final access = eventController.event?.access;
     if (access == null) return const SizedBox.shrink();
+    final hours = access.checkInHours;
+    if (!eventController.isCheckedIn &&
+        access.checkInReason == null &&
+        hours != null &&
+        hours.closedNow) {
+      return _hoursNotice(hours);
+    }
     final reason = eventController.isCheckedIn
         ? access.checkOutReason
         : access.checkInReason;
@@ -636,6 +657,77 @@ class _AttendanceAndDepartureScreenState
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textBody,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Outside the work period: the hours check-in keeps to, and when it opens.
+  Widget _hoursNotice(CheckInHours hours) {
+    final opens = hours.nextOpensAt;
+    final today = DateUtils.dateOnly(DateTime.now());
+    String? when;
+    if (opens != null) {
+      final time = DateFormat.jm(_locale).format(opens);
+      final day = DateUtils.dateOnly(opens);
+      when = day == today
+          ? 'Check-in opens today at @time'.trParams({'time': time})
+          : day == today.add(const Duration(days: 1))
+              ? 'Check-in opens tomorrow at @time'.trParams({'time': time})
+              : 'Check-in opens @date at @time'.trParams({
+                  'date': DateFormat('EEEE d MMMM', _locale).format(opens),
+                  'time': time,
+                });
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.warning.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.warning.withOpacity(0.40)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.schedule_rounded, size: 16, color: AppTheme.warning),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Outside your work period'.tr,
+                  style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textTitle),
+                ),
+                const SizedBox(height: 4),
+                for (final p in hours.periods)
+                  Text(
+                    'Work period @start – @end (check-in from @opens)'
+                        .trParams({'start': p.start, 'end': p.end, 'opens': p.opens}),
+                    style: const TextStyle(
+                        fontSize: 12, height: 1.4, color: AppTheme.textBody),
+                  ),
+                if (when != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      when,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textBody),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

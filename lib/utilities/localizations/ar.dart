@@ -882,4 +882,11 @@ const Map<String, String> ar = {
   "in": "في",
   "in @date": "في @date",
   "release to load more": "أفلت لتحميل المزيد",
+  // Check-in hours.
+  "Outside your work period": "خارج فترة عملك",
+  "Check-in is only open during your work period.": "تسجيل الحضور متاح فقط خلال فترة عملك.",
+  "Check-in opens today at @time": "يُفتح تسجيل الحضور اليوم الساعة @time",
+  "Check-in opens tomorrow at @time": "يُفتح تسجيل الحضور غداً الساعة @time",
+  "Check-in opens @date at @time": "يُفتح تسجيل الحضور @date الساعة @time",
+  "Work period @start – @end (check-in from @opens)": "فترة العمل @start – @end (التسجيل من @opens)",
 };
